@@ -15,21 +15,10 @@
 #
 # Copyright 2014-2015 Chris Foster
 
-set(include
-)
+set(include ${include}
+	util/locked_accessor.hpp
+PARENT_SCOPE)
 
-set(source
-	main.cpp
-)
-
-#add_subdirectory(glass)
-add_subdirectory(util)
-
-set(SOURCE .)
-
-include_directories(${Boost_INCLUDE_DIRS}
-					${SOURCE})
-
-add_executable(glass ${include} ${source})
-
-target_link_libraries(glass pthread)
+set(source ${source}
+	
+PARENT_SCOPE)
