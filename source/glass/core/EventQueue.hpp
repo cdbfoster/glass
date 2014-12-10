@@ -35,8 +35,12 @@ namespace Glass
 
 		~EventQueue();
 
+		// EventQueue takes ownership of added events
 		void			AddEvent(Event const &Add);
 
+		bool			IsEmpty() const;
+
+		// EventQueue gives ownership of returned events
 		Event const	   *WaitForEvent();
 		Event const	   *PollForEvent();
 
