@@ -49,6 +49,15 @@ namespace Glass
 
 		virtual Vector	GetMousePosition() = 0;
 
+	protected: // For internal, locked access
+		locked_accessor<RootWindowList>		GetRootWindows();
+		locked_accessor<ClientWindowList>	GetClientWindows();
+
+	protected: // WindowDecorator is allowed to make changes to the server's auxiliary window list
+		friend class WindowDecorator;
+
+		locked_accessor<AuxiliaryWindowList> GetAuxiliaryWindows();
+
 	protected: // Window manipulation interface -- not to be used directly, use the Window interfaces
 		friend class AuxiliaryWindow;
 		friend class ClientWindow;
@@ -70,15 +79,6 @@ namespace Glass
 		virtual void SetClientWindowUrgent(ClientWindow &ClientWindow, bool Value) = 0;
 
 		virtual void CloseClientWindow(ClientWindow const &ClientWindow) = 0;
-
-	protected: // For internal, locked access
-		locked_accessor<RootWindowList>		GetRootWindows();
-		locked_accessor<ClientWindowList>	GetClientWindows();
-
-	protected: // WindowDecorator is allowed to make changes to the server's auxiliary window list
-		friend class WindowDecorator;
-
-		locked_accessor<AuxiliaryWindowList> GetAuxiliaryWindows();
 
 	protected:
 		virtual void ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow) = 0;
