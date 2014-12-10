@@ -28,7 +28,7 @@ set(glass_include ${glass_include}
 PARENT_SCOPE)
 
 set(glass_source ${glass_source}
-	#core/DisplayServer.cpp
+	core/DisplayServer.cpp
 	#core/EventQueue.cpp
 	#core/InputListener.cpp
 	#core/Window.cpp

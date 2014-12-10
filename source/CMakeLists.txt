@@ -22,7 +22,7 @@ set(source
 	main.cpp
 )
 
-#add_subdirectory(glass)
+add_subdirectory(glass)
 add_subdirectory(util)
 
 set(SOURCE .)
