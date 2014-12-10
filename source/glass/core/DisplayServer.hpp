@@ -125,9 +125,9 @@ namespace Glass
 		ClientWindowList	ClientWindows;
 		AuxiliaryWindowList	AuxiliaryWindows;
 
-		std::mutex			RootWindowsMutex;
-		std::mutex			ClientWindowsMutex;
-		std::mutex			AuxiliaryWindowsMutex;
+		mutable std::mutex	RootWindowsMutex;
+		mutable std::mutex	ClientWindowsMutex;
+		mutable std::mutex	AuxiliaryWindowsMutex;
 	};
 }
 

@@ -124,7 +124,7 @@ namespace Glass
 
 	protected:
 		AuxiliaryWindowList	AuxiliaryWindows;
-		std::mutex			AuxiliaryWindowsMutex;
+		mutable std::mutex	AuxiliaryWindowsMutex;
 	};
 
 	typedef std::list<PrimaryWindow *> PrimaryWindowList;
@@ -268,7 +268,7 @@ namespace Glass
 		Vector ActiveSize;
 
 		ClientWindowList	ClientWindows;
-		std::mutex			ClientWindowsMutex;
+		mutable std::mutex	ClientWindowsMutex;
 	};
 
 	typedef std::list<RootWindow *> RootWindowList;

@@ -52,8 +52,8 @@ namespace Glass
 		RootWindowList			RootWindows;
 		ClientWindowList		ClientWindows;
 
-		std::mutex				RootWindowsMutex;
-		std::mutex				ClientWindowsMutex;
+		mutable std::mutex	RootWindowsMutex;
+		mutable std::mutex	ClientWindowsMutex;
 	};
 }
 
