@@ -29,7 +29,7 @@ PARENT_SCOPE)
 
 set(glass_source ${glass_source}
 	core/DisplayServer.cpp
-	#core/EventQueue.cpp
+	core/EventQueue.cpp
 	#core/InputListener.cpp
 	#core/Window.cpp
 	#core/WindowLayout.cpp
