@@ -17,26 +17,18 @@
 * Copyright 2014-2015 Chris Foster
 */
 
-#ifndef GLASS_CORE_INPUTLISTENER
-#define GLASS_CORE_INPUTLISTENER
+#include "glass/core/InputListener.hpp"
 
-namespace Glass
+using namespace Glass;
+
+InputListener::InputListener(EventQueue &OutgoingEventQueue) :
+	OutgoingEventQueue(OutgoingEventQueue)
 {
-	class EventQueue;
 
-	// Listens (probably on another thread) for input and translates it into events to send to the event queue
-
-	class InputListener
-	{
-	public:
-		InputListener(EventQueue &OutgoingEventQueue);
-		InputListener(InputListener const &Other) = delete;
-
-		virtual ~InputListener();
-
-	protected:
-		EventQueue &OutgoingEventQueue;
-	};
 }
 
-#endif
+
+InputListener::~InputListener()
+{
+
+}
