@@ -58,9 +58,9 @@ namespace Glass
 	protected:
 		Glass::DisplayServer &DisplayServer;
 
-		Vector Position;
-		Vector Size;
-		bool Visible;
+		Vector	Position;
+		Vector	Size;
+		bool	Visible;
 	};
 
 	typedef std::list<Window *> WindowList;
@@ -74,7 +74,7 @@ namespace Glass
 		enum class Type { FRAME,
 						  UTILITY };
 
-		AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
+		AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name, Type TypeValue,
 						Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible);
 		AuxiliaryWindow(AuxiliaryWindow const &Other) = delete;
 
@@ -82,16 +82,17 @@ namespace Glass
 
 		Glass::PrimaryWindow   &GetPrimaryWindow() const;
 		std::string				GetName() const;
+		Type					GetType() const;
 
 		void SetName(std::string const &Name);
 
-		virtual Type GetType() const = 0;
 		virtual void HandleEvent(Event const &Event) = 0;
 		virtual void Update() = 0;
 
 	protected:
-		Glass::PrimaryWindow &PrimaryWindow;
-		std::string Name;
+		Glass::PrimaryWindow   &PrimaryWindow;
+		std::string				Name;
+		Type					TypeValue;
 	};
 
 	typedef std::list<AuxiliaryWindow *> AuxiliaryWindowList;
@@ -106,16 +107,6 @@ namespace Glass
 		~PrimaryWindow();
 
 		locked_accessor<AuxiliaryWindowList const> GetAuxiliaryWindows() const;
-
-		void SetPosition(Vector const &Position);
-		void SetSize(Vector const &Size);
-		void SetVisibility(bool Visible);
-
-		void Raise();
-		void Lower();
-
-	protected:
-		void UpdateAuxiliaryWindows();
 
 	private:
 		friend class WindowDecorator;
@@ -172,12 +163,12 @@ namespace Glass
 	private:
 		friend class DisplayServer;
 
-		void SetName(std::string const &Name);
+		void SetName(std::string const &Name);  // XXX Does this need to be made thread-safe?
 
 	private:
 		friend class Glass::RootWindow;
 
-		void SetRootWindow(Glass::RootWindow &RootWindow);
+		void SetRootWindow(Glass::RootWindow *RootWindow);
 
 	private:
 		std::string	Name;
@@ -201,7 +192,7 @@ namespace Glass
 		class ClientWindowList;
 
 	public:
-		RootWindow(Vector const &ActivePosition, Vector const &ActiveSize, Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size);
+		RootWindow(Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size);
 		RootWindow(RootWindow const &Other) = delete;
 		~RootWindow();
 
@@ -210,12 +201,6 @@ namespace Glass
 
 		ClientWindow   *GetActiveClientWindow() const;
 		void			SetActiveClientWindow(ClientWindow &ClientWindow);
-
-		Vector GetActivePosition() const;
-		Vector GetActiveSize() const;
-
-		void SetActivePosition(Vector const &ActivePosition);
-		void SetActiveSize(Vector const &ActiveSize);
 
 		// These operations are not allowed on root windows
 		void SetPosition(Vector const &Position);
@@ -263,9 +248,6 @@ namespace Glass
 
 	private:
 		ClientWindow *ActiveClientWindow;
-
-		Vector ActivePosition;
-		Vector ActiveSize;
 
 		ClientWindowList	ClientWindows;
 		mutable std::mutex	ClientWindowsMutex;

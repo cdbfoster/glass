@@ -31,7 +31,7 @@ set(glass_source ${glass_source}
 	core/DisplayServer.cpp
 	core/EventQueue.cpp
 	core/InputListener.cpp
-	#core/Window.cpp
+	core/Window.cpp
 	#core/WindowLayout.cpp
 	#core/WindowManager.cpp
 PARENT_SCOPE)
