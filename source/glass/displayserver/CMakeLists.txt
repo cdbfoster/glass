@@ -15,19 +15,10 @@
 #
 # Copyright 2014-2015 Chris Foster
 
-set(glass_include)
-set(glass_source)
-
-add_subdirectory(core)
-add_subdirectory(displayserver)
-
-prefix_list(glass_include "glass/")
-prefix_list(glass_source "glass/")
-
-set(include ${include}
-	${glass_include}
+set(glass_include ${glass_include}
+	displayserver/X11XCB_DisplayServer.hpp
 PARENT_SCOPE)
 
-set(source ${source}
-	${glass_source}
+set(glass_source ${glass_source}
+	#displayserver/X11XCB_DisplayServer.cpp
 PARENT_SCOPE)
