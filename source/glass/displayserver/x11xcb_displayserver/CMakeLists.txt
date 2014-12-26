@@ -17,10 +17,12 @@
 
 set(x11xcb_displayserver_include
 	x11xcb_displayserver/Atoms.hpp
+	x11xcb_displayserver/WindowData.hpp
 )
 
 set(x11xcb_displayserver_source
 	x11xcb_displayserver/Atoms.cpp
+	x11xcb_displayserver/WindowData.cpp
 )
 
 prefix_list(x11xcb_displayserver_include "displayserver/")
