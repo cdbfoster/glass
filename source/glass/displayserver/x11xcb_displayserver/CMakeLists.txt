@@ -15,12 +15,21 @@
 #
 # Copyright 2014-2015 Chris Foster
 
-add_subdirectory(x11xcb_displayserver)
+set(x11xcb_displayserver_include
+	x11xcb_displayserver/Atoms.hpp
+)
+
+set(x11xcb_displayserver_source
+	x11xcb_displayserver/Atoms.cpp
+)
+
+prefix_list(x11xcb_displayserver_include "displayserver/")
+prefix_list(x11xcb_displayserver_source "displayserver/")
 
 set(glass_include ${glass_include}
-	displayserver/X11XCB_DisplayServer.hpp
+	${x11xcb_displayserver_include}
 PARENT_SCOPE)
 
 set(glass_source ${glass_source}
-	#displayserver/X11XCB_DisplayServer.cpp
+	${x11xcb_displayserver_source}
 PARENT_SCOPE)
