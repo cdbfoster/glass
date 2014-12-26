@@ -54,6 +54,10 @@ namespace Glass
 	protected:
 		void ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow);
 		void DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow);
+
+	private:
+		struct Implementation;
+		Implementation *Data;
 	};
 }
 
