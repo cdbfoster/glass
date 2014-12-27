@@ -266,7 +266,7 @@ void RootWindow::AddClientWindow(ClientWindow &ClientWindow)
 		return;
 	}
 
-	if (OldRoot != NULL)
+	if (OldRoot != nullptr)
 		OldRoot->RemoveClientWindow(ClientWindow);
 
 	ClientWindow.SetRootWindow(this);
@@ -278,9 +278,9 @@ void RootWindow::RemoveClientWindow(ClientWindow &ClientWindow)
 	if (std::find(this->ClientWindows.begin(), this->ClientWindows.end(), &ClientWindow) != this->ClientWindows.end())
 	{
 		if (this->ActiveClientWindow == &ClientWindow)
-			this->ActiveClientWindow = NULL;
+			this->ActiveClientWindow = nullptr;
 
-		ClientWindow.SetRootWindow(NULL);
+		ClientWindow.SetRootWindow(nullptr);
 	}
 }
 

@@ -37,7 +37,7 @@ public:
 	// Can be moved, but not copied
 	locked_accessor(locked_accessor &&Other) : Accessed(Other.Accessed), Mutex(Other.Mutex)
 	{
-		Other.Mutex = NULL;
+		Other.Mutex = nullptr;
 	}
 
 	locked_accessor(locked_accessor const &Other) = delete;
@@ -45,7 +45,7 @@ public:
 
 	~locked_accessor()
 	{
-		if (this->Mutex != NULL)
+		if (this->Mutex != nullptr)
 			this->Mutex->unlock();
 	}
 

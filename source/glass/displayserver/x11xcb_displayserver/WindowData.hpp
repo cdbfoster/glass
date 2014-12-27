@@ -129,6 +129,8 @@ namespace Glass
 			WindowToDataMap::const_iterator Base;
 		};
 
+		~WindowDataContainer();
+
 		iterator		begin();
 		const_iterator	begin() const;
 		const_iterator	cbegin() const;
@@ -140,6 +142,7 @@ namespace Glass
 		bool		empty() const;
 		size_type	size() const;
 
+		// WindowDataContainer takes ownership of WindowData
 		void		push_back(value_type &WindowData);
 		size_type	erase(Window const *Window);
 		size_type	erase(xcb_window_t ID);

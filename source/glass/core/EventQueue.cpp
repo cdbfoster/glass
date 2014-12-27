@@ -53,13 +53,13 @@ EventQueue::EventQueue() :
 EventQueue::EventQueue(EventQueue &&Other) :
 	Data(Other.Data)
 {
-	Other.Data = NULL;
+	Other.Data = nullptr;
 }
 
 
 EventQueue::~EventQueue()
 {
-	if (this->Data != NULL)
+	if (this->Data != nullptr)
 		delete this->Data;
 }
 
@@ -89,7 +89,7 @@ Event const *EventQueue::PollForEvent()
 	std::unique_lock<std::mutex> Lock(this->Data->EventsMutex);
 
 	if (this->Data->Events.empty())
-		return NULL;
+		return nullptr;
 
 	Event const *NextEvent = this->Data->Events.front();
 	this->Data->Events.pop();

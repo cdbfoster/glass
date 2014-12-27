@@ -195,6 +195,13 @@ WindowDataContainer::const_iterator::const_pointer WindowDataContainer::const_it
 }
 
 
+WindowDataContainer::~WindowDataContainer()
+{
+	for (auto &WindowData : *this)
+		delete WindowData;
+}
+
+
 WindowDataContainer::iterator		WindowDataContainer::begin()		{ return this->WindowToData.begin(); }
 WindowDataContainer::const_iterator	WindowDataContainer::begin() const	{ return this->WindowToData.begin(); }
 WindowDataContainer::const_iterator	WindowDataContainer::cbegin() const	{ return this->WindowToData.cbegin(); }
@@ -211,9 +218,9 @@ WindowDataContainer::size_type	WindowDataContainer::size() const	{ return this->
 
 void WindowDataContainer::push_back(value_type &WindowData)
 {
-	if (WindowData == NULL)
+	if (WindowData == nullptr)
 	{
-		LOG_DEBUG_WARNING << "Attempting to add a NULL WindowData!" << std::endl;
+		LOG_DEBUG_WARNING << "Attempting to add a nullptr WindowData!" << std::endl;
 		return;
 	}
 

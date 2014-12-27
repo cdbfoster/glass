@@ -114,7 +114,7 @@ void Atoms::Initialize(xcb_connection_t *XConnection)
 	Index = 0;
 	for (auto &Atom : Atoms)
 	{
-		if (!(AtomReply = xcb_intern_atom_reply(XConnection, AtomCookies[Index++], NULL)))
+		if (!(AtomReply = xcb_intern_atom_reply(XConnection, AtomCookies[Index++], nullptr)))
 		{
 			LOG_ERROR << "Could not retrieve atom " << Atom.Name << "!" << std::endl;
 			continue;
