@@ -17,6 +17,7 @@
 * Copyright 2014-2015 Chris Foster
 */
 
+#include "glass/core/Log.hpp"
 #include "glass/displayserver/x11xcb_displayserver/Implementation.hpp"
 
 using namespace Glass;
@@ -29,4 +30,26 @@ X11XCB_DisplayServer::Implementation::Implementation(X11XCB_DisplayServer &Displ
 	ActiveClientWindow(nullptr)
 {
 
+}
+
+
+locked_accessor<RootWindowList>		X11XCB_DisplayServer::Implementation::GetRootWindows()		{ return this->DisplayServer.GetRootWindows(); }
+locked_accessor<ClientWindowList>	X11XCB_DisplayServer::Implementation::GetClientWindows()	{ return this->DisplayServer.GetClientWindows(); }
+
+
+RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDList const &WindowIDs)
+{
+	for (auto &WindowID : WindowIDs)
+		LOG_DEBUG_INFO << WindowID << std::endl;
+
+	return RootWindowList();
+}
+
+
+ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(WindowIDList const &WindowIDs)
+{
+	for (auto &WindowID : WindowIDs)
+		LOG_DEBUG_INFO << WindowID << std::endl;
+
+	return ClientWindowList();
 }

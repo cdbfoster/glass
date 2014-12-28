@@ -22,5 +22,5 @@ set(glass_include ${glass_include}
 PARENT_SCOPE)
 
 set(glass_source ${glass_source}
-	#displayserver/X11XCB_DisplayServer.cpp
+	displayserver/X11XCB_DisplayServer.cpp
 PARENT_SCOPE)
