@@ -20,18 +20,46 @@
 #ifndef GLASS_CORE_EVENT
 #define GLASS_CORE_EVENT
 
+#include "glass/core/Window.hpp"
+
 namespace Glass
 {
-	class Event
+	struct Event
 	{
-	public:
-		enum class Type { ENTER_WINDOW,
+		enum class Type { ROOT_CREATE,
+						  CLIENT_CREATE,
+						  ENTER_WINDOW,
 						  LEAVE_WINDOW };
 
 		virtual ~Event() { }
 
 		virtual Type GetType() const = 0;
 	};
+
+
+	struct RootCreate_Event : public Event
+	{
+		RootCreate_Event(Glass::RootWindow &RootWindow) :
+			RootWindow(RootWindow)
+		{ }
+
+		Type GetType() const { return Type::ROOT_CREATE; }
+
+		Glass::RootWindow &RootWindow;
+	};
+
+
+	struct ClientCreate_Event : public Event
+	{
+		ClientCreate_Event(Glass::ClientWindow &ClientWindow) :
+			ClientWindow(ClientWindow)
+		{ }
+
+		Type GetType() const { return Type::CLIENT_CREATE; }
+
+		Glass::ClientWindow &ClientWindow;
+	};
+
 }
 
 #endif
