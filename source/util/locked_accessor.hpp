@@ -50,7 +50,7 @@ public:
 	}
 
 
-	T &get() const
+	T &operator*() const
 	{
 		return this->Accessed;
 	}
