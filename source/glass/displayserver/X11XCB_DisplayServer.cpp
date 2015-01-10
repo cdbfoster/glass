@@ -27,6 +27,7 @@
 #include "glass/core/Log.hpp"
 #include "glass/displayserver/X11XCB_DisplayServer.hpp"
 #include "glass/displayserver/x11xcb_displayserver/Atoms.hpp"
+#include "glass/displayserver/x11xcb_displayserver/EventHandler.hpp"
 #include "glass/displayserver/x11xcb_displayserver/Implementation.hpp"
 
 using namespace Glass;
@@ -213,13 +214,19 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 	xcb_aux_sync(this->Data->XConnection);
 
 
-	// Create event listener
+	// Create event handler
+	this->Data->Handler = new Implementation::EventHandler(*this->Data);
 }
 
 
 X11XCB_DisplayServer::~X11XCB_DisplayServer()
 {
+	// Destroy event handler
+	delete this->Data->Handler;
 
+
+	// Disconnect from the server
+	xcb_disconnect(this->Data->XConnection);
 }
 
 

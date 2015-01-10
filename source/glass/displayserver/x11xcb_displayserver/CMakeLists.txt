@@ -17,12 +17,14 @@
 
 set(x11xcb_displayserver_include
 	x11xcb_displayserver/Atoms.hpp
+	x11xcb_displayserver/EventHandler.hpp
 	x11xcb_displayserver/Implementation.hpp
 	x11xcb_displayserver/WindowData.hpp
 )
 
 set(x11xcb_displayserver_source
 	x11xcb_displayserver/Atoms.cpp
+	x11xcb_displayserver/EventHandler.cpp
 	x11xcb_displayserver/Implementation.cpp
 	x11xcb_displayserver/WindowData.cpp
 )

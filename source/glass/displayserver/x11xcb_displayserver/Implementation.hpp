@@ -46,16 +46,25 @@ namespace Glass
 		xcb_window_t SupportingWindowID; // EWMH supporting window
 
 
-		// Active windows
-		RootWindow *ActiveRootWindow;
-		ClientWindow *ActiveClientWindow;
+		// Event handling
+		class EventHandler; // Defined in x11xcb_displayserver/EventHandler.hpp
+		EventHandler *Handler;
 
-		mutable std::mutex ActiveRootWindowMutex;
-		mutable std::mutex ActiveClientWindowMutex;
+
+		// Active windows
+		RootWindow		   *ActiveRootWindow;
+		mutable std::mutex	ActiveRootWindowMutex;
+		locked_accessor<RootWindow *> GetActiveRootWindow();
+
+		ClientWindow	   *ActiveClientWindow;
+		mutable std::mutex	ActiveClientWindowMutex;
+		locked_accessor<ClientWindow *> GetActiveClientWindow();
 
 
 		// Window data
-		Glass::WindowDataContainer WindowData;
+		WindowDataContainer	WindowData;
+		mutable std::mutex	WindowDataMutex;
+		locked_accessor<WindowDataContainer> GetWindowData();
 
 
 		// For internal access
