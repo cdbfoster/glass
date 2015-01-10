@@ -130,13 +130,13 @@ PrimaryWindow::~PrimaryWindow()
 
 locked_accessor<AuxiliaryWindowList const> PrimaryWindow::GetAuxiliaryWindows() const
 {
-	return locked_accessor<AuxiliaryWindowList const>(this->AuxiliaryWindows, this->AuxiliaryWindowsMutex);
+	return {this->AuxiliaryWindows, this->AuxiliaryWindowsMutex};
 }
 
 
 locked_accessor<AuxiliaryWindowList> PrimaryWindow::GetAuxiliaryWindows()
 {
-	return locked_accessor<AuxiliaryWindowList>(this->AuxiliaryWindows, this->AuxiliaryWindowsMutex);
+	return {this->AuxiliaryWindows, this->AuxiliaryWindowsMutex};
 }
 
 
@@ -234,13 +234,13 @@ RootWindow::~RootWindow()
 
 locked_accessor<RootWindow::ClientWindowList> RootWindow::GetClientWindows()
 {
-	return locked_accessor<ClientWindowList>(this->ClientWindows, this->ClientWindowsMutex);
+	return {this->ClientWindows, this->ClientWindowsMutex};
 }
 
 
 locked_accessor<RootWindow::ClientWindowList const> RootWindow::GetClientWindows() const
 {
-	return locked_accessor<ClientWindowList const>(this->ClientWindows, this->ClientWindowsMutex);
+	return {this->ClientWindows, this->ClientWindowsMutex};
 }
 
 
