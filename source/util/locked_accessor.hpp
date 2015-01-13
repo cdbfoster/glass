@@ -55,6 +55,12 @@ public:
 		return this->Accessed;
 	}
 
+
+	T *operator->() const
+	{
+		return &this->Accessed;
+	}
+
 private:
 	T		   &Accessed;
 	std::mutex *Mutex;
