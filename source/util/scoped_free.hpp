@@ -20,8 +20,6 @@
 #ifndef UTIL_SCOPED_FREE
 #define UTIL_SCOPED_FREE
 
-#include "glass/core/Log.hpp"
-
 // Free the contained pointer when this object goes out of scope
 
 // No-op version for non-pointer types
