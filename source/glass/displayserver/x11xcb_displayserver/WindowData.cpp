@@ -38,8 +38,9 @@ ClientWindowData::ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID,
 }
 
 
-RootWindowData::RootWindowData(Glass::RootWindow &Window, xcb_window_t ID, uint32_t EventMask) :
+RootWindowData::RootWindowData(Glass::RootWindow &Window, xcb_window_t ID, xcb_window_t SupportingWindowID, uint32_t EventMask) :
 	WindowData(Window, ID),
+	SupportingWindowID(SupportingWindowID),
 	EventMask(EventMask)
 {
 
@@ -216,7 +217,7 @@ bool							WindowDataContainer::empty() const	{ return this->WindowToData.empty(
 WindowDataContainer::size_type	WindowDataContainer::size() const	{ return this->WindowToData.size(); }
 
 
-void WindowDataContainer::push_back(value_type &WindowData)
+void WindowDataContainer::push_back(value_type WindowData)
 {
 	if (WindowData == nullptr)
 	{
