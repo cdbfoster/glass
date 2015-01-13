@@ -47,8 +47,9 @@ namespace Glass
 
 	struct RootWindowData : public WindowData
 	{
-		RootWindowData(Glass::RootWindow &Window, xcb_window_t ID, uint32_t EventMask);
+		RootWindowData(Glass::RootWindow &Window, xcb_window_t ID, xcb_window_t SupportingWindowID, uint32_t EventMask);
 
+		xcb_window_t const SupportingWindowID;
 		uint32_t const EventMask;
 	};
 
@@ -143,7 +144,7 @@ namespace Glass
 		size_type	size() const;
 
 		// WindowDataContainer takes ownership of WindowData
-		void		push_back(value_type &WindowData);
+		void		push_back(value_type WindowData);
 		size_type	erase(Window const *Window);
 		size_type	erase(xcb_window_t ID);
 		iterator	erase(iterator position);
