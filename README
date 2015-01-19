@@ -2,8 +2,6 @@ Glass Window Manager - Alpha (Build/Use at your own risk!)
 
 Glass is a small, extensible, window manager.  Its highly object-oriented design and use of interfaces allows for modular components with the option of drop-in replacements to change behavior.
 
-Current implementations include an interface into X11 over XCB, a dynamic, tabbed window manager, and a BSP-based, tiling window layout.
-
 All of these components can be modified or easily replaced.  For instance, one could reimplement Glass::WindowLayout to achieve a traditional stacking layout, or even reimplement Glass::DisplayServer to port Glass to Wayland.
 
 This project is in alpha development at the moment.  It is not feature complete and many things do not work quite as intended yet.  Please feel free to email me with questions or comments, but please keep in mind that I am not interested in providing support at such an early stage of development.  When the project moves into beta, I will provide build/configuration instructions, etc.  Like so many other FOSS projects, I work on this in my spare time, so I don't have an estimate on when that might be.
