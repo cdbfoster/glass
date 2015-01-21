@@ -28,7 +28,9 @@
 #include "glass/displayserver/X11XCB_DisplayServer.hpp"
 #include "glass/displayserver/x11xcb_displayserver/Atoms.hpp"
 #include "glass/displayserver/x11xcb_displayserver/EventHandler.hpp"
+#include "glass/displayserver/x11xcb_displayserver/GeometryChange.hpp"
 #include "glass/displayserver/x11xcb_displayserver/Implementation.hpp"
+#include "util/scoped_free.hpp"
 
 using namespace Glass;
 
@@ -230,16 +232,145 @@ X11XCB_DisplayServer::~X11XCB_DisplayServer()
 }
 
 
-void X11XCB_DisplayServer::Sync() { }
+void X11XCB_DisplayServer::Sync()
+{
+	auto GeometryChangesAccessor = this->Data->GetGeometryChanges();
+	for (auto &GeometryChange : *GeometryChangesAccessor)
+	{
+		xcb_window_t const WindowID = GeometryChange.first;
+
+		Vector const &Position = GeometryChange.second->Position;
+		Vector const &Size = GeometryChange.second->Size;
+
+		uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_X |
+									   XCB_CONFIG_WINDOW_Y |
+									   XCB_CONFIG_WINDOW_WIDTH |
+									   XCB_CONFIG_WINDOW_HEIGHT;
+
+		uint32_t const ConfigureValues[] = { (unsigned int)Position.x,
+											 (unsigned int)Position.y,
+											 (unsigned int)Size.x,
+											 (unsigned int)Size.y };
+
+		xcb_configure_window(this->Data->XConnection, WindowID, ConfigureMask, ConfigureValues);
+
+		{
+			scoped_free<xcb_configure_notify_event_t *> ConfigureNotify = (xcb_configure_notify_event_t *)calloc(32, 1);
+
+			ConfigureNotify->event = WindowID;
+			ConfigureNotify->window = WindowID;
+			ConfigureNotify->response_type = XCB_CONFIGURE_NOTIFY;
+			ConfigureNotify->x = Position.x;
+			ConfigureNotify->y = Position.y;
+			ConfigureNotify->width = Size.x;
+			ConfigureNotify->height = Size.y;
+
+			xcb_send_event(this->Data->XConnection, false, WindowID, XCB_EVENT_MASK_STRUCTURE_NOTIFY, (char *)(*ConfigureNotify));
+		}
+
+		delete GeometryChange.second;
+	}
+
+	GeometryChangesAccessor->clear();
+
+	xcb_aux_sync(this->Data->XConnection);
+}
+
 
 Vector X11XCB_DisplayServer::GetMousePosition()
 {
 	return Vector();
 }
 
-void X11XCB_DisplayServer::SetWindowPosition(Window &Window, Vector const &Position) { }
-void X11XCB_DisplayServer::SetWindowSize(Window &Window, Vector const &Size) { }
-void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible) { }
+
+void X11XCB_DisplayServer::SetWindowPosition(Window &Window, Vector const &Position)
+{
+	if (Window.GetVisibility() == true)
+	{
+		auto WindowDataAccessor = this->Data->GetWindowData();
+
+		auto WindowData = WindowDataAccessor->find(&Window);
+		if (WindowData != WindowDataAccessor->end())
+		{
+			auto GeometryChangesAccessor = this->Data->GetGeometryChanges();
+
+			auto GeometryChange = GeometryChangesAccessor->find((*WindowData)->ID);
+			if (GeometryChange == GeometryChangesAccessor->end())
+				GeometryChangesAccessor->insert(std::make_pair((*WindowData)->ID,
+															   new Implementation::GeometryChange(Position, Window.GetSize())));
+			else
+				GeometryChange->second->Position = Position;
+		}
+		else
+			LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set window position." << std::endl;
+	}
+}
+
+
+void X11XCB_DisplayServer::SetWindowSize(Window &Window, Vector const &Size)
+{
+	if (Window.GetVisibility() == true)
+	{
+		auto WindowDataAccessor = this->Data->GetWindowData();
+
+		auto WindowData = WindowDataAccessor->find(&Window);
+		if (WindowData != WindowDataAccessor->end())
+		{
+			auto GeometryChangesAccessor = this->Data->GetGeometryChanges();
+
+			auto GeometryChange = GeometryChangesAccessor->find((*WindowData)->ID);
+			if (GeometryChange == GeometryChangesAccessor->end())
+				GeometryChangesAccessor->insert(std::make_pair((*WindowData)->ID,
+															   new Implementation::GeometryChange(Window.GetPosition(), Size)));
+			else
+				GeometryChange->second->Size = Size;
+		}
+		else
+			LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set window size." << std::endl;
+	}
+}
+
+
+void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
+{
+	if (Window.GetVisibility() != Visible)
+	{
+		auto WindowDataAccessor = this->Data->GetWindowData();
+
+		auto WindowData = WindowDataAccessor->find(&Window);
+		if (WindowData != WindowDataAccessor->end())
+		{
+			auto GeometryChangesAccessor = this->Data->GetGeometryChanges();
+
+
+			auto GeometryChange = GeometryChangesAccessor->find((*WindowData)->ID);
+
+			if (!Visible)
+			{
+				// To hide a window, just scoot it off the screen to the left for now
+				if (GeometryChange == GeometryChangesAccessor->end())
+					GeometryChangesAccessor->insert(std::make_pair((*WindowData)->ID,
+																   new Implementation::GeometryChange(Vector(Window.GetSize().x * -2,
+																											 Window.GetPosition().y),
+																									  Window.GetSize())));
+				else
+					GeometryChange->second->Position.x = Window.GetSize().x * -2;
+			}
+			else
+			{
+				if (GeometryChange == GeometryChangesAccessor->end())
+					GeometryChangesAccessor->insert(std::make_pair((*WindowData)->ID,
+																   new Implementation::GeometryChange(Window.GetPosition(),
+																									  Window.GetSize())));
+				else
+					GeometryChange->second->Position.x = Window.GetPosition().x;
+			}
+		}
+		else
+			LOG_DEBUG_ERROR << "Could not find a window ID for the provided window! Cannot set window visibility." << std::endl;
+	}
+}
+
 
 void X11XCB_DisplayServer::FocusWindow(Window const &Window) { }
 void X11XCB_DisplayServer::RaiseWindow(Window const &Window) { }
