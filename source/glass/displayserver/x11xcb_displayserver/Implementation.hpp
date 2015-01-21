@@ -33,6 +33,7 @@ namespace Glass
 	struct X11XCB_DisplayServer::Implementation
 	{
 		Implementation(X11XCB_DisplayServer &DisplayServer);
+		~Implementation();
 
 		X11XCB_DisplayServer &DisplayServer;
 
@@ -47,7 +48,7 @@ namespace Glass
 
 
 		// Event handling
-		class EventHandler; // Defined in x11xcb_displayserver/EventHandler.hpp
+		class EventHandler; // Defined in EventHandler.hpp
 		EventHandler *Handler;
 
 
@@ -65,6 +66,14 @@ namespace Glass
 		WindowDataContainer	WindowData;
 		mutable std::mutex	WindowDataMutex;
 		locked_accessor<WindowDataContainer> GetWindowData();
+
+
+		// Geometry changes
+		struct GeometryChange; // Defined in GeometryChange.hpp
+		typedef std::map<xcb_window_t, GeometryChange *> GeometryChangeMap;
+		GeometryChangeMap GeometryChanges;
+		mutable std::mutex GeometryChangesMutex;
+		locked_accessor<GeometryChangeMap> GetGeometryChanges();
 
 
 		// For internal access

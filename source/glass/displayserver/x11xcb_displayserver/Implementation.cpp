@@ -18,8 +18,10 @@
 */
 
 #include <unistd.h>
+#include <xcb/xcb_icccm.h>
 
 #include "glass/core/Log.hpp"
+#include "glass/displayserver/x11xcb_displayserver/GeometryChange.hpp"
 #include "glass/displayserver/x11xcb_displayserver/Implementation.hpp"
 
 using namespace Glass;
@@ -34,6 +36,12 @@ X11XCB_DisplayServer::Implementation::Implementation(X11XCB_DisplayServer &Displ
 
 }
 
+X11XCB_DisplayServer::Implementation::~Implementation()
+{
+	for (auto &GeometryChange : this->GeometryChanges)
+		delete GeometryChange.second;
+}
+
 
 locked_accessor<RootWindow *>	X11XCB_DisplayServer::Implementation::GetActiveRootWindow()		{ return {this->ActiveRootWindow, this->ActiveRootWindowMutex}; }
 locked_accessor<ClientWindow *>	X11XCB_DisplayServer::Implementation::GetActiveClientWindow()	{ return {this->ActiveClientWindow, this->ActiveClientWindowMutex}; }
@@ -44,6 +52,12 @@ locked_accessor<ClientWindowList>	X11XCB_DisplayServer::Implementation::GetClien
 
 
 locked_accessor<WindowDataContainer> X11XCB_DisplayServer::Implementation::GetWindowData()		{ return {this->WindowData, this->WindowDataMutex}; }
+
+
+locked_accessor<X11XCB_DisplayServer::Implementation::GeometryChangeMap> X11XCB_DisplayServer::Implementation::GetGeometryChanges()
+{
+	return {this->GeometryChanges, this->GeometryChangesMutex};
+}
 
 
 RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDList const &WindowIDs)
@@ -183,10 +197,257 @@ RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDL
 }
 
 
+std::string GetWindowName(xcb_connection_t *XConnection, xcb_window_t WindowID)
+{
+	xcb_get_property_cookie_t const EWMHNameCookie = xcb_get_property_unchecked(XConnection, false, WindowID,
+																				Atoms::_NET_WM_NAME, Atoms::UTF8_STRING, 0, -1);
+
+	xcb_get_property_cookie_t const ICCCMNameCookie = xcb_get_property_unchecked(XConnection, false, WindowID,
+																				 Atoms::WM_NAME, Atoms::STRING, 0, -1);
+
+	std::string Name;
+	xcb_get_property_reply_t *NameReply;
+
+	// First check _NET_WM_NAME
+	if ((NameReply = xcb_get_property_reply(XConnection, EWMHNameCookie, NULL)))
+	{
+		size_t Length = xcb_get_property_value_length(NameReply);
+		char *Value = (char *)xcb_get_property_value(NameReply);
+
+		Name = std::string(Value, Value + Length);
+		free(NameReply);
+	}
+
+	// If nothing, check WM_NAME
+	if (Name == "")
+	{
+		if ((NameReply = xcb_get_property_reply(XConnection, ICCCMNameCookie, NULL)))
+		{
+			size_t Length = xcb_get_property_value_length(NameReply);
+			char *Value = (char *)xcb_get_property_value(NameReply);
+
+			Name = std::string(Value, Value + Length);
+			free(NameReply);
+		}
+
+		// If still nothing, mark it as nameless
+		if (Name == "")
+			Name = "Unnamed Window";
+	}
+
+	return Name;
+}
+
+
 ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(WindowIDList const &WindowIDs)
 {
-	for (auto &WindowID : WindowIDs)
-		LOG_DEBUG_INFO << WindowID << std::endl;
+	// Prepare lists for requests
+	std::vector<xcb_get_geometry_cookie_t>	GeometryCookies;
+	std::vector<xcb_get_property_cookie_t>	WMHintsCookies;
+	std::vector<xcb_get_property_cookie_t>	EWMHStateCookies;
+	std::vector<xcb_get_property_cookie_t>	EWMHWindowTypeCookies;
+	std::vector<xcb_get_property_cookie_t>	TransientForCookies;
 
-	return ClientWindowList();
+	GeometryCookies.reserve(WindowIDs.size());
+	WMHintsCookies.reserve(WindowIDs.size());
+	EWMHStateCookies.reserve(WindowIDs.size());
+	EWMHWindowTypeCookies.reserve(WindowIDs.size());
+	TransientForCookies.reserve(WindowIDs.size());
+
+
+	// Send the requests
+	for (auto &ClientWindowID : WindowIDs)
+	{
+		GeometryCookies.push_back(xcb_get_geometry_unchecked(this->XConnection, ClientWindowID));
+		WMHintsCookies.push_back(xcb_icccm_get_wm_hints_unchecked(this->XConnection, ClientWindowID));
+		EWMHStateCookies.push_back(xcb_get_property_unchecked(this->XConnection, false, ClientWindowID,
+															  Atoms::_NET_WM_STATE, Atoms::ATOM, 0, 0xFFFFFFFF));
+		EWMHWindowTypeCookies.push_back(xcb_get_property_unchecked(this->XConnection, false, ClientWindowID,
+																   Atoms::_NET_WM_WINDOW_TYPE, Atoms::ATOM, 0, 0xFFFFFFFF));
+		TransientForCookies.push_back(xcb_icccm_get_wm_transient_for_unchecked(this->XConnection, ClientWindowID));
+	}
+
+
+	// Prepare lists for replies
+	std::vector<xcb_get_geometry_reply_t *>	GeometryReplies;
+	std::vector<xcb_icccm_wm_hints_t>		WMHintsReplies;
+	std::vector<xcb_get_property_reply_t *>	EWMHStateReplies;
+	std::vector<xcb_get_property_reply_t *>	EWMHWindowTypeReplies;
+	std::vector<xcb_window_t>				TransientForReplies;
+	WindowIDList							ManageableWindowIDs;
+
+	std::list<unsigned short> OrderedIndices;
+
+
+	// Receive the replies
+	{
+		unsigned short ManageableIndex = 0;
+
+		for (unsigned short Index = 0; Index < WindowIDs.size(); Index++)
+		{
+			xcb_get_geometry_reply_t   *GeometryReply = NULL;
+			xcb_icccm_wm_hints_t		WMHintsReply;
+			xcb_get_property_reply_t   *EWMHStateReply = NULL;
+			xcb_get_property_reply_t   *EWMHWindowTypeReply = NULL;
+			xcb_window_t				TransientForReply = XCB_NONE;
+
+			if (!(GeometryReply = xcb_get_geometry_reply(this->XConnection, GeometryCookies[Index], NULL)) ||
+				!(xcb_icccm_get_wm_hints_reply(this->XConnection, WMHintsCookies[Index], &WMHintsReply, NULL)) ||
+				!(EWMHStateReply = xcb_get_property_reply(this->XConnection, EWMHStateCookies[Index], NULL)) ||
+				!(EWMHWindowTypeReply = xcb_get_property_reply(this->XConnection, EWMHWindowTypeCookies[Index], NULL)))
+			{
+				LOG_DEBUG_WARNING << "Could not get required info on prospective client. Skipping." << std::endl;
+
+				if (GeometryReply != NULL)
+					free(GeometryReply);
+				if (EWMHStateReply != NULL)
+					free(EWMHStateReply);
+				if (EWMHWindowTypeReply != NULL)
+					free(EWMHWindowTypeReply);
+
+				continue;
+			}
+
+			xcb_icccm_get_wm_transient_for_reply(this->XConnection, TransientForCookies[Index], &TransientForReply, NULL);
+
+			GeometryReplies.push_back(GeometryReply);
+			WMHintsReplies.push_back(WMHintsReply);
+			EWMHStateReplies.push_back(EWMHStateReply);
+			EWMHWindowTypeReplies.push_back(EWMHWindowTypeReply);
+			TransientForReplies.push_back(TransientForReply);
+			ManageableWindowIDs.push_back(WindowIDs[Index]);
+
+			// Place non-transient windows before transient windows (in no particular order) so that their client structures
+			// will be created first and available when the transient windows come looking for them
+			if (TransientForReply == XCB_NONE)
+				OrderedIndices.push_front(ManageableIndex++);
+			else
+				OrderedIndices.push_back(ManageableIndex++);
+		}
+	}
+
+
+	// Create the client structures
+	ClientWindowList ClientWindows;
+
+	for (auto &Index : OrderedIndices)
+	{
+		// Get the client name
+		std::string const Name = GetWindowName(this->XConnection, ManageableWindowIDs[Index]);
+
+
+		// Get data from the geometry reply
+		xcb_get_geometry_reply_t * const &GeometryReply = GeometryReplies[Index];
+
+		Vector const Position(GeometryReply->x, GeometryReply->y);
+		Vector const Size(GeometryReply->width, GeometryReply->height);
+
+		free(GeometryReply);
+
+
+		// Get data from the window manager hints
+		xcb_icccm_wm_hints_t &WMHints = WMHintsReplies[Index];
+
+		bool const Urgent = xcb_icccm_wm_hints_get_urgency(&WMHints);
+		bool const NeverFocus = ((WMHints.flags & XCB_ICCCM_WM_HINT_INPUT) ? !WMHints.input : false);
+
+
+		// Determine the fullscreen state of the client from the EWMH window state reply
+		bool Fullscreen = false;
+
+		{
+			xcb_get_property_reply_t * const &EWMHStateReply = EWMHStateReplies[Index];
+
+			if (xcb_atom_t * const EWMHStateAtoms = (xcb_atom_t *)xcb_get_property_value(EWMHStateReply))
+				for (unsigned short StateIndex = 0; StateIndex < xcb_get_property_value_length(EWMHStateReply) / sizeof(xcb_atom_t); StateIndex++)
+					if (EWMHStateAtoms[StateIndex] == Atoms::_NET_WM_STATE_FULLSCREEN)
+						Fullscreen = true;
+
+			free(EWMHStateReply);
+		}
+
+
+		// Determine the type of the client from the EWMH window type reply
+		ClientWindow::Type ClientType = ClientWindow::Type::NORMAL;
+
+		{
+			xcb_get_property_reply_t * const &EWMHWindowTypeReply = EWMHWindowTypeReplies[Index];
+
+			if (xcb_atom_t * const EWMHWindowTypeAtoms = (xcb_atom_t *)xcb_get_property_value(EWMHWindowTypeReply))
+			{
+				for (unsigned short TypeIndex = 0; TypeIndex < xcb_get_property_value_length(EWMHWindowTypeReply) / sizeof(xcb_atom_t); TypeIndex++)
+				{
+					if (EWMHWindowTypeAtoms[TypeIndex] == Atoms::_NET_WM_WINDOW_TYPE_DIALOG)
+						ClientType = ClientWindow::Type::DIALOG;
+					else if (EWMHWindowTypeAtoms[TypeIndex] == Atoms::_NET_WM_WINDOW_TYPE_UTILITY)
+						ClientType = ClientWindow::Type::UTILITY;
+					else if (EWMHWindowTypeAtoms[TypeIndex] == Atoms::_NET_WM_WINDOW_TYPE_SPLASH)
+						ClientType = ClientWindow::Type::SPLASH;
+				}
+			}
+
+			free(EWMHWindowTypeReply);
+		}
+
+
+		// Get the client's TransientFor client, if any
+		ClientWindow *TransientForClient = NULL;
+
+		{
+			xcb_window_t const &TransientForReply = TransientForReplies[Index];
+
+			if (TransientForReply != XCB_NONE)
+			{
+				WindowDataContainer::const_iterator TransientForClientData = this->WindowData.find(TransientForReply);
+				if (TransientForClientData != this->WindowData.end())
+					TransientForClient = dynamic_cast<ClientWindow *>(&(*TransientForClientData)->Window);
+				else
+					LOG_DEBUG_ERROR << "TransientFor client's WindowData does not exist!" << std::endl;
+			}
+		}
+
+
+		// Select events on the client
+		xcb_window_t const &ClientWindowID = ManageableWindowIDs[Index];
+
+		uint32_t const EventMask = XCB_EVENT_MASK_ENTER_WINDOW |
+								   XCB_EVENT_MASK_LEAVE_WINDOW |
+								   XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | // XXX SUBSTRUCTURE vs STRUCTURE?
+								   XCB_EVENT_MASK_PROPERTY_CHANGE |
+								   XCB_EVENT_MASK_POINTER_MOTION |
+								   XCB_EVENT_MASK_FOCUS_CHANGE; // Grab focus change events so we can deal with troublesome clients
+																// that steal it
+
+		xcb_change_window_attributes(this->XConnection, ClientWindowID, XCB_CW_EVENT_MASK, &EventMask);
+
+
+		// Configure the window
+		uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_BORDER_WIDTH;
+		uint32_t const ConfigureValues[] = { 0 };
+
+		xcb_configure_window(this->XConnection, ClientWindowID, ConfigureMask, ConfigureValues);
+
+		// XXX Add to EWMH client list
+
+		xcb_map_window(this->XConnection, ClientWindowID);
+
+
+		// Create the client structure)
+		ClientWindow *NewClientWindow = new ClientWindow(Name, ClientType, ClientWindow::State::NORMAL, Size, Fullscreen, Urgent, TransientForClient,
+														 this->DisplayServer, Position, Size, true);
+
+
+		// Store data
+		{
+			auto ClientWindowsAccessor = this->GetClientWindows();
+
+			ClientWindowsAccessor->push_back(NewClientWindow);
+		}
+
+		this->WindowData.push_back(new ClientWindowData(*NewClientWindow, ClientWindowID, NeverFocus));
+
+		ClientWindows.push_back(NewClientWindow);
+	}
+
+	return ClientWindows;
 }
