@@ -91,6 +91,12 @@ public:
 	}
 
 
+	T *operator->()
+	{
+		return this->Contained;
+	}
+
+
 	operator bool() const
 	{
 		return this->Contained;
