@@ -30,6 +30,12 @@ WindowData::WindowData(Glass::Window &Window, xcb_window_t ID) :
 }
 
 
+WindowData::~WindowData()
+{
+
+}
+
+
 ClientWindowData::ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID, bool NeverFocus) :
 	WindowData(Window, ID),
 	NeverFocus(NeverFocus)

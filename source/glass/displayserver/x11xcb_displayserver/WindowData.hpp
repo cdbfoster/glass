@@ -31,6 +31,7 @@ namespace Glass
 	struct WindowData
 	{
 		WindowData(Glass::Window &Window, xcb_window_t ID);
+		virtual ~WindowData();
 
 		Glass::Window &Window;
 		xcb_window_t const ID;
