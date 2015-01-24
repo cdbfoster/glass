@@ -158,6 +158,7 @@ namespace Glass
 		void SetUrgent(bool Value);
 
 		void Close();
+		void Kill();
 
 	// Friend interfaces
 	private:

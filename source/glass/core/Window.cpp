@@ -206,6 +206,12 @@ void ClientWindow::Close()
 }
 
 
+void ClientWindow::Kill()
+{
+	this->DisplayServer.KillClientWindow(*this);
+}
+
+
 void ClientWindow::SetName(std::string const &Name)
 {
 	this->Name = Name;

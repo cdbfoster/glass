@@ -537,6 +537,7 @@ void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow,
 void X11XCB_DisplayServer::SetClientWindowUrgent(ClientWindow &ClientWindow, bool Value) { }
 
 void X11XCB_DisplayServer::CloseClientWindow(ClientWindow const &ClientWindow) { }
+void X11XCB_DisplayServer::KillClientWindow(ClientWindow const &ClientWindow) { }
 
 void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow) { }
 void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow) { }

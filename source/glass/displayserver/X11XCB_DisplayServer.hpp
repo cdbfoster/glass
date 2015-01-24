@@ -50,6 +50,7 @@ namespace Glass
 		void SetClientWindowUrgent(ClientWindow &ClientWindow, bool Value);
 
 		void CloseClientWindow(ClientWindow const &ClientWindow);
+		void KillClientWindow(ClientWindow const &ClientWindow);
 
 	protected:
 		void ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow);

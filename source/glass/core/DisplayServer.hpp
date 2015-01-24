@@ -79,6 +79,7 @@ namespace Glass
 		virtual void SetClientWindowUrgent(ClientWindow &ClientWindow, bool Value) = 0;
 
 		virtual void CloseClientWindow(ClientWindow const &ClientWindow) = 0;
+		virtual void KillClientWindow(ClientWindow const &ClientWindow) = 0;
 
 	protected:
 		virtual void ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow) = 0;
