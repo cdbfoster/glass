@@ -17,6 +17,8 @@
 * Copyright 2014-2015 Chris Foster
 */
 
+#include <string.h> // memset
+
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_event.h>
@@ -372,7 +374,122 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 }
 
 
-void X11XCB_DisplayServer::FocusWindow(Window const &Window) { }
+bool WindowSupportsProtocol(xcb_connection_t *XConnection, xcb_window_t WindowID, xcb_atom_t ProtocolAtom)
+{
+	xcb_get_property_cookie_t const ProtocolsCookie = xcb_icccm_get_wm_protocols_unchecked(XConnection, WindowID, Atoms::WM_PROTOCOLS);
+
+	xcb_icccm_get_wm_protocols_reply_t ProtocolsReply;
+
+	if (!xcb_icccm_get_wm_protocols_reply(XConnection, ProtocolsCookie, &ProtocolsReply, NULL))
+	{
+		LOG_DEBUG_WARNING << "Could not get WM_PROTOCOLS on window ID: " << WindowID << std::endl;
+		return false;
+	}
+
+	for (unsigned short Index = 0; Index < ProtocolsReply.atoms_len; Index++)
+	{
+		if (ProtocolsReply.atoms[Index] == ProtocolAtom)
+		{
+			xcb_icccm_get_wm_protocols_reply_wipe(&ProtocolsReply);
+			return true;
+		}
+	}
+
+	xcb_icccm_get_wm_protocols_reply_wipe(&ProtocolsReply);
+	return false;
+}
+
+
+void X11XCB_DisplayServer::FocusWindow(Window const &Window)
+{
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&Window);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		// Focus the window
+		{
+			xcb_window_t const &WindowID = (*WindowData)->ID;
+
+			if (Glass::ClientWindowData const * const ClientWindowData = dynamic_cast<Glass::ClientWindowData const *>(*WindowData))
+			{
+				if (!ClientWindowData->NeverFocus)
+				{
+					xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_POINTER_ROOT, WindowID, XCB_CURRENT_TIME);
+
+					// XXX Set EWMH active window and add to the EWMH focus stack
+				}
+
+				if (WindowSupportsProtocol(this->Data->XConnection, WindowID, Atoms::WM_TAKE_FOCUS))
+				{
+					xcb_client_message_event_t ClientMessage;
+
+					memset(&ClientMessage, 0, sizeof(ClientMessage));
+
+					ClientMessage.response_type = XCB_CLIENT_MESSAGE;
+					ClientMessage.window = WindowID;
+					ClientMessage.format = 32;
+					ClientMessage.type = Atoms::WM_PROTOCOLS;
+					ClientMessage.data.data32[0] = Atoms::WM_TAKE_FOCUS;
+					ClientMessage.data.data32[1] = XCB_CURRENT_TIME;
+
+					xcb_send_event(this->Data->XConnection, false, WindowID, XCB_EVENT_MASK_NO_EVENT, (char *)&ClientMessage);
+				}
+			}
+			else
+			{
+				xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_POINTER_ROOT, WindowID, XCB_CURRENT_TIME);
+
+				// XXX Set EWMH active window and add to the EWMH focus stack
+			}
+		}
+
+		// Keep track of which window has the input focus so we can detect unauthorized changes to the focus and revert them
+		{
+			auto ActiveRootWindowAccessor =		this->Data->GetActiveRootWindow();
+			auto ActiveClientWindowAccessor =	this->Data->GetActiveClientWindow();
+
+			RootWindow	  *&ActiveRootWindow =		*ActiveRootWindowAccessor;
+			ClientWindow  *&ActiveClientWindow =	*ActiveClientWindowAccessor;
+
+			if (ClientWindow const * const WindowCast = dynamic_cast<ClientWindow const *>(&Window))
+			{
+				if (ActiveClientWindow != WindowCast)
+				{
+					ActiveClientWindow = const_cast<ClientWindow *>(WindowCast);
+					ActiveRootWindow = WindowCast->GetRootWindow();
+				}
+			}
+			else if (AuxiliaryWindow const * const WindowCast = dynamic_cast<AuxiliaryWindow const *>(&Window))
+			{
+				PrimaryWindow * const Owner = &WindowCast->GetPrimaryWindow();
+
+				if (ClientWindow * const OwnerCast = dynamic_cast<ClientWindow *>(Owner))
+				{
+					if (ActiveClientWindow != OwnerCast)
+					{
+						ActiveClientWindow = OwnerCast;
+						ActiveRootWindow = OwnerCast->GetRootWindow();
+					}
+				}
+				else if (RootWindow * const OwnerCast = dynamic_cast<RootWindow *>(Owner))
+				{
+					ActiveClientWindow = nullptr;
+					ActiveRootWindow = OwnerCast;
+				}
+			}
+			else if (RootWindow const * const WindowCast = dynamic_cast<RootWindow const *>(&Window))
+			{
+				ActiveClientWindow = nullptr;
+				ActiveRootWindow = const_cast<RootWindow *>(WindowCast);
+			}
+		}
+	}
+	else
+		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot focus window." << std::endl;
+}
+
+
 void X11XCB_DisplayServer::RaiseWindow(Window const &Window) { }
 void X11XCB_DisplayServer::LowerWindow(Window const &Window) { }
 void X11XCB_DisplayServer::DeleteWindow(Window &Window) { }
