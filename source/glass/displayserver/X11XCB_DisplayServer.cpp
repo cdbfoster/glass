@@ -490,8 +490,46 @@ void X11XCB_DisplayServer::FocusWindow(Window const &Window)
 }
 
 
-void X11XCB_DisplayServer::RaiseWindow(Window const &Window) { }
-void X11XCB_DisplayServer::LowerWindow(Window const &Window) { }
+void X11XCB_DisplayServer::RaiseWindow(Window const &Window)
+{
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&Window);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		xcb_window_t const &WindowID = (*WindowData)->ID;
+
+		uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_STACK_MODE;
+
+		uint32_t const ConfigureValues[] = { XCB_STACK_MODE_ABOVE };
+
+		xcb_configure_window(this->Data->XConnection, WindowID, ConfigureMask, ConfigureValues);
+	}
+	else
+		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot raise window." << std::endl;
+}
+
+
+void X11XCB_DisplayServer::LowerWindow(Window const &Window)
+{
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&Window);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		xcb_window_t const &WindowID = (*WindowData)->ID;
+
+		uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_STACK_MODE;
+
+		uint32_t const ConfigureValues[] = { XCB_STACK_MODE_BELOW };
+
+		xcb_configure_window(this->Data->XConnection, WindowID, ConfigureMask, ConfigureValues);
+	}
+	else
+		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot lower window." << std::endl;
+}
+
+
 void X11XCB_DisplayServer::DeleteWindow(Window &Window) { }
 
 void X11XCB_DisplayServer::SetClientWindowState(ClientWindow &ClientWindow, ClientWindow::State StateValue) { }
