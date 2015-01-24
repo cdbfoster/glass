@@ -122,6 +122,7 @@ namespace Glass
 	protected:
 		EventQueue		   &OutgoingEventQueue;
 
+	private:
 		RootWindowList		RootWindows;
 		ClientWindowList	ClientWindows;
 		AuxiliaryWindowList	AuxiliaryWindows;
