@@ -329,23 +329,23 @@ void X11XCB_DisplayServer::SetWindowSize(Window &Window, Vector const &Size)
 
 void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 {
-	if (Window.GetVisibility() != Visible)
+	if (Window.GetVisibility() == Visible)
+		return;
+
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&Window);
+	if (WindowData != WindowDataAccessor->end())
 	{
-		auto WindowDataAccessor = this->Data->GetWindowData();
+		xcb_window_t const &WindowID = (*WindowData)->ID;
 
-		auto WindowData = WindowDataAccessor->find(&Window);
-		if (WindowData != WindowDataAccessor->end())
-		{
-			xcb_window_t const &WindowID = (*WindowData)->ID;
-
-			if (!Visible)
-				xcb_unmap_window(this->Data->XConnection, WindowID);
-			else
-				xcb_map_window(this->Data->XConnection, WindowID);
-		}
+		if (!Visible)
+			xcb_unmap_window(this->Data->XConnection, WindowID);
 		else
-			LOG_DEBUG_ERROR << "Could not find a window ID for the provided window! Cannot set window visibility." << std::endl;
+			xcb_map_window(this->Data->XConnection, WindowID);
 	}
+	else
+		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window! Cannot set window visibility." << std::endl;
 }
 
 
@@ -521,7 +521,38 @@ void X11XCB_DisplayServer::DeleteWindow(Window &Window)
 }
 
 
-void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, bool Value) { }
+void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, bool Value)
+{
+	if (ClientWindow.GetIconified() == Value)
+		return;
+
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&ClientWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		xcb_window_t const &WindowID = (*WindowData)->ID;
+
+		if (Value)
+		{
+			uint32_t StateValues[] = { XCB_ICCCM_WM_STATE_ICONIC, XCB_NONE };
+			xcb_change_property(this->Data->XConnection, XCB_PROP_MODE_REPLACE, WindowID,
+								Atoms::WM_STATE, Atoms::WM_STATE, 32, 2, StateValues);
+			xcb_unmap_window(this->Data->XConnection, WindowID);
+		}
+		else
+		{
+			uint32_t StateValues[] = { XCB_ICCCM_WM_STATE_NORMAL, XCB_NONE };
+			xcb_change_property(this->Data->XConnection, XCB_PROP_MODE_REPLACE, WindowID,
+								Atoms::WM_STATE, Atoms::WM_STATE, 32, 2, StateValues);
+			xcb_map_window(this->Data->XConnection, WindowID);
+		}
+	}
+	else
+		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set iconified." << std::endl;
+}
+
+
 void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow, bool Value) { }
 void X11XCB_DisplayServer::SetClientWindowUrgent(ClientWindow &ClientWindow, bool Value) { }
 
