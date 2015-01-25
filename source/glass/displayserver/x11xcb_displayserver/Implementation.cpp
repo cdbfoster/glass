@@ -433,7 +433,7 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 
 
 		// Create the client structure)
-		ClientWindow *NewClientWindow = new ClientWindow(Name, ClientType, ClientWindow::State::NORMAL, Size, Fullscreen, Urgent, TransientForClient,
+		ClientWindow *NewClientWindow = new ClientWindow(Name, ClientType, Size, false, Fullscreen, Urgent, TransientForClient,
 														 this->DisplayServer, Position, Size, true);
 
 

@@ -546,7 +546,7 @@ void X11XCB_DisplayServer::DeleteWindow(Window &Window)
 }
 
 
-void X11XCB_DisplayServer::SetClientWindowState(ClientWindow &ClientWindow, ClientWindow::State StateValue) { }
+void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, bool Value) { }
 void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow, bool Value) { }
 void X11XCB_DisplayServer::SetClientWindowUrgent(ClientWindow &ClientWindow, bool Value) { }
 

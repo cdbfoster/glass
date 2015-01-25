@@ -74,7 +74,7 @@ namespace Glass
 		virtual void LowerWindow(Window const &Window) = 0;
 		virtual void DeleteWindow(Window &Window) = 0;
 
-		virtual void SetClientWindowState(ClientWindow &ClientWindow, ClientWindow::State StateValue) = 0;
+		virtual void SetClientWindowIconified(ClientWindow &ClientWindow, bool Value) = 0;
 		virtual void SetClientWindowFullscreen(ClientWindow &ClientWindow, bool Value) = 0;
 		virtual void SetClientWindowUrgent(ClientWindow &ClientWindow, bool Value) = 0;
 

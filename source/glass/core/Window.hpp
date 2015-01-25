@@ -131,12 +131,8 @@ namespace Glass
 						  UTILITY,
 						  SPLASH };
 
-		enum class State { NORMAL,
-						   MAXIMIZED,
-						   ICONIFIED };
-
-		ClientWindow(std::string const &Name, Type TypeValue, State StateValue, Vector const &BaseSize,
-					 bool Fullscreen, bool Urgent, ClientWindow *TransientFor,
+		ClientWindow(std::string const &Name, Type TypeValue, Vector const &BaseSize,
+					 bool Iconified, bool Fullscreen, bool Urgent, ClientWindow *TransientFor,
 					 Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible);
 		ClientWindow(ClientWindow const &Other) = delete;
 
@@ -145,7 +141,7 @@ namespace Glass
 		std::string			GetName() const;
 		Type				GetType() const;
 
-		State				GetState() const;
+		bool				GetIconified() const;
 		bool				GetFullscreen() const;
 		bool				GetUrgent() const;
 
@@ -153,7 +149,7 @@ namespace Glass
 		ClientWindow	   *GetTransientFor() const;
 		Glass::RootWindow  *GetRootWindow() const;
 
-		void SetState(State StateValue);
+		void SetIconified(bool Value);
 		void SetFullscreen(bool Value);
 		void SetUrgent(bool Value);
 
@@ -175,9 +171,9 @@ namespace Glass
 		std::string	Name;
 		Type		TypeValue;
 
-		State	StateValue;
-		bool	Fullscreen;
-		bool	Urgent;
+		bool Iconified;
+		bool Fullscreen;
+		bool Urgent;
 
 		Vector const			BaseSize;
 		ClientWindow * const	TransientFor;

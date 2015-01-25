@@ -140,13 +140,13 @@ locked_accessor<AuxiliaryWindowList> PrimaryWindow::GetAuxiliaryWindows()
 }
 
 
-ClientWindow::ClientWindow(std::string const &Name, Type TypeValue, State StateValue, Vector const &BaseSize,
-						   bool Fullscreen, bool Urgent, ClientWindow *TransientFor,
+ClientWindow::ClientWindow(std::string const &Name, Type TypeValue, Vector const &BaseSize,
+						   bool Iconified, bool Fullscreen, bool Urgent, ClientWindow *TransientFor,
 						   Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible) :
 	PrimaryWindow(DisplayServer, Position, Size, Visible),
 	Name(Name),
 	TypeValue(TypeValue),
-	StateValue(StateValue),
+	Iconified(Iconified),
 	Fullscreen(Fullscreen),
 	Urgent(Urgent),
 	BaseSize(BaseSize),
@@ -166,9 +166,9 @@ std::string			ClientWindow::GetName() const	{ return this->Name; }
 ClientWindow::Type	ClientWindow::GetType() const	{ return this->TypeValue; }
 
 
-ClientWindow::State	ClientWindow::GetState() const		{ return this->StateValue; }
-bool				ClientWindow::GetFullscreen() const	{ return this->Fullscreen; }
-bool				ClientWindow::GetUrgent() const		{ return this->Urgent; }
+bool ClientWindow::GetIconified() const		{ return this->Iconified; }
+bool ClientWindow::GetFullscreen() const	{ return this->Fullscreen; }
+bool ClientWindow::GetUrgent() const		{ return this->Urgent; }
 
 
 Vector			ClientWindow::GetBaseSize() const		{ return this->BaseSize; }
@@ -176,11 +176,11 @@ ClientWindow   *ClientWindow::GetTransientFor() const	{ return this->TransientFo
 RootWindow	   *ClientWindow::GetRootWindow() const		{ return this->RootWindow; }
 
 
-void ClientWindow::SetState(State StateValue)
+void ClientWindow::SetIconified(bool Value)
 {
-	this->DisplayServer.SetClientWindowState(*this, StateValue);
+	this->DisplayServer.SetClientWindowIconified(*this, Value);
 
-	this->StateValue = StateValue;
+	this->Iconified = Value;
 }
 
 

@@ -45,7 +45,7 @@ namespace Glass
 		void LowerWindow(Window const &Window);
 		void DeleteWindow(Window &Window);
 
-		void SetClientWindowState(ClientWindow &ClientWindow, ClientWindow::State StateValue);
+		void SetClientWindowIconified(ClientWindow &ClientWindow, bool Value);
 		void SetClientWindowFullscreen(ClientWindow &ClientWindow, bool Value);
 		void SetClientWindowUrgent(ClientWindow &ClientWindow, bool Value);
 
