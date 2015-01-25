@@ -21,6 +21,7 @@
 #define GLASS_X11XCB_DISPLAYSERVER_WINDOWDATA
 
 #include <map>
+#include <set>
 
 #include <xcb/xcb.h>
 
@@ -43,6 +44,7 @@ namespace Glass
 		ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID, bool NeverFocus);
 
 		bool const NeverFocus;
+		std::set<xcb_atom_t> _NET_WM_STATE;
 	};
 
 

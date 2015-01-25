@@ -102,6 +102,7 @@ RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDL
 		//Atoms::_NET_WM_STATE_STICKY,
 		//Atoms::_NET_WM_STATE_MAXIMIZED_VERT,
 		//Atoms::_NET_WM_STATE_MAXIMIZED_HORZ,
+		Atoms::_NET_WM_STATE_HIDDEN,
 		Atoms::_NET_WM_STATE_FULLSCREEN,
 		//Atoms::_NET_WM_STATE_ABOVE,
 		//Atoms::_NET_WM_STATE_BELOW,
@@ -450,4 +451,50 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 	}
 
 	return ClientWindows;
+}
+
+
+void X11XCB_DisplayServer::Implementation::SetWindowPosition(xcb_window_t WindowID, Window &Window, Vector const &Position)
+{
+	auto GeometryChangesAccessor = this->GetGeometryChanges();
+
+	auto GeometryChange = GeometryChangesAccessor->find(WindowID);
+	if (GeometryChange == GeometryChangesAccessor->end())
+		GeometryChangesAccessor->insert(std::make_pair(WindowID,
+													   new Implementation::GeometryChange(Position, Window.GetSize())));
+	else
+		GeometryChange->second->Position = Position;
+}
+
+
+void X11XCB_DisplayServer::Implementation::SetWindowSize(xcb_window_t WindowID, Window &Window, Vector const &Size)
+{
+	auto GeometryChangesAccessor = this->GetGeometryChanges();
+
+	auto GeometryChange = GeometryChangesAccessor->find(WindowID);
+	if (GeometryChange == GeometryChangesAccessor->end())
+		GeometryChangesAccessor->insert(std::make_pair(WindowID,
+													   new Implementation::GeometryChange(Window.GetPosition(), Size)));
+	else
+		GeometryChange->second->Size = Size;
+}
+
+
+void X11XCB_DisplayServer::Implementation::RaiseWindow(xcb_connection_t *XConnection, xcb_window_t WindowID)
+{
+	uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_STACK_MODE;
+
+	uint32_t const ConfigureValues[] = { XCB_STACK_MODE_ABOVE };
+
+	xcb_configure_window(XConnection, WindowID, ConfigureMask, ConfigureValues);
+}
+
+
+void X11XCB_DisplayServer::Implementation::LowerWindow(xcb_connection_t *XConnection, xcb_window_t WindowID)
+{
+	uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_STACK_MODE;
+
+	uint32_t const ConfigureValues[] = { XCB_STACK_MODE_BELOW };
+
+	xcb_configure_window(XConnection, WindowID, ConfigureMask, ConfigureValues);
 }

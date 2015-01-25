@@ -71,6 +71,7 @@ namespace Glass
 		static xcb_atom_t _NET_WM_STATE_STICKY;
 		static xcb_atom_t _NET_WM_STATE_MAXIMIZED_VERT;
 		static xcb_atom_t _NET_WM_STATE_MAXIMIZED_HORZ;
+		static xcb_atom_t _NET_WM_STATE_HIDDEN;
 		static xcb_atom_t _NET_WM_STATE_FULLSCREEN;
 		static xcb_atom_t _NET_WM_STATE_ABOVE;
 		static xcb_atom_t _NET_WM_STATE_BELOW;

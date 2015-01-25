@@ -17,7 +17,9 @@
 * Copyright 2014-2015 Chris Foster
 */
 
+#include <set>
 #include <string.h> // memset
+#include <vector>
 
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
@@ -287,19 +289,18 @@ Vector X11XCB_DisplayServer::GetMousePosition()
 
 void X11XCB_DisplayServer::SetWindowPosition(Window &Window, Vector const &Position)
 {
+	if (ClientWindow * const WindowCast = dynamic_cast<ClientWindow *>(&Window))
+	{
+		if (WindowCast->GetFullscreen() == true)
+			return;
+	}
+
 	auto WindowDataAccessor = this->Data->GetWindowData();
 
 	auto WindowData = WindowDataAccessor->find(&Window);
 	if (WindowData != WindowDataAccessor->end())
 	{
-		auto GeometryChangesAccessor = this->Data->GetGeometryChanges();
-
-		auto GeometryChange = GeometryChangesAccessor->find((*WindowData)->ID);
-		if (GeometryChange == GeometryChangesAccessor->end())
-			GeometryChangesAccessor->insert(std::make_pair((*WindowData)->ID,
-														   new Implementation::GeometryChange(Position, Window.GetSize())));
-		else
-			GeometryChange->second->Position = Position;
+		this->Data->SetWindowPosition((*WindowData)->ID, Window, Position);
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set window position." << std::endl;
@@ -308,19 +309,18 @@ void X11XCB_DisplayServer::SetWindowPosition(Window &Window, Vector const &Posit
 
 void X11XCB_DisplayServer::SetWindowSize(Window &Window, Vector const &Size)
 {
+	if (ClientWindow * const WindowCast = dynamic_cast<ClientWindow *>(&Window))
+	{
+		if (WindowCast->GetFullscreen() == true)
+			return;
+	}
+
 	auto WindowDataAccessor = this->Data->GetWindowData();
 
 	auto WindowData = WindowDataAccessor->find(&Window);
 	if (WindowData != WindowDataAccessor->end())
 	{
-		auto GeometryChangesAccessor = this->Data->GetGeometryChanges();
-
-		auto GeometryChange = GeometryChangesAccessor->find((*WindowData)->ID);
-		if (GeometryChange == GeometryChangesAccessor->end())
-			GeometryChangesAccessor->insert(std::make_pair((*WindowData)->ID,
-														   new Implementation::GeometryChange(Window.GetPosition(), Size)));
-		else
-			GeometryChange->second->Size = Size;
+		this->Data->SetWindowSize((*WindowData)->ID, Window, Size);
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set window size." << std::endl;
@@ -474,11 +474,7 @@ void X11XCB_DisplayServer::RaiseWindow(Window const &Window)
 	{
 		xcb_window_t const &WindowID = (*WindowData)->ID;
 
-		uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_STACK_MODE;
-
-		uint32_t const ConfigureValues[] = { XCB_STACK_MODE_ABOVE };
-
-		xcb_configure_window(this->Data->XConnection, WindowID, ConfigureMask, ConfigureValues);
+		this->Data->RaiseWindow(this->Data->XConnection, WindowID);
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot raise window." << std::endl;
@@ -494,11 +490,7 @@ void X11XCB_DisplayServer::LowerWindow(Window const &Window)
 	{
 		xcb_window_t const &WindowID = (*WindowData)->ID;
 
-		uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_STACK_MODE;
-
-		uint32_t const ConfigureValues[] = { XCB_STACK_MODE_BELOW };
-
-		xcb_configure_window(this->Data->XConnection, WindowID, ConfigureMask, ConfigureValues);
+		this->Data->LowerWindow(this->Data->XConnection, WindowID);
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot lower window." << std::endl;
@@ -521,6 +513,15 @@ void X11XCB_DisplayServer::DeleteWindow(Window &Window)
 }
 
 
+void Update_NET_WM_STATE(xcb_connection_t *XConnection, xcb_window_t WindowID, std::set<xcb_atom_t> const &StateAtoms)
+{
+	std::vector<xcb_atom_t> Data(StateAtoms.begin(), StateAtoms.end());
+
+	xcb_change_property(XConnection, XCB_PROP_MODE_REPLACE, WindowID,
+						Atoms::_NET_WM_STATE, XCB_ATOM_ATOM, 32, Data.size(), &Data.front());
+}
+
+
 void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, bool Value)
 {
 	if (ClientWindow.GetIconified() == Value)
@@ -532,12 +533,17 @@ void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, 
 	if (WindowData != WindowDataAccessor->end())
 	{
 		xcb_window_t const &WindowID = (*WindowData)->ID;
+		Glass::ClientWindowData * const ClientWindowData = static_cast<Glass::ClientWindowData *>(*WindowData);
 
 		if (Value)
 		{
 			uint32_t StateValues[] = { XCB_ICCCM_WM_STATE_ICONIC, XCB_NONE };
 			xcb_change_property(this->Data->XConnection, XCB_PROP_MODE_REPLACE, WindowID,
 								Atoms::WM_STATE, Atoms::WM_STATE, 32, 2, StateValues);
+
+			ClientWindowData->_NET_WM_STATE.insert(Atoms::_NET_WM_STATE_HIDDEN);
+			Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
+
 			xcb_unmap_window(this->Data->XConnection, WindowID);
 		}
 		else
@@ -545,6 +551,10 @@ void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, 
 			uint32_t StateValues[] = { XCB_ICCCM_WM_STATE_NORMAL, XCB_NONE };
 			xcb_change_property(this->Data->XConnection, XCB_PROP_MODE_REPLACE, WindowID,
 								Atoms::WM_STATE, Atoms::WM_STATE, 32, 2, StateValues);
+
+			ClientWindowData->_NET_WM_STATE.erase(Atoms::_NET_WM_STATE_HIDDEN);
+			Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
+
 			xcb_map_window(this->Data->XConnection, WindowID);
 		}
 	}
@@ -553,7 +563,48 @@ void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, 
 }
 
 
-void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow, bool Value) { }
+void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow, bool Value)
+{
+	if (ClientWindow.GetFullscreen() == Value)
+		return;
+
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&ClientWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		xcb_window_t const &WindowID = (*WindowData)->ID;
+		Glass::ClientWindowData * const ClientWindowData = static_cast<Glass::ClientWindowData *>(*WindowData);
+
+		if (Value)
+		{
+			ClientWindowData->_NET_WM_STATE.insert(Atoms::_NET_WM_STATE_FULLSCREEN);
+			Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
+
+			if (RootWindow const * const ClientRoot = ClientWindow.GetRootWindow())
+			{
+				this->Data->SetWindowPosition(WindowID, ClientWindow, ClientRoot->GetPosition());
+				this->Data->SetWindowSize(WindowID, ClientWindow, ClientRoot->GetSize());
+			}
+			else
+				LOG_DEBUG_ERROR << "Client doesn't have a root!  Cannot set fullscreen size." << std::endl;
+
+			this->Data->RaiseWindow(this->Data->XConnection, WindowID);
+		}
+		else
+		{
+			ClientWindowData->_NET_WM_STATE.erase(Atoms::_NET_WM_STATE_FULLSCREEN);
+			Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
+
+			this->Data->SetWindowPosition(WindowID, ClientWindow, ClientWindow.GetPosition());
+			this->Data->SetWindowSize(WindowID, ClientWindow, ClientWindow.GetSize());
+		}
+	}
+	else
+		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set fullscreen." << std::endl;
+}
+
+
 void X11XCB_DisplayServer::SetClientWindowUrgent(ClientWindow &ClientWindow, bool Value) { }
 
 void X11XCB_DisplayServer::CloseClientWindow(ClientWindow const &ClientWindow) { }

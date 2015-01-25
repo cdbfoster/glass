@@ -150,7 +150,8 @@ ClientWindow::ClientWindow(std::string const &Name, Type TypeValue, Vector const
 	Fullscreen(Fullscreen),
 	Urgent(Urgent),
 	BaseSize(BaseSize),
-	TransientFor(TransientFor)
+	TransientFor(TransientFor),
+	RootWindow(nullptr)
 {
 
 }
