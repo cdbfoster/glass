@@ -43,20 +43,20 @@ X11XCB_DisplayServer::Implementation::~Implementation()
 }
 
 
-locked_accessor<RootWindow *>	X11XCB_DisplayServer::Implementation::GetActiveRootWindow()		{ return {this->ActiveRootWindow, this->ActiveRootWindowMutex}; }
-locked_accessor<ClientWindow *>	X11XCB_DisplayServer::Implementation::GetActiveClientWindow()	{ return {this->ActiveClientWindow, this->ActiveClientWindowMutex}; }
+locked_accessor<RootWindow *>	X11XCB_DisplayServer::Implementation::GetActiveRootWindow()		{ return { this->ActiveRootWindow, this->ActiveRootWindowMutex }; }
+locked_accessor<ClientWindow *>	X11XCB_DisplayServer::Implementation::GetActiveClientWindow()	{ return { this->ActiveClientWindow, this->ActiveClientWindowMutex }; }
 
 
 locked_accessor<RootWindowList>		X11XCB_DisplayServer::Implementation::GetRootWindows()		{ return this->DisplayServer.GetRootWindows(); }
 locked_accessor<ClientWindowList>	X11XCB_DisplayServer::Implementation::GetClientWindows()	{ return this->DisplayServer.GetClientWindows(); }
 
 
-locked_accessor<WindowDataContainer> X11XCB_DisplayServer::Implementation::GetWindowData()		{ return {this->WindowData, this->WindowDataMutex}; }
+locked_accessor<WindowDataContainer> X11XCB_DisplayServer::Implementation::GetWindowData()		{ return { this->WindowData, this->WindowDataMutex }; }
 
 
 locked_accessor<X11XCB_DisplayServer::Implementation::GeometryChangeMap> X11XCB_DisplayServer::Implementation::GetGeometryChanges()
 {
-	return {this->GeometryChanges, this->GeometryChangesMutex};
+	return { this->GeometryChanges, this->GeometryChangesMutex };
 }
 
 

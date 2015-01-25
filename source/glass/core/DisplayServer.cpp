@@ -44,37 +44,37 @@ DisplayServer::~DisplayServer()
 
 locked_accessor<RootWindowList const> DisplayServer::GetRootWindows() const
 {
-	return {this->RootWindows, this->RootWindowsMutex};
+	return { this->RootWindows, this->RootWindowsMutex };
 }
 
 
 locked_accessor<ClientWindowList const> DisplayServer::GetClientWindows() const
 {
-	return {this->ClientWindows, this->ClientWindowsMutex};
+	return { this->ClientWindows, this->ClientWindowsMutex };
 }
 
 
 locked_accessor<DisplayServer::AuxiliaryWindowList const> DisplayServer::GetAuxiliaryWindows() const
 {
-	return {this->AuxiliaryWindows, this->AuxiliaryWindowsMutex};
+	return { this->AuxiliaryWindows, this->AuxiliaryWindowsMutex };
 }
 
 
 locked_accessor<RootWindowList> DisplayServer::GetRootWindows()
 {
-	return {this->RootWindows, this->RootWindowsMutex};
+	return { this->RootWindows, this->RootWindowsMutex };
 }
 
 
 locked_accessor<ClientWindowList> DisplayServer::GetClientWindows()
 {
-	return {this->ClientWindows, this->ClientWindowsMutex};
+	return { this->ClientWindows, this->ClientWindowsMutex };
 }
 
 
 locked_accessor<DisplayServer::AuxiliaryWindowList> DisplayServer::GetAuxiliaryWindows()
 {
-	return {this->AuxiliaryWindows, this->AuxiliaryWindowsMutex};
+	return { this->AuxiliaryWindows, this->AuxiliaryWindowsMutex };
 }
 
 

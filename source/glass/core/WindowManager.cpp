@@ -35,9 +35,9 @@ WindowManager::~WindowManager()
 }
 
 
-locked_accessor<RootWindowList const>	WindowManager::GetRootWindows() const	{ return {this->RootWindows, this->RootWindowsMutex}; }
-locked_accessor<ClientWindowList const>	WindowManager::GetClientWindows() const	{ return {this->ClientWindows, this->ClientWindowsMutex}; }
+locked_accessor<RootWindowList const>	WindowManager::GetRootWindows() const	{ return { this->RootWindows, this->RootWindowsMutex }; }
+locked_accessor<ClientWindowList const>	WindowManager::GetClientWindows() const	{ return { this->ClientWindows, this->ClientWindowsMutex }; }
 
 
-locked_accessor<RootWindowList>		WindowManager::GetRootWindows()		{ return {this->RootWindows, this->RootWindowsMutex}; }
-locked_accessor<ClientWindowList>	WindowManager::GetClientWindows()	{ return {this->ClientWindows, this->ClientWindowsMutex}; }
+locked_accessor<RootWindowList>		WindowManager::GetRootWindows()		{ return { this->RootWindows, this->RootWindowsMutex }; }
+locked_accessor<ClientWindowList>	WindowManager::GetClientWindows()	{ return { this->ClientWindows, this->ClientWindowsMutex }; }

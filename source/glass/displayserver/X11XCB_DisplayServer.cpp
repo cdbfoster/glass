@@ -103,7 +103,7 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 
 	// Initialize the root window(s)
 	{
-		RootWindowList RootWindows = this->Data->CreateRootWindows({this->Data->DefaultScreenInfo->root});
+		RootWindowList RootWindows = this->Data->CreateRootWindows({ this->Data->DefaultScreenInfo->root });
 
 		for (auto &RootWindow : RootWindows)
 			this->OutgoingEventQueue.AddEvent(*(new RootCreate_Event(*RootWindow)));
