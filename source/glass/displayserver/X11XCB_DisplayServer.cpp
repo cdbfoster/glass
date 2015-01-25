@@ -530,7 +530,21 @@ void X11XCB_DisplayServer::LowerWindow(Window const &Window)
 }
 
 
-void X11XCB_DisplayServer::DeleteWindow(Window &Window) { }
+void X11XCB_DisplayServer::DeleteWindow(Window &Window)
+{
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	WindowDataAccessor->erase(&Window);
+
+	if (ClientWindow * const WindowCast = dynamic_cast<ClientWindow *>(&Window))
+	{
+		auto ActiveClientWindowAccessor = this->Data->GetActiveClientWindow();
+
+		if (*ActiveClientWindowAccessor == WindowCast)
+			*ActiveClientWindowAccessor = nullptr;
+	}
+}
+
 
 void X11XCB_DisplayServer::SetClientWindowState(ClientWindow &ClientWindow, ClientWindow::State StateValue) { }
 void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow, bool Value) { }
