@@ -605,7 +605,34 @@ void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow,
 }
 
 
-void X11XCB_DisplayServer::SetClientWindowUrgent(ClientWindow &ClientWindow, bool Value) { }
+void X11XCB_DisplayServer::SetClientWindowUrgent(ClientWindow &ClientWindow, bool Value)
+{
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&ClientWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		xcb_window_t const &WindowID = (*WindowData)->ID;
+
+		xcb_icccm_wm_hints_t		WMHints;
+
+		xcb_get_property_cookie_t	WMHintsCookie = xcb_icccm_get_wm_hints(this->Data->XConnection, WindowID);
+		xcb_icccm_get_wm_hints_reply(this->Data->XConnection, WMHintsCookie, &WMHints, nullptr);
+
+		if ((WMHints.flags & XCB_ICCCM_WM_HINT_X_URGENCY) == Value)
+			return;
+
+		if (Value)
+			WMHints.flags |= XCB_ICCCM_WM_HINT_X_URGENCY;
+		else
+			WMHints.flags &= ~XCB_ICCCM_WM_HINT_X_URGENCY;
+
+		xcb_icccm_set_wm_hints(this->Data->XConnection, WindowID, &WMHints);
+	}
+	else
+		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window! Cannot set urgency." << std::endl;
+}
+
 
 void X11XCB_DisplayServer::CloseClientWindow(ClientWindow const &ClientWindow) { }
 void X11XCB_DisplayServer::KillClientWindow(ClientWindow const &ClientWindow) { }
