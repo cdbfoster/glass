@@ -634,8 +634,54 @@ void X11XCB_DisplayServer::SetClientWindowUrgent(ClientWindow &ClientWindow, boo
 }
 
 
-void X11XCB_DisplayServer::CloseClientWindow(ClientWindow const &ClientWindow) { }
-void X11XCB_DisplayServer::KillClientWindow(ClientWindow const &ClientWindow) { }
+void X11XCB_DisplayServer::CloseClientWindow(ClientWindow const &ClientWindow)
+{
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&ClientWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		xcb_window_t const &WindowID = (*WindowData)->ID;
+
+		if (WindowSupportsProtocol(this->Data->XConnection, WindowID, Atoms::WM_DELETE_WINDOW))
+		{
+			xcb_client_message_event_t ClientMessage;
+
+			memset(&ClientMessage, 0, sizeof(ClientMessage));
+
+			ClientMessage.response_type = XCB_CLIENT_MESSAGE;
+			ClientMessage.window = WindowID;
+			ClientMessage.format = 32;
+			ClientMessage.type = Atoms::WM_PROTOCOLS;
+			ClientMessage.data.data32[0] = Atoms::WM_DELETE_WINDOW;
+			ClientMessage.data.data32[1] = XCB_CURRENT_TIME;
+
+			xcb_send_event(this->Data->XConnection, false, WindowID, XCB_EVENT_MASK_NO_EVENT, (char *)&ClientMessage);
+		}
+		else
+			// The client can't close nicely, so kill it
+			xcb_kill_client(this->Data->XConnection, WindowID);
+	}
+	else
+		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window! Cannot close." << std::endl;
+}
+
+
+void X11XCB_DisplayServer::KillClientWindow(ClientWindow const &ClientWindow)
+{
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&ClientWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		xcb_window_t const &WindowID = (*WindowData)->ID;
+
+		xcb_kill_client(this->Data->XConnection, WindowID);
+	}
+	else
+		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window! Cannot kill." << std::endl;
+}
+
 
 void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow) { }
 void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow) { }
