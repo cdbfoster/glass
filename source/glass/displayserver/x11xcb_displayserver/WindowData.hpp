@@ -39,21 +39,31 @@ namespace Glass
 	};
 
 
-	struct ClientWindowData : public WindowData
-	{
-		ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID, bool NeverFocus);
-
-		bool const NeverFocus;
-		std::set<xcb_atom_t> _NET_WM_STATE;
-	};
-
-
 	struct RootWindowData : public WindowData
 	{
 		RootWindowData(Glass::RootWindow &Window, xcb_window_t ID, xcb_window_t SupportingWindowID, uint32_t EventMask);
 
 		xcb_window_t const SupportingWindowID;
 		uint32_t const EventMask;
+	};
+
+
+	struct ClientWindowData : public WindowData
+	{
+		ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID, bool NeverFocus, xcb_window_t ParentID);
+
+		bool const NeverFocus;
+		std::set<xcb_atom_t> _NET_WM_STATE;
+
+		xcb_window_t ParentID;
+	};
+
+
+	struct AuxiliaryWindowData : public WindowData
+	{
+		AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, xcb_window_t ClientID);
+
+		xcb_window_t const ClientID;
 	};
 
 
