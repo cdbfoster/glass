@@ -22,9 +22,10 @@
 
 using namespace Glass;
 
-WindowData::WindowData(Glass::Window &Window, xcb_window_t ID) :
+WindowData::WindowData(Glass::Window &Window, xcb_window_t ID, uint32_t EventMask) :
 	Window(Window),
-	ID(ID)
+	ID(ID),
+	EventMask(EventMask)
 {
 
 }
@@ -36,17 +37,16 @@ WindowData::~WindowData()
 }
 
 
-RootWindowData::RootWindowData(Glass::RootWindow &Window, xcb_window_t ID, xcb_window_t SupportingWindowID, uint32_t EventMask) :
-	WindowData(Window, ID),
-	SupportingWindowID(SupportingWindowID),
-	EventMask(EventMask)
+RootWindowData::RootWindowData(Glass::RootWindow &Window, xcb_window_t ID, uint32_t EventMask, xcb_window_t SupportingWindowID) :
+	WindowData(Window, ID, EventMask),
+	SupportingWindowID(SupportingWindowID)
 {
 
 }
 
 
-ClientWindowData::ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID, bool NeverFocus, xcb_window_t ParentID) :
-	WindowData(Window, ID),
+ClientWindowData::ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID, uint32_t EventMask, bool NeverFocus, xcb_window_t ParentID) :
+	WindowData(Window, ID, EventMask),
 	NeverFocus(NeverFocus),
 	ParentID(ParentID)
 {
@@ -54,9 +54,9 @@ ClientWindowData::ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID,
 }
 
 
-AuxiliaryWindowData::AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, xcb_window_t ClientID) :
-	WindowData(Window, ID),
-	ClientID(ClientID)
+AuxiliaryWindowData::AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, uint32_t EventMask, xcb_window_t PrimaryID) :
+	WindowData(Window, ID, EventMask),
+	PrimaryID(PrimaryID)
 {
 
 }

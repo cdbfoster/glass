@@ -31,26 +31,26 @@ namespace Glass
 {
 	struct WindowData
 	{
-		WindowData(Glass::Window &Window, xcb_window_t ID);
+		WindowData(Glass::Window &Window, xcb_window_t ID, uint32_t EventMask);
 		virtual ~WindowData();
 
 		Glass::Window &Window;
 		xcb_window_t const ID;
+		uint32_t EventMask;
 	};
 
 
 	struct RootWindowData : public WindowData
 	{
-		RootWindowData(Glass::RootWindow &Window, xcb_window_t ID, xcb_window_t SupportingWindowID, uint32_t EventMask);
+		RootWindowData(Glass::RootWindow &Window, xcb_window_t ID, uint32_t EventMask, xcb_window_t SupportingWindowID);
 
 		xcb_window_t const SupportingWindowID;
-		uint32_t const EventMask;
 	};
 
 
 	struct ClientWindowData : public WindowData
 	{
-		ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID, bool NeverFocus, xcb_window_t ParentID);
+		ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID, uint32_t EventMask, bool NeverFocus, xcb_window_t ParentID);
 
 		bool const NeverFocus;
 		std::set<xcb_atom_t> _NET_WM_STATE;
@@ -61,9 +61,9 @@ namespace Glass
 
 	struct AuxiliaryWindowData : public WindowData
 	{
-		AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, xcb_window_t ClientID);
+		AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, uint32_t EventMask, xcb_window_t PrimaryID);
 
-		xcb_window_t const ClientID;
+		xcb_window_t const PrimaryID;
 	};
 
 

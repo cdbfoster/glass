@@ -187,7 +187,7 @@ RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDL
 			RootWindowsAccessor->push_back(NewRootWindow);
 		}
 
-		this->WindowData.push_back((new RootWindowData(*NewRootWindow, RootWindowID, SupportingWindowID, EventMask)));
+		this->WindowData.push_back(new RootWindowData(*NewRootWindow, RootWindowID, EventMask, SupportingWindowID));
 
 
 		// Add to the return list
@@ -445,7 +445,7 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 			ClientWindowsAccessor->push_back(NewClientWindow);
 		}
 
-		this->WindowData.push_back(new ClientWindowData(*NewClientWindow, ClientWindowID, NeverFocus, XCB_NONE));
+		this->WindowData.push_back(new ClientWindowData(*NewClientWindow, ClientWindowID, EventMask, NeverFocus, XCB_NONE));
 
 		ClientWindows.push_back(NewClientWindow);
 	}
@@ -461,7 +461,7 @@ void X11XCB_DisplayServer::Implementation::SetWindowPosition(xcb_window_t Window
 	auto GeometryChange = GeometryChangesAccessor->find(WindowID);
 	if (GeometryChange == GeometryChangesAccessor->end())
 		GeometryChangesAccessor->insert(std::make_pair(WindowID,
-													   new Implementation::GeometryChange(Position, Window.GetSize())));
+													   new Implementation::GeometryChange(Window, WindowID, Position, Window.GetSize())));
 	else
 		GeometryChange->second->Position = Position;
 }
@@ -474,7 +474,7 @@ void X11XCB_DisplayServer::Implementation::SetWindowSize(xcb_window_t WindowID, 
 	auto GeometryChange = GeometryChangesAccessor->find(WindowID);
 	if (GeometryChange == GeometryChangesAccessor->end())
 		GeometryChangesAccessor->insert(std::make_pair(WindowID,
-													   new Implementation::GeometryChange(Window.GetPosition(), Size)));
+													   new Implementation::GeometryChange(Window, WindowID, Window.GetPosition(), Size)));
 	else
 		GeometryChange->second->Size = Size;
 }

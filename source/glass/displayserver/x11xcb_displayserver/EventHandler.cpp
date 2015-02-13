@@ -62,5 +62,37 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Listen()
 
 void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_event_t *Event)
 {
-	LOG_DEBUG_INFO << "Incoming X Event: " << XCB_EVENT_RESPONSE_TYPE(Event) << std::endl;
+	LOG_DEBUG_INFO << "Incoming X Event: " << XCB_EVENT_RESPONSE_TYPE(Event);
+
+	switch (XCB_EVENT_RESPONSE_TYPE(Event))
+	{
+	case XCB_CREATE_NOTIFY:
+		LOG_DEBUG_INFO_NOHEADER << " - Create on " << ((xcb_create_notify_event_t *)Event)->window;
+		break;
+	case XCB_REPARENT_NOTIFY:
+		LOG_DEBUG_INFO_NOHEADER << " - Reparent on " << ((xcb_reparent_notify_event_t *)Event)->window << " to " <<
+														((xcb_reparent_notify_event_t *)Event)->parent;
+		break;
+	case XCB_MAP_NOTIFY:
+		LOG_DEBUG_INFO_NOHEADER << " - Map notify on " << ((xcb_map_notify_event_t *)Event)->window << ", " <<
+														  ((xcb_map_notify_event_t *)Event)->event;
+		break;
+	case XCB_CONFIGURE_NOTIFY:
+		LOG_DEBUG_INFO_NOHEADER << " - Configure on " << ((xcb_configure_notify_event_t *)Event)->window << ", " <<
+														 ((xcb_configure_notify_event_t *)Event)->event;
+		break;
+	case XCB_ENTER_NOTIFY:
+	case XCB_LEAVE_NOTIFY:
+		LOG_DEBUG_INFO_NOHEADER << " - " << (XCB_EVENT_RESPONSE_TYPE(Event) == XCB_ENTER_NOTIFY ? "Enter" : "Leave") << " on " <<
+								   ((xcb_enter_notify_event_t *)Event)->child << ", " <<
+								   ((xcb_enter_notify_event_t *)Event)->event;
+		break;
+	case XCB_PROPERTY_NOTIFY:
+		LOG_DEBUG_INFO_NOHEADER << " - Property notify on " << ((xcb_property_notify_event_t *)Event)->window;
+		break;
+	default:
+		break;
+	}
+
+	LOG_DEBUG_INFO_NOHEADER << std::endl;
 }
