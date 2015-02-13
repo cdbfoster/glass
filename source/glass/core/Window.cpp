@@ -87,12 +87,11 @@ bool Window::ContainsPoint(Vector const &Point) const
 }
 
 
-AuxiliaryWindow::AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name, Type TypeValue,
+AuxiliaryWindow::AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
 								 Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible) :
 	Window(DisplayServer, Position, Size, Visible),
 	PrimaryWindow(PrimaryWindow),
-	Name(Name),
-	TypeValue(TypeValue)
+	Name(Name)
 {
 
 }
@@ -104,8 +103,8 @@ AuxiliaryWindow::~AuxiliaryWindow()
 }
 
 
-PrimaryWindow  &AuxiliaryWindow::GetPrimaryWindow() const	{ return this->PrimaryWindow; }
-std::string		AuxiliaryWindow::GetName() const			{ return this->Name; }
+PrimaryWindow		   &AuxiliaryWindow::GetPrimaryWindow() const	{ return this->PrimaryWindow; }
+std::string				AuxiliaryWindow::GetName() const			{ return this->Name; }
 
 
 void AuxiliaryWindow::SetName(std::string const &Name)
@@ -134,9 +133,34 @@ locked_accessor<AuxiliaryWindowList const> PrimaryWindow::GetAuxiliaryWindows() 
 }
 
 
+void PrimaryWindow::SetPosition(Vector const &Position)
+{
+	Window::SetPosition(Position);
+
+	this->UpdateAuxiliaryWindows();
+}
+
+
+void PrimaryWindow::SetSize(Vector const &Size)
+{
+	Window::SetSize(Size);
+
+	this->UpdateAuxiliaryWindows();
+}
+
+
 locked_accessor<AuxiliaryWindowList> PrimaryWindow::GetAuxiliaryWindows()
 {
 	return { this->AuxiliaryWindows, this->AuxiliaryWindowsMutex };
+}
+
+
+void PrimaryWindow::UpdateAuxiliaryWindows()
+{
+	auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+
+	for (auto &AuxiliaryWindow : *AuxiliaryWindowsAccessor)
+		AuxiliaryWindow->Update();
 }
 
 
