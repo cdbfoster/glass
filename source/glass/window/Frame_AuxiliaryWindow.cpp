@@ -1,31 +1,33 @@
 
 #include "glass/core/DisplayServer.hpp"
+#include "glass/core/Log.hpp"
 #include "glass/window/Frame_AuxiliaryWindow.hpp"
 
 using namespace Glass;
 
-Frame_AuxiliaryWindow::Frame_AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
+Frame_AuxiliaryWindow::Frame_AuxiliaryWindow(Glass::ClientWindow &ClientWindow, std::string const &Name,
 											 Glass::DisplayServer &DisplayServer, Vector const &ULOffset, Vector const &LROffset, bool Visible) :
-	AuxiliaryWindow(PrimaryWindow, Name, DisplayServer,
-					PrimaryWindow.GetPosition() + ULOffset, PrimaryWindow.GetSize() - ULOffset + LROffset,
+	AuxiliaryWindow(ClientWindow, Name, DisplayServer,
+					ClientWindow.GetPosition() + ULOffset, ClientWindow.GetSize() - ULOffset + LROffset,
 					Visible),
 	ULOffset(ULOffset),
-	LROffset(LROffset)
+	LROffset(LROffset),
+	CurrentULOffset(ULOffset),
+	CurrentLROffset(LROffset)
 {
 
 }
 
 
-Vector Frame_AuxiliaryWindow::GetULOffset() const { return this->ULOffset; }
-Vector Frame_AuxiliaryWindow::GetLROffset() const { return this->LROffset; }
+Vector Frame_AuxiliaryWindow::GetULOffset() const { return this->CurrentULOffset; }
+Vector Frame_AuxiliaryWindow::GetLROffset() const { return this->CurrentLROffset; }
 
 
 void Frame_AuxiliaryWindow::SetULOffset(Vector const &ULOffset)
 {
 	this->ULOffset = ULOffset;
 
-	AuxiliaryWindow::SetPosition(this->GetPrimaryWindow().GetPosition() + ULOffset);
-	AuxiliaryWindow::SetSize(this->GetPrimaryWindow().GetSize() - ULOffset + this->LROffset);
+	this->Update();
 }
 
 
@@ -33,7 +35,7 @@ void Frame_AuxiliaryWindow::SetLROffset(Vector const &LROffset)
 {
 	this->LROffset = LROffset;
 
-	AuxiliaryWindow::SetSize(this->GetPrimaryWindow().GetSize() - ULOffset + this->LROffset);
+	this->Update();
 }
 
 
@@ -45,6 +47,28 @@ void Frame_AuxiliaryWindow::HandleEvent(Event const &Event)
 
 void Frame_AuxiliaryWindow::Update()
 {
-	AuxiliaryWindow::SetPosition(this->GetPrimaryWindow().GetPosition() + this->ULOffset);
-	AuxiliaryWindow::SetSize(this->GetPrimaryWindow().GetSize() - this->ULOffset + this->LROffset);
+	// Must be a client window
+	Glass::ClientWindow &ClientWindow = static_cast<Glass::ClientWindow &>(this->GetPrimaryWindow());
+
+	if (ClientWindow.GetFullscreen() == true)
+	{
+		this->CurrentULOffset = Vector(0, 0);
+		this->CurrentLROffset = Vector(0, 0);
+
+		if (Glass::RootWindow const * const ClientRoot = ClientWindow.GetRootWindow())
+		{
+			AuxiliaryWindow::SetPosition(ClientRoot->GetPosition());
+			AuxiliaryWindow::SetSize(ClientRoot->GetSize());
+		}
+		else
+			LOG_DEBUG_ERROR << "Client doesn't have a root!  Cannot update frame." << std::endl;
+	}
+	else
+	{
+		this->CurrentULOffset = this->ULOffset;
+		this->CurrentLROffset = this->LROffset;
+
+		AuxiliaryWindow::SetPosition(ClientWindow.GetPosition() + this->CurrentULOffset);
+		AuxiliaryWindow::SetSize(ClientWindow.GetSize() - this->CurrentULOffset + this->CurrentLROffset);
+	}
 }

@@ -27,7 +27,7 @@ namespace Glass
 	class Frame_AuxiliaryWindow : public AuxiliaryWindow
 	{
 	public:
-		Frame_AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
+		Frame_AuxiliaryWindow(Glass::ClientWindow &ClientWindow, std::string const &Name,
 							  Glass::DisplayServer &DisplayServer, Vector const &ULOffset, Vector const &LROffset, bool Visible);
 
 		Vector GetULOffset() const;
@@ -42,6 +42,9 @@ namespace Glass
 	private:
 		Vector ULOffset;
 		Vector LROffset;
+
+		Vector CurrentULOffset;
+		Vector CurrentLROffset;
 	};
 }
 

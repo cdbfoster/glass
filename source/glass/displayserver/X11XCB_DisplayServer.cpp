@@ -641,8 +641,9 @@ void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow,
 	auto WindowData = WindowDataAccessor->find(&ClientWindow);
 	if (WindowData != WindowDataAccessor->end())
 	{
-		xcb_window_t const &WindowID = (*WindowData)->ID;
 		Glass::ClientWindowData * const ClientWindowData = static_cast<Glass::ClientWindowData *>(*WindowData);
+
+		xcb_window_t const &WindowID = (*WindowData)->ID;
 
 		if (Value)
 		{
@@ -656,6 +657,9 @@ void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow,
 			}
 			else
 				LOG_DEBUG_ERROR << "Client doesn't have a root!  Cannot set fullscreen size." << std::endl;
+
+			if (ClientWindowData->ParentID != XCB_NONE)
+				this->Data->RaiseWindow(this->Data->XConnection, ClientWindowData->ParentID);
 
 			this->Data->RaiseWindow(this->Data->XConnection, WindowID);
 		}
