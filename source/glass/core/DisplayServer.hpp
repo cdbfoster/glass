@@ -53,8 +53,9 @@ namespace Glass
 		locked_accessor<RootWindowList>		GetRootWindows();
 		locked_accessor<ClientWindowList>	GetClientWindows();
 
-	protected: // WindowDecorator is allowed to make changes to the server's auxiliary window list
-		friend class WindowDecorator;
+	public:
+	//protected: // WindowDecorator is allowed to make changes to the server's auxiliary window list
+	//	friend class WindowDecorator;
 
 		locked_accessor<AuxiliaryWindowList> GetAuxiliaryWindows();
 
@@ -72,7 +73,7 @@ namespace Glass
 		virtual void FocusWindow(Window const &Window) = 0;
 		virtual void RaiseWindow(Window const &Window) = 0;
 		virtual void LowerWindow(Window const &Window) = 0;
-		virtual void DeleteWindow(Window &Window) = 0;
+		virtual void DeleteWindow(Window &Window);
 
 		virtual void SetClientWindowIconified(ClientWindow &ClientWindow, bool Value) = 0;
 		virtual void SetClientWindowFullscreen(ClientWindow &ClientWindow, bool Value) = 0;
