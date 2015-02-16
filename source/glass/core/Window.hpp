@@ -106,6 +106,8 @@ namespace Glass
 		void SetPosition(Vector const &Position);
 		void SetSize(Vector const &Size);
 
+		void Focus();
+
 	//private:
 	//	friend class WindowDecorator;
 
@@ -148,6 +150,9 @@ namespace Glass
 		Vector				GetBaseSize() const;
 		ClientWindow	   *GetTransientFor() const;
 		Glass::RootWindow  *GetRootWindow() const;
+
+		void SetPosition(Vector const &Position);
+		void SetSize(Vector const &Size);
 
 		void SetIconified(bool Value);
 		void SetFullscreen(bool Value);

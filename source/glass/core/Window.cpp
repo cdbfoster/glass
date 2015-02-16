@@ -149,6 +149,14 @@ void PrimaryWindow::SetSize(Vector const &Size)
 }
 
 
+void PrimaryWindow::Focus()
+{
+	Window::Focus();
+
+	this->UpdateAuxiliaryWindows();
+}
+
+
 locked_accessor<AuxiliaryWindowList> PrimaryWindow::GetAuxiliaryWindows()
 {
 	return { this->AuxiliaryWindows, this->AuxiliaryWindowsMutex };
@@ -201,6 +209,24 @@ ClientWindow   *ClientWindow::GetTransientFor() const	{ return this->TransientFo
 RootWindow	   *ClientWindow::GetRootWindow() const		{ return this->RootWindow; }
 
 
+void ClientWindow::SetPosition(Vector const &Position)
+{
+	if (this->Fullscreen)
+		this->Position = Position; // Simply record the new position without effecting any change
+	else
+		PrimaryWindow::SetPosition(Position);
+}
+
+
+void ClientWindow::SetSize(Vector const &Size)
+{
+	if (this->Fullscreen)
+		this->Size = Size; // Simply record the new size without effecting any change
+	else
+		PrimaryWindow::SetSize(Size);
+}
+
+
 void ClientWindow::SetIconified(bool Value)
 {
 	this->DisplayServer.SetClientWindowIconified(*this, Value);
@@ -224,6 +250,8 @@ void ClientWindow::SetUrgent(bool Value)
 	this->DisplayServer.SetClientWindowUrgent(*this, Value);
 
 	this->Urgent = Value;
+
+	PrimaryWindow::UpdateAuxiliaryWindows();
 }
 
 
