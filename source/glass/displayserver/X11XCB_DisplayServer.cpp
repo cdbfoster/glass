@@ -823,7 +823,8 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 									   XCB_EVENT_MASK_LEAVE_WINDOW |
 									   //XCB_EVENT_MASK_STRUCTURE_NOTIFY |
 									   XCB_EVENT_MASK_PROPERTY_CHANGE |
-									   XCB_EVENT_MASK_POINTER_MOTION;
+									   XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE |
+									   XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
 
 			uint32_t const Values[] = {
 				this->Data->DefaultScreenInfo->white_pixel,

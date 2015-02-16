@@ -172,7 +172,6 @@ RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDL
 
 		xcb_change_window_attributes(this->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &EventMask);
 
-
 		// Create the root window with default dimensions, for now
 		RootWindow *NewRootWindow = new RootWindow(this->DisplayServer,
 												   Vector(0, 0),
@@ -415,7 +414,6 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 								   XCB_EVENT_MASK_LEAVE_WINDOW |
 								   XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | // XXX SUBSTRUCTURE vs STRUCTURE?
 								   XCB_EVENT_MASK_PROPERTY_CHANGE |
-								   XCB_EVENT_MASK_POINTER_MOTION |
 								   XCB_EVENT_MASK_FOCUS_CHANGE; // Grab focus change events so we can deal with troublesome clients
 																// that steal it
 
