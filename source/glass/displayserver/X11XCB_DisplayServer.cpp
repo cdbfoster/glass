@@ -522,6 +522,12 @@ void X11XCB_DisplayServer::RaiseWindow(Window const &Window)
 	{
 		xcb_window_t const &WindowID = (*WindowData)->ID;
 
+		if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
+		{
+			if (WindowDataCast->ParentID != XCB_NONE)
+				this->Data->RaiseWindow(this->Data->XConnection, WindowDataCast->ParentID);
+		}
+
 		this->Data->RaiseWindow(this->Data->XConnection, WindowID);
 	}
 	else
@@ -537,6 +543,12 @@ void X11XCB_DisplayServer::LowerWindow(Window const &Window)
 	if (WindowData != WindowDataAccessor->end())
 	{
 		xcb_window_t const &WindowID = (*WindowData)->ID;
+
+		if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
+		{
+			if (WindowDataCast->ParentID != XCB_NONE)
+				this->Data->LowerWindow(this->Data->XConnection, WindowDataCast->ParentID);
+		}
 
 		this->Data->LowerWindow(this->Data->XConnection, WindowID);
 	}
