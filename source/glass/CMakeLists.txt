@@ -20,6 +20,7 @@ set(glass_source)
 
 add_subdirectory(core)
 add_subdirectory(displayserver)
+add_subdirectory(window)
 
 prefix_list(glass_include "glass/")
 prefix_list(glass_source "glass/")
