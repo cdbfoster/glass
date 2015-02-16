@@ -112,11 +112,10 @@ namespace Glass
 		locked_accessor<AuxiliaryWindowList> GetAuxiliaryWindows();
 
 	protected:
+		void UpdateAuxiliaryWindows();
+
 		AuxiliaryWindowList	AuxiliaryWindows;
 		mutable std::mutex	AuxiliaryWindowsMutex;
-
-	private:
-		void UpdateAuxiliaryWindows();
 	};
 
 	typedef std::list<PrimaryWindow *> PrimaryWindowList;

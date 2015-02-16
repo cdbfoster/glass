@@ -214,6 +214,8 @@ void ClientWindow::SetFullscreen(bool Value)
 	this->DisplayServer.SetClientWindowFullscreen(*this, Value);
 
 	this->Fullscreen = Value;
+
+	PrimaryWindow::UpdateAuxiliaryWindows();
 }
 
 
