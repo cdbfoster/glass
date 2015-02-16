@@ -559,17 +559,38 @@ void X11XCB_DisplayServer::LowerWindow(Window const &Window)
 
 void X11XCB_DisplayServer::DeleteWindow(Window &Window)
 {
-	auto WindowDataAccessor = this->Data->GetWindowData();
-
-	WindowDataAccessor->erase(&Window);
-
-	if (ClientWindow * const WindowCast = dynamic_cast<ClientWindow *>(&Window))
+	if (RootWindow * const WindowCast = dynamic_cast<RootWindow *>(&Window))
 	{
+		auto RootWindowsAccessor = this->GetRootWindows();
+
+		RootWindowsAccessor->remove(WindowCast);
+
+		auto ActiveRootWindowAccessor = this->Data->GetActiveRootWindow();
+
+		if (*ActiveRootWindowAccessor == WindowCast)
+			*ActiveRootWindowAccessor = nullptr;
+	}
+	else if (ClientWindow * const WindowCast = dynamic_cast<ClientWindow *>(&Window))
+	{
+		auto ClientWindowsAccessor = this->GetClientWindows();
+
+		ClientWindowsAccessor->remove(WindowCast);
+
 		auto ActiveClientWindowAccessor = this->Data->GetActiveClientWindow();
 
 		if (*ActiveClientWindowAccessor == WindowCast)
 			*ActiveClientWindowAccessor = nullptr;
 	}
+	else if (AuxiliaryWindow * const WindowCast = dynamic_cast<AuxiliaryWindow *>(&Window))
+	{
+		auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+
+		AuxiliaryWindowsAccessor->remove(WindowCast);
+	}
+
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	WindowDataAccessor->erase(&Window);
 }
 
 
