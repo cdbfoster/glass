@@ -28,8 +28,7 @@ namespace Glass
 	{
 		enum class Type { ROOT_CREATE,
 						  CLIENT_CREATE,
-						  ENTER_WINDOW,
-						  LEAVE_WINDOW };
+						  CLIENT_SHOW_REQUEST };
 
 		virtual ~Event() { }
 
@@ -60,6 +59,17 @@ namespace Glass
 		Glass::ClientWindow &ClientWindow;
 	};
 
+
+	struct ClientShowRequest_Event : public Event
+	{
+		ClientShowRequest_Event(Glass::ClientWindow &ClientWindow) :
+			ClientWindow(ClientWindow)
+		{ }
+
+		Type GetType() const { return Type::CLIENT_SHOW_REQUEST; }
+
+		Glass::ClientWindow &ClientWindow;
+	};
 }
 
 #endif
