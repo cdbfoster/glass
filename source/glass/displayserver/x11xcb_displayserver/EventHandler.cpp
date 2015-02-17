@@ -19,6 +19,8 @@
 
 #include <xcb/xcb_event.h>
 
+#include "glass/core/Event.hpp"
+#include "glass/core/EventQueue.hpp"
 #include "glass/core/Log.hpp"
 #include "glass/displayserver/x11xcb_displayserver/EventHandler.hpp"
 #include "util/scoped_free.hpp"
@@ -106,6 +108,35 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 		LOG_DEBUG_INFO_NOHEADER << (unsigned int)((xcb_key_press_event_t *)Event)->detail << ", " << ((xcb_key_press_event_t *)Event)->state << " on " <<
 								   ((xcb_key_press_event_t *)Event)->child << ", " << ((xcb_key_press_event_t *)Event)->event << " at " <<
 								   ((xcb_key_press_event_t *)Event)->event_x << ", " << ((xcb_key_press_event_t *)Event)->event_y;
+		break;
+
+	case XCB_MAP_REQUEST:
+		{
+			xcb_map_request_event_t *MapRequest = (xcb_map_request_event_t *)Event;
+
+			LOG_DEBUG_INFO_NOHEADER << " - Map request on " << MapRequest->window;
+
+			auto WindowDataAccessor = this->Owner.GetWindowData();
+
+			auto WindowData = WindowDataAccessor->find(MapRequest->window);
+			if (WindowData == WindowDataAccessor->end())
+			{
+				ClientWindowList ClientWindows = this->Owner.CreateClientWindows({ MapRequest->window });
+
+				for (auto &ClientWindow : ClientWindows)
+					this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientCreate_Event(*ClientWindow)));
+
+				{
+					auto ClientWindowsAccessor = this->Owner.GetClientWindows();
+
+					ClientWindowsAccessor->insert(ClientWindowsAccessor->end(), ClientWindows.begin(), ClientWindows.end());
+				}
+			}
+			else if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
+			{
+				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientShowRequest_Event(static_cast<ClientWindow &>(WindowDataCast->Window))));
+			}
+		}
 		break;
 	default:
 		break;
