@@ -110,6 +110,12 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 
 		for (auto &RootWindow : RootWindows)
 			this->OutgoingEventQueue.AddEvent(*(new RootCreate_Event(*RootWindow)));
+
+		{
+			auto RootWindowsAccessor = this->GetRootWindows();
+
+			RootWindowsAccessor->insert(RootWindowsAccessor->end(), RootWindows.begin(), RootWindows.end());
+		}
 	}
 
 
@@ -213,6 +219,12 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 
 		for (auto &ClientWindow : ClientWindows)
 			this->OutgoingEventQueue.AddEvent(*(new ClientCreate_Event(*ClientWindow)));
+
+		{
+			auto ClientWindowsAccessor = this->GetClientWindows();
+
+			ClientWindowsAccessor->insert(ClientWindowsAccessor->end(), ClientWindows.begin(), ClientWindows.end());
+		}
 	}
 
 
