@@ -404,7 +404,7 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 		xcb_get_window_attributes_reply_t *WindowAttributes = xcb_get_window_attributes_reply(this->Data->XConnection, WindowAttributesCookie, nullptr);
 
 
-		if (Visible != WindowAttributes->map_state)
+		if (WindowAttributes != nullptr && Visible != WindowAttributes->map_state)
 		{
 			if (!Visible)
 				xcb_unmap_window(this->Data->XConnection, WindowID);
