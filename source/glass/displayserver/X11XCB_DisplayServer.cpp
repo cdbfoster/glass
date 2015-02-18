@@ -403,7 +403,6 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 		xcb_get_window_attributes_cookie_t const WindowAttributesCookie = xcb_get_window_attributes(this->Data->XConnection, WindowID);
 		xcb_get_window_attributes_reply_t *WindowAttributes = xcb_get_window_attributes_reply(this->Data->XConnection, WindowAttributesCookie, nullptr);
 
-
 		if (WindowAttributes != nullptr && Visible != WindowAttributes->map_state)
 		{
 			if (!Visible)

@@ -29,6 +29,7 @@ namespace Glass
 	{
 		enum class Type { ROOT_CREATE,
 						  CLIENT_CREATE,
+						  CLIENT_DESTROY,
 						  CLIENT_SHOW_REQUEST,
 						  CLIENT_GEOMETRY_CHANGE_REQUEST };
 
@@ -70,6 +71,14 @@ namespace Glass
 	{
 		ClientCreate_Event(Glass::ClientWindow &ClientWindow) :
 			Client_Event(ClientWindow, Event::Type::CLIENT_CREATE)
+		{ }
+	};
+
+
+	struct ClientDestroy_Event : public Client_Event
+	{
+		ClientDestroy_Event(Glass::ClientWindow &ClientWindow) :
+			Client_Event(ClientWindow, Event::Type::CLIENT_DESTROY)
 		{ }
 	};
 
