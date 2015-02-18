@@ -20,6 +20,7 @@
 #ifndef GLASS_CORE_EVENT
 #define GLASS_CORE_EVENT
 
+#include "glass/core/Vector.hpp"
 #include "glass/core/Window.hpp"
 
 namespace Glass
@@ -28,7 +29,8 @@ namespace Glass
 	{
 		enum class Type { ROOT_CREATE,
 						  CLIENT_CREATE,
-						  CLIENT_SHOW_REQUEST };
+						  CLIENT_SHOW_REQUEST,
+						  CLIENT_GEOMETRY_CHANGE_REQUEST };
 
 		virtual ~Event() { }
 
@@ -48,27 +50,49 @@ namespace Glass
 	};
 
 
-	struct ClientCreate_Event : public Event
+	struct Client_Event : public Event
 	{
-		ClientCreate_Event(Glass::ClientWindow &ClientWindow) :
-			ClientWindow(ClientWindow)
+		Client_Event(Glass::ClientWindow &ClientWindow, Event::Type Type) :
+			ClientWindow(ClientWindow),
+			Type(Type)
 		{ }
 
-		Type GetType() const { return Type::CLIENT_CREATE; }
+		Event::Type GetType() const { return this->Type; }
 
 		Glass::ClientWindow &ClientWindow;
+
+	private:
+		Event::Type const Type;
 	};
 
 
-	struct ClientShowRequest_Event : public Event
+	struct ClientCreate_Event : public Client_Event
+	{
+		ClientCreate_Event(Glass::ClientWindow &ClientWindow) :
+			Client_Event(ClientWindow, Event::Type::CLIENT_CREATE)
+		{ }
+	};
+
+
+	struct ClientShowRequest_Event : public Client_Event
 	{
 		ClientShowRequest_Event(Glass::ClientWindow &ClientWindow) :
-			ClientWindow(ClientWindow)
+			Client_Event(ClientWindow, Event::Type::CLIENT_SHOW_REQUEST)
+		{ }
+	};
+
+
+	struct ClientGeometryChangeRequest_Event : public Client_Event
+	{
+		ClientGeometryChangeRequest_Event(Glass::ClientWindow &ClientWindow, Vector const &RequestedPosition,
+																			 Vector const &RequestedSize) :
+			Client_Event(ClientWindow, Event::Type::CLIENT_GEOMETRY_CHANGE_REQUEST),
+			RequestedPosition(RequestedPosition),
+			RequestedSize(RequestedSize)
 		{ }
 
-		Type GetType() const { return Type::CLIENT_SHOW_REQUEST; }
-
-		Glass::ClientWindow &ClientWindow;
+		Vector const RequestedPosition;
+		Vector const RequestedSize;
 	};
 }
 
