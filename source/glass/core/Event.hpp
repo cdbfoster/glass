@@ -31,7 +31,8 @@ namespace Glass
 						  CLIENT_CREATE,
 						  CLIENT_DESTROY,
 						  CLIENT_SHOW_REQUEST,
-						  CLIENT_GEOMETRY_CHANGE_REQUEST };
+						  CLIENT_GEOMETRY_CHANGE_REQUEST,
+						  ENTER_WINDOW };
 
 		virtual ~Event() { }
 
@@ -102,6 +103,20 @@ namespace Glass
 
 		Vector const RequestedPosition;
 		Vector const RequestedSize;
+	};
+
+
+	struct EnterWindow_Event : public Event
+	{
+		EnterWindow_Event(Glass::Window &Window, Vector const &Position) :
+			Window(Window),
+			Position(Position)
+		{ }
+
+		Type GetType() const { return Type::ENTER_WINDOW; }
+
+		Glass::Window &Window;
+		Vector const Position;
 	};
 }
 
