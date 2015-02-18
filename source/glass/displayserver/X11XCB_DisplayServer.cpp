@@ -399,10 +399,20 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 			}
 		}
 
-		if (!Visible)
-			xcb_unmap_window(this->Data->XConnection, WindowID);
-		else
-			xcb_map_window(this->Data->XConnection, WindowID);
+		// Check the window's map state
+		xcb_get_window_attributes_cookie_t const WindowAttributesCookie = xcb_get_window_attributes(this->Data->XConnection, WindowID);
+		xcb_get_window_attributes_reply_t *WindowAttributes = xcb_get_window_attributes_reply(this->Data->XConnection, WindowAttributesCookie, nullptr);
+
+
+		if (Visible != WindowAttributes->map_state)
+		{
+			if (!Visible)
+				xcb_unmap_window(this->Data->XConnection, WindowID);
+			else
+				xcb_map_window(this->Data->XConnection, WindowID);
+		}
+
+		free(WindowAttributes);
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window! Cannot set window visibility." << std::endl;
@@ -571,6 +581,8 @@ void X11XCB_DisplayServer::LowerWindow(Window const &Window)
 
 void X11XCB_DisplayServer::DeleteWindow(Window &Window)
 {
+	DisplayServer::DeleteWindow(Window);
+
 	if (RootWindow * const WindowCast = dynamic_cast<RootWindow *>(&Window))
 	{
 		auto ActiveRootWindowAccessor = this->Data->GetActiveRootWindow();
