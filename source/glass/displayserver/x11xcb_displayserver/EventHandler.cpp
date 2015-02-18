@@ -66,7 +66,8 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Listen()
 
 void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_event_t *Event)
 {
-	LOG_DEBUG_INFO << "Incoming X Event: " << XCB_EVENT_RESPONSE_TYPE(Event);
+	if (XCB_EVENT_RESPONSE_TYPE(Event) != XCB_MOTION_NOTIFY)
+		LOG_DEBUG_INFO << "Incoming X Event: " << XCB_EVENT_RESPONSE_TYPE(Event);
 
 	switch (XCB_EVENT_RESPONSE_TYPE(Event))
 	{
@@ -85,20 +86,14 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 		LOG_DEBUG_INFO_NOHEADER << " - Configure on " << ((xcb_configure_notify_event_t *)Event)->window << ", " <<
 														 ((xcb_configure_notify_event_t *)Event)->event;
 		break;
-	case XCB_ENTER_NOTIFY:
-	case XCB_LEAVE_NOTIFY:
-		LOG_DEBUG_INFO_NOHEADER << " - " << (XCB_EVENT_RESPONSE_TYPE(Event) == XCB_ENTER_NOTIFY ? "Enter" : "Leave") << " on " <<
-								   ((xcb_enter_notify_event_t *)Event)->child << ", " <<
-								   ((xcb_enter_notify_event_t *)Event)->event;
-		break;
 	case XCB_PROPERTY_NOTIFY:
 		LOG_DEBUG_INFO_NOHEADER << " - Property notify on " << ((xcb_property_notify_event_t *)Event)->window;
 		break;
-	case XCB_MOTION_NOTIFY:
+	/*case XCB_MOTION_NOTIFY:
 		LOG_DEBUG_INFO_NOHEADER << " - Motion notify on " << ((xcb_motion_notify_event_t *)Event)->child << ", " <<
 															 ((xcb_motion_notify_event_t *)Event)->event << " at " <<
 															 ((xcb_motion_notify_event_t *)Event)->event_x << ", " << ((xcb_motion_notify_event_t *)Event)->event_y;
-		break;
+		break;*/
 	case XCB_KEY_PRESS:
 	case XCB_KEY_RELEASE:
 		LOG_DEBUG_INFO_NOHEADER << " - Key " << (XCB_EVENT_RESPONSE_TYPE(Event) == XCB_KEY_PRESS ? "Press" : "Release") << ": ";
@@ -251,11 +246,34 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 			auto WindowData = WindowDataAccessor->find(DestroyNotify->window);
 			if (WindowData != WindowDataAccessor->end() && dynamic_cast<ClientWindowData const *>(*WindowData))
+			{
 				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientDestroy_Event(static_cast<ClientWindow &>((*WindowData)->Window))));
+			}
 		}
+		break;
+
+
+	case XCB_ENTER_NOTIFY:
+		{
+			xcb_enter_notify_event_t *EnterNotify = (xcb_enter_notify_event_t *)Event;
+
+			LOG_DEBUG_INFO_NOHEADER << " - Enter notify on " << EnterNotify->event << " at " << EnterNotify->root_x << ", " << EnterNotify->root_y;
+
+			auto WindowDataAccessor = this->Owner.GetWindowData();
+
+			auto WindowData = WindowDataAccessor->find(EnterNotify->event);
+			if (WindowData != WindowDataAccessor->end())
+			{
+				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new EnterWindow_Event((*WindowData)->Window,
+																							  Vector(EnterNotify->root_x,
+																									 EnterNotify->root_y))));
+			}
+		}
+		break;
 	default:
 		break;
 	}
 
-	LOG_DEBUG_INFO_NOHEADER << std::endl;
+	if (XCB_EVENT_RESPONSE_TYPE(Event) != XCB_MOTION_NOTIFY)
+		LOG_DEBUG_INFO_NOHEADER << std::endl;
 }
