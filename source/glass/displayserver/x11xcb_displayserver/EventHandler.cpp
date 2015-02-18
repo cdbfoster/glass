@@ -217,6 +217,28 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 			}
 		}
 		break;
+
+
+	case XCB_UNMAP_NOTIFY:
+		{
+			xcb_unmap_notify_event_t *UnmapNotify = (xcb_unmap_notify_event_t *)Event;
+
+			LOG_DEBUG_INFO_NOHEADER << " - Unmap notify on " << UnmapNotify->window;
+
+			Window *EventWindow = nullptr;
+
+			{
+				auto WindowDataAccessor = this->Owner.GetWindowData();
+
+				auto WindowData = WindowDataAccessor->find(UnmapNotify->window);
+				if (WindowData != WindowDataAccessor->end())
+					EventWindow = &(*WindowData)->Window;
+			}
+
+			if (EventWindow != nullptr)
+				EventWindow->SetVisibility(false);
+		}
+		break;
 	default:
 		break;
 	}
