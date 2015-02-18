@@ -17,6 +17,8 @@
 * Copyright 2014-2015 Chris Foster
 */
 
+#include <xcb/xcb.h>
+#include <xcb/xcb_aux.h>
 #include <xcb/xcb_event.h>
 
 #include "glass/core/Event.hpp"
@@ -109,6 +111,83 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 								   ((xcb_key_press_event_t *)Event)->child << ", " << ((xcb_key_press_event_t *)Event)->event << " at " <<
 								   ((xcb_key_press_event_t *)Event)->event_x << ", " << ((xcb_key_press_event_t *)Event)->event_y;
 		break;
+
+	case XCB_CONFIGURE_REQUEST:
+		{
+			xcb_configure_request_event_t *ConfigureRequest = (xcb_configure_request_event_t *)Event;
+
+			LOG_DEBUG_INFO_NOHEADER << " - Configure request on " << ConfigureRequest->window;
+
+			// For the values we're going to configure right now
+			uint16_t				ConfigureMask = 0x00;
+			std::vector<uint32_t>	ConfigureValues;
+
+			auto WindowDataAccessor = this->Owner.GetWindowData();
+
+			// If we know about the client already, send the geometry portion of the request to the window manager
+			auto WindowData = WindowDataAccessor->find(ConfigureRequest->window);
+			if (WindowData != WindowDataAccessor->end() && dynamic_cast<ClientWindowData const *>(*WindowData))
+			{
+				ClientWindow &EventWindow = static_cast<ClientWindow &>((*WindowData)->Window);
+
+				Vector const CurrentPosition = EventWindow.GetPosition();
+				Vector const RequestedPosition(ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_X ? ConfigureRequest->x : CurrentPosition.x,
+											   ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_Y ? ConfigureRequest->y : CurrentPosition.y);
+
+				Vector const CurrentSize = EventWindow.GetSize();
+				Vector const RequestedSize(ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_WIDTH ? ConfigureRequest->width : CurrentSize.x,
+										   ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_HEIGHT ? ConfigureRequest->height : CurrentSize.y);
+
+				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientGeometryChangeRequest_Event(EventWindow, RequestedPosition, RequestedSize)));
+			}
+			else // Otherwise, configure it along with everything else
+			{
+				if (ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_X)
+				{
+					ConfigureMask |= XCB_CONFIG_WINDOW_X;
+					ConfigureValues.push_back(ConfigureRequest->x);
+				}
+				if (ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_Y)
+				{
+					ConfigureMask |= XCB_CONFIG_WINDOW_Y;
+					ConfigureValues.push_back(ConfigureRequest->y);
+				}
+				if (ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_WIDTH)
+				{
+					ConfigureMask |= XCB_CONFIG_WINDOW_WIDTH;
+					ConfigureValues.push_back(ConfigureRequest->width);
+				}
+				if (ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_HEIGHT)
+				{
+					ConfigureMask |= XCB_CONFIG_WINDOW_HEIGHT;
+					ConfigureValues.push_back(ConfigureRequest->height);
+				}
+			}
+
+			if (ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_BORDER_WIDTH)
+			{
+				ConfigureMask |= XCB_CONFIG_WINDOW_BORDER_WIDTH;
+				ConfigureValues.push_back(ConfigureRequest->border_width);
+			}
+			if (ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_SIBLING)
+			{
+				ConfigureMask |= XCB_CONFIG_WINDOW_SIBLING;
+				ConfigureValues.push_back(ConfigureRequest->sibling);
+			}
+			if (ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_STACK_MODE)
+			{
+				ConfigureMask |= XCB_CONFIG_WINDOW_STACK_MODE;
+				ConfigureValues.push_back(ConfigureRequest->stack_mode);
+			}
+
+			if (!ConfigureValues.empty())
+			{
+				xcb_configure_window(this->Owner.XConnection, ConfigureRequest->window, ConfigureMask, &ConfigureValues.front());
+				xcb_aux_sync(this->Owner.XConnection);
+			}
+		}
+		break;
+
 
 	case XCB_MAP_REQUEST:
 		{
