@@ -239,6 +239,20 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 				EventWindow->SetVisibility(false);
 		}
 		break;
+
+
+	case XCB_DESTROY_NOTIFY:
+		{
+			xcb_destroy_notify_event_t *DestroyNotify = (xcb_destroy_notify_event_t *)Event;
+
+			LOG_DEBUG_INFO_NOHEADER << " - Destroy notify on " << DestroyNotify->window;
+
+			auto WindowDataAccessor = this->Owner.GetWindowData();
+
+			auto WindowData = WindowDataAccessor->find(DestroyNotify->window);
+			if (WindowData != WindowDataAccessor->end() && dynamic_cast<ClientWindowData const *>(*WindowData))
+				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientDestroy_Event(static_cast<ClientWindow &>((*WindowData)->Window))));
+		}
 	default:
 		break;
 	}
