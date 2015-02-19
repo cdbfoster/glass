@@ -376,9 +376,6 @@ void X11XCB_DisplayServer::SetWindowSize(Window &Window, Vector const &Size)
 
 void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 {
-	if (Window.GetVisibility() == Visible)
-		return;
-
 	auto WindowDataAccessor = this->Data->GetWindowData();
 
 	auto WindowData = WindowDataAccessor->find(&Window);
@@ -572,9 +569,6 @@ void Update_NET_WM_STATE(xcb_connection_t *XConnection, xcb_window_t WindowID, s
 
 void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, bool Value)
 {
-	if (ClientWindow.GetIconified() == Value)
-		return;
-
 	auto WindowDataAccessor = this->Data->GetWindowData();
 
 	auto WindowData = WindowDataAccessor->find(&ClientWindow);
