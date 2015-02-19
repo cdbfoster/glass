@@ -184,7 +184,8 @@ namespace Glass
 		bool				Iconified;
 		mutable std::mutex	IconifiedMutex;
 
-		bool Fullscreen;
+		bool				Fullscreen;
+		mutable std::mutex	FullscreenMutex;
 
 		bool				Urgent;
 		mutable std::mutex	UrgentMutex;

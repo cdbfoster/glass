@@ -226,7 +226,12 @@ bool ClientWindow::GetIconified() const
 }
 
 
-bool ClientWindow::GetFullscreen() const { return this->Fullscreen; }
+bool ClientWindow::GetFullscreen() const
+{
+	std::lock_guard<std::mutex> Lock(this->FullscreenMutex);
+
+	return this->Fullscreen;
+}
 
 
 bool ClientWindow::GetUrgent() const
@@ -317,9 +322,13 @@ void ClientWindow::SetIconified(bool Value)
 
 void ClientWindow::SetFullscreen(bool Value)
 {
-	this->DisplayServer.SetClientWindowFullscreen(*this, Value);
+	{
+		std::lock_guard<std::mutex> Lock(this->FullscreenMutex);
 
-	this->Fullscreen = Value;
+		this->DisplayServer.SetClientWindowFullscreen(*this, Value);
+
+		this->Fullscreen = Value;
+	}
 
 	PrimaryWindow::UpdateAuxiliaryWindows();
 }

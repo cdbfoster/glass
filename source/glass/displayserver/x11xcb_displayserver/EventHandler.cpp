@@ -20,6 +20,7 @@
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_event.h>
+#include <xcb/xcb_ewmh.h>
 #include <xcb/xcb_icccm.h>
 
 #include "glass/core/Event.hpp"
@@ -315,25 +316,43 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 			LOG_DEBUG_INFO_NOHEADER << " - Client message from " << ClientMessage->window;
 
-			if (ClientMessage->type == Atoms::WM_CHANGE_STATE &&
-				ClientMessage->format == 32 &&
-				ClientMessage->data.data32[0] == XCB_ICCCM_WM_STATE_ICONIC)
+			ClientWindow *EventWindow = nullptr;
+
 			{
-				ClientWindow *EventWindow = nullptr;
+				auto WindowDataAccessor = this->Owner.GetWindowData();
 
+				auto WindowData = WindowDataAccessor->find(ClientMessage->window);
+				if (WindowData != WindowDataAccessor->end())
+					EventWindow = dynamic_cast<ClientWindow *>(&(*WindowData)->Window);
+			}
+
+			if (EventWindow != nullptr)
+			{
+				if (ClientMessage->type == Atoms::WM_CHANGE_STATE &&
+					ClientMessage->format == 32 &&
+					ClientMessage->data.data32[0] == XCB_ICCCM_WM_STATE_ICONIC)
 				{
-					auto WindowDataAccessor = this->Owner.GetWindowData();
-
-					auto WindowData = WindowDataAccessor->find(ClientMessage->window);
-					if (WindowData != WindowDataAccessor->end())
-						EventWindow = dynamic_cast<ClientWindow *>(&(*WindowData)->Window);
+					this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientIconifiedRequest_Event(*EventWindow)));
 				}
-
-				if (EventWindow != nullptr)
+				else if (ClientMessage->type == Atoms::_NET_WM_STATE &&
+						(ClientMessage->data.data32[1] == Atoms::_NET_WM_STATE_FULLSCREEN || ClientMessage->data.data32[2] == Atoms::_NET_WM_STATE_FULLSCREEN))
 				{
-					EventWindow->SetIconified(true);
+					bool Value;
 
-					this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientIconified_Event(*EventWindow)));
+					switch (ClientMessage->data.data32[0])
+					{
+					case XCB_EWMH_WM_STATE_ADD:
+						Value = true;
+						break;
+					case XCB_EWMH_WM_STATE_TOGGLE:
+						Value = !EventWindow->GetFullscreen();
+						break;
+					default:
+						Value = false;
+						break;
+					}
+
+					this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientFullscreenRequest_Event(*EventWindow, Value)));
 				}
 			}
 		}

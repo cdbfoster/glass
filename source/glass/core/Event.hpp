@@ -32,7 +32,8 @@ namespace Glass
 						  CLIENT_DESTROY,
 						  CLIENT_SHOW_REQUEST,
 						  CLIENT_GEOMETRY_CHANGE_REQUEST,
-						  CLIENT_ICONIFIED,
+						  CLIENT_ICONIFIED_REQUEST,
+						  CLIENT_FULLSCREEN_REQUEST,
 						  ENTER_WINDOW };
 
 		virtual ~Event() { }
@@ -107,11 +108,22 @@ namespace Glass
 	};
 
 
-	struct ClientIconified_Event : public Client_Event
+	struct ClientIconifiedRequest_Event : public Client_Event
 	{
-		ClientIconified_Event(Glass::ClientWindow &ClientWindow) :
-			Client_Event(ClientWindow, Event::Type::CLIENT_ICONIFIED)
+		ClientIconifiedRequest_Event(Glass::ClientWindow &ClientWindow) :
+			Client_Event(ClientWindow, Event::Type::CLIENT_ICONIFIED_REQUEST)
 		{ }
+	};
+
+
+	struct ClientFullscreenRequest_Event : public Client_Event
+	{
+		ClientFullscreenRequest_Event(Glass::ClientWindow &ClientWindow, bool Value) :
+			Client_Event(ClientWindow, Event::Type::CLIENT_FULLSCREEN_REQUEST),
+			Value(Value)
+		{ }
+
+		bool const Value;
 	};
 
 
