@@ -30,9 +30,7 @@ struct Atom
 	Atom(xcb_atom_t &Data, std::string const &Name) :
 		Data(&Data),
 		Name(Name)
-	{
-
-	}
+	{ }
 
 	xcb_atom_t * const Data;
 	std::string const Name;
@@ -47,6 +45,7 @@ void Atoms::Initialize(xcb_connection_t *XConnection)
 		{ WM_PROTOCOLS,							"WM_PROTOCOLS" },
 		{ WM_DELETE_WINDOW,						"WM_DELETE_WINDOW" },
 		{ WM_TAKE_FOCUS,						"WM_TAKE_FOCUS" },
+		{ WM_CHANGE_STATE,						"WM_CHANGE_STATE" },
 		{ _NET_SUPPORTED,						"_NET_SUPPORTED" },
 		{ _NET_SUPPORTING_WM_CHECK,				"_NET_SUPPORTING_WM_CHECK" },
 		{ _NET_WM_NAME,							"_NET_WM_NAME" },
@@ -134,6 +133,7 @@ xcb_atom_t Atoms::WM_STATE;
 xcb_atom_t Atoms::WM_PROTOCOLS;
 xcb_atom_t Atoms::WM_DELETE_WINDOW;
 xcb_atom_t Atoms::WM_TAKE_FOCUS;
+xcb_atom_t Atoms::WM_CHANGE_STATE;
 xcb_atom_t Atoms::_NET_SUPPORTED;
 xcb_atom_t Atoms::_NET_SUPPORTING_WM_CHECK;
 xcb_atom_t Atoms::_NET_WM_NAME;

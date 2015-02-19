@@ -32,6 +32,7 @@ namespace Glass
 						  CLIENT_DESTROY,
 						  CLIENT_SHOW_REQUEST,
 						  CLIENT_GEOMETRY_CHANGE_REQUEST,
+						  CLIENT_ICONIFIED,
 						  ENTER_WINDOW };
 
 		virtual ~Event() { }
@@ -103,6 +104,14 @@ namespace Glass
 
 		Vector const RequestedPosition;
 		Vector const RequestedSize;
+	};
+
+
+	struct ClientIconified_Event : public Client_Event
+	{
+		ClientIconified_Event(Glass::ClientWindow &ClientWindow) :
+			Client_Event(ClientWindow, Event::Type::CLIENT_ICONIFIED)
+		{ }
 	};
 
 

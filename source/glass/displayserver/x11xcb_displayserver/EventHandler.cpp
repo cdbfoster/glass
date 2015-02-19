@@ -20,6 +20,7 @@
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_event.h>
+#include <xcb/xcb_icccm.h>
 
 #include "glass/core/Event.hpp"
 #include "glass/core/EventQueue.hpp"
@@ -306,6 +307,36 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 			}
 		}
 		break;
+
+
+	case XCB_CLIENT_MESSAGE:
+		{
+			xcb_client_message_event_t *ClientMessage = (xcb_client_message_event_t *)Event;
+
+			LOG_DEBUG_INFO_NOHEADER << " - Client message from " << ClientMessage->window;
+
+			if (ClientMessage->type == Atoms::WM_CHANGE_STATE &&
+				ClientMessage->format == 32 &&
+				ClientMessage->data.data32[0] == XCB_ICCCM_WM_STATE_ICONIC)
+			{
+				ClientWindow *EventWindow = nullptr;
+
+				{
+					auto WindowDataAccessor = this->Owner.GetWindowData();
+
+					auto WindowData = WindowDataAccessor->find(ClientMessage->window);
+					if (WindowData != WindowDataAccessor->end())
+						EventWindow = dynamic_cast<ClientWindow *>(&(*WindowData)->Window);
+				}
+
+				if (EventWindow != nullptr)
+				{
+					EventWindow->SetIconified(true);
+
+					this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientIconified_Event(*EventWindow)));
+				}
+			}
+		}
 	default:
 		break;
 	}

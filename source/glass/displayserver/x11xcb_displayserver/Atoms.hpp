@@ -32,6 +32,7 @@ namespace Glass
 		static xcb_atom_t WM_PROTOCOLS;
 		static xcb_atom_t WM_DELETE_WINDOW;
 		static xcb_atom_t WM_TAKE_FOCUS;
+		static xcb_atom_t WM_CHANGE_STATE;
 
 		static xcb_atom_t _NET_SUPPORTED;
 		static xcb_atom_t _NET_SUPPORTING_WM_CHECK;
