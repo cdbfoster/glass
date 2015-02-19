@@ -155,6 +155,7 @@ namespace Glass
 
 		void SetPosition(Vector const &Position);
 		void SetSize(Vector const &Size);
+		void SetVisibility(bool Visible);
 
 		void SetIconified(bool Value);
 		void SetFullscreen(bool Value);

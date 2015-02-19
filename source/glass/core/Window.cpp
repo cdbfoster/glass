@@ -267,13 +267,48 @@ void ClientWindow::SetSize(Vector const &Size)
 }
 
 
+void ClientWindow::SetVisibility(bool Visible)
+{
+	std::lock_guard<std::mutex> LockVisible(this->VisibleMutex);
+
+	if (this->Visible != Visible)
+	{
+		this->DisplayServer.SetWindowVisibility(*this, Visible);
+
+		{
+			std::lock_guard<std::mutex> LockIconified(this->IconifiedMutex);
+
+			if (Visible == true && this->Iconified == true)
+			{
+				this->DisplayServer.SetClientWindowIconified(*this, false);
+
+				this->Iconified = false;
+			}
+		}
+
+		this->Visible = Visible;
+	}
+}
+
+
 void ClientWindow::SetIconified(bool Value)
 {
-	std::lock_guard<std::mutex> Lock(this->IconifiedMutex);
+	std::lock_guard<std::mutex> LockIconified(this->IconifiedMutex);
 
 	if (this->Iconified != Value)
 	{
 		this->DisplayServer.SetClientWindowIconified(*this, Value);
+
+		{
+			std::lock_guard<std::mutex> LockVisible(this->VisibleMutex);
+
+			if (this->Visible != !Value)
+			{
+				this->DisplayServer.SetWindowVisibility(*this, !Value);
+
+				this->Visible = !Value;
+			}
+		}
 
 		this->Iconified = Value;
 	}
