@@ -43,7 +43,14 @@ Window::~Window()
 
 Vector	Window::GetPosition() const		{ return this->Position; }
 Vector	Window::GetSize() const			{ return this->Size; }
-bool	Window::GetVisibility() const	{ return this->Visible; }
+
+
+bool Window::GetVisibility() const
+{
+	std::lock_guard<std::mutex> Lock(this->VisibleMutex);
+
+	return this->Visible;
+}
 
 
 void Window::SetPosition(Vector const &Position)
@@ -64,9 +71,14 @@ void Window::SetSize(Vector const &Size)
 
 void Window::SetVisibility(bool Visible)
 {
-	this->DisplayServer.SetWindowVisibility(*this, Visible);
+	std::lock_guard<std::mutex> Lock(this->VisibleMutex);
 
-	this->Visible = Visible;
+	if (this->Visible != Visible)
+	{
+		this->DisplayServer.SetWindowVisibility(*this, Visible);
+
+		this->Visible = Visible;
+	}
 }
 
 
@@ -195,18 +207,46 @@ ClientWindow::~ClientWindow()
 }
 
 
-std::string			ClientWindow::GetName() const	{ return this->Name; }
+std::string ClientWindow::GetName() const
+{
+	std::lock_guard<std::mutex> Lock(this->NameMutex);
+
+	return this->Name;
+}
+
+
 ClientWindow::Type	ClientWindow::GetType() const	{ return this->TypeValue; }
 
 
-bool ClientWindow::GetIconified() const		{ return this->Iconified; }
-bool ClientWindow::GetFullscreen() const	{ return this->Fullscreen; }
-bool ClientWindow::GetUrgent() const		{ return this->Urgent; }
+bool ClientWindow::GetIconified() const
+{
+	std::lock_guard<std::mutex> Lock(this->IconifiedMutex);
+
+	return this->Iconified;
+}
+
+
+bool ClientWindow::GetFullscreen() const { return this->Fullscreen; }
+
+
+bool ClientWindow::GetUrgent() const
+{
+	std::lock_guard<std::mutex> Lock(this->UrgentMutex);
+
+	return this->Urgent;
+}
 
 
 Vector			ClientWindow::GetBaseSize() const		{ return this->BaseSize; }
 ClientWindow   *ClientWindow::GetTransientFor() const	{ return this->TransientFor; }
-RootWindow	   *ClientWindow::GetRootWindow() const		{ return this->RootWindow; }
+
+
+RootWindow *ClientWindow::GetRootWindow() const
+{
+	std::lock_guard<std::mutex> Lock(this->RootWindowMutex);
+
+	return this->RootWindow;
+}
 
 
 void ClientWindow::SetPosition(Vector const &Position)
@@ -229,9 +269,14 @@ void ClientWindow::SetSize(Vector const &Size)
 
 void ClientWindow::SetIconified(bool Value)
 {
-	this->DisplayServer.SetClientWindowIconified(*this, Value);
+	std::lock_guard<std::mutex> Lock(this->IconifiedMutex);
 
-	this->Iconified = Value;
+	if (this->Iconified != Value)
+	{
+		this->DisplayServer.SetClientWindowIconified(*this, Value);
+
+		this->Iconified = Value;
+	}
 }
 
 
@@ -247,9 +292,13 @@ void ClientWindow::SetFullscreen(bool Value)
 
 void ClientWindow::SetUrgent(bool Value)
 {
-	this->DisplayServer.SetClientWindowUrgent(*this, Value);
+	{
+		std::lock_guard<std::mutex> Lock(this->UrgentMutex);
 
-	this->Urgent = Value;
+		this->DisplayServer.SetClientWindowUrgent(*this, Value);
+
+		this->Urgent = Value;
+	}
 
 	PrimaryWindow::UpdateAuxiliaryWindows();
 }
@@ -269,12 +318,16 @@ void ClientWindow::Kill()
 
 void ClientWindow::SetName(std::string const &Name)
 {
+	std::lock_guard<std::mutex> Lock(this->NameMutex);
+
 	this->Name = Name;
 }
 
 
 void ClientWindow::SetRootWindow(Glass::RootWindow *RootWindow)
 {
+	std::lock_guard<std::mutex> Lock(this->RootWindowMutex);
+
 	this->RootWindow = RootWindow;
 }
 
@@ -305,8 +358,20 @@ locked_accessor<RootWindow::ClientWindowList const> RootWindow::GetClientWindows
 }
 
 
-ClientWindow   *RootWindow::GetActiveClientWindow() const						{ return this->ActiveClientWindow; }
-void			RootWindow::SetActiveClientWindow(ClientWindow &ClientWindow)	{ this->ActiveClientWindow = &ClientWindow; }
+ClientWindow *RootWindow::GetActiveClientWindow() const
+{
+	std::lock_guard<std::mutex> Lock(this->ActiveClientWindowMutex);
+
+	return this->ActiveClientWindow;
+}
+
+
+void RootWindow::SetActiveClientWindow(ClientWindow &ClientWindow)
+{
+	std::lock_guard<std::mutex> Lock(this->ActiveClientWindowMutex);
+
+	this->ActiveClientWindow = &ClientWindow;
+}
 
 
 // These operations are not allowed on root windows

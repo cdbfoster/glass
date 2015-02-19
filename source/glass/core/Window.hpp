@@ -60,7 +60,9 @@ namespace Glass
 
 		Vector	Position;
 		Vector	Size;
-		bool	Visible;
+
+		bool				Visible;
+		mutable std::mutex	VisibleMutex;
 	};
 
 	typedef std::list<Window *> WindowList;
@@ -165,7 +167,7 @@ namespace Glass
 	private:
 		friend class DisplayServer;
 
-		void SetName(std::string const &Name);  // XXX Does this need to be made thread-safe?
+		void SetName(std::string const &Name);
 
 	private:
 		friend class Glass::RootWindow;
@@ -173,16 +175,24 @@ namespace Glass
 		void SetRootWindow(Glass::RootWindow *RootWindow);
 
 	private:
-		std::string	Name;
-		Type		TypeValue;
+		std::string			Name;
+		mutable std::mutex	NameMutex;
 
-		bool Iconified;
+		Type TypeValue;
+
+		bool				Iconified;
+		mutable std::mutex	IconifiedMutex;
+
 		bool Fullscreen;
-		bool Urgent;
+
+		bool				Urgent;
+		mutable std::mutex	UrgentMutex;
 
 		Vector const			BaseSize;
 		ClientWindow * const	TransientFor;
-		Glass::RootWindow	   *RootWindow;
+
+		Glass::RootWindow  *RootWindow;
+		mutable std::mutex	RootWindowMutex;
 	};
 
 	typedef std::list<ClientWindow *> ClientWindowList;
@@ -249,7 +259,8 @@ namespace Glass
 		};
 
 	private:
-		ClientWindow *ActiveClientWindow;
+		ClientWindow	   *ActiveClientWindow;
+		mutable std::mutex	ActiveClientWindowMutex;
 
 		ClientWindowList	ClientWindows;
 		mutable std::mutex	ClientWindowsMutex;
