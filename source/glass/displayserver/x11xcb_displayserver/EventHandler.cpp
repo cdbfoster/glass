@@ -67,7 +67,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Listen()
 void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_event_t *Event)
 {
 	if (XCB_EVENT_RESPONSE_TYPE(Event) != XCB_MOTION_NOTIFY)
-		LOG_DEBUG_INFO << "Incoming X Event: " << XCB_EVENT_RESPONSE_TYPE(Event);
+		LOG_DEBUG_INFO << "    Incoming X Event: " << XCB_EVENT_RESPONSE_TYPE(Event);
 
 	switch (XCB_EVENT_RESPONSE_TYPE(Event))
 	{
@@ -267,6 +267,42 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new EnterWindow_Event((*WindowData)->Window,
 																							  Vector(EnterNotify->root_x,
 																									 EnterNotify->root_y))));
+			}
+		}
+		break;
+
+
+	case XCB_FOCUS_IN:
+		{
+			xcb_focus_in_event_t *FocusIn = (xcb_focus_in_event_t *)Event;
+
+			LOG_DEBUG_INFO_NOHEADER << " - Focus in on " << FocusIn->event;
+
+			// Check to see if the window that's taking the focus is the one we want it to be
+			xcb_window_t ReclaimFocusID = XCB_NONE;
+
+			{
+				auto ActiveWindowAccessor = this->Owner.GetActiveWindow();
+
+				if (*ActiveWindowAccessor != XCB_NONE && *ActiveWindowAccessor != FocusIn->event)
+					ReclaimFocusID = *ActiveWindowAccessor;
+			}
+
+			// If it's not, take back the focus
+			if (ReclaimFocusID != XCB_NONE)
+			{
+				Window *ReclaimFocus = nullptr;
+
+				{
+					auto WindowDataAccessor = this->Owner.GetWindowData();
+
+					auto WindowData = WindowDataAccessor->find(ReclaimFocusID);
+					if (WindowData != WindowDataAccessor->end())
+						ReclaimFocus = &(*WindowData)->Window;
+				}
+
+				if (ReclaimFocus != nullptr)
+					ReclaimFocus->Focus();
 			}
 		}
 		break;
