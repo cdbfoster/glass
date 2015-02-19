@@ -52,14 +52,10 @@ namespace Glass
 		EventHandler *Handler;
 
 
-		// Active windows
-		RootWindow		   *ActiveRootWindow;
-		mutable std::mutex	ActiveRootWindowMutex;
-		locked_accessor<RootWindow *> GetActiveRootWindow();
-
-		ClientWindow	   *ActiveClientWindow;
-		mutable std::mutex	ActiveClientWindowMutex;
-		locked_accessor<ClientWindow *> GetActiveClientWindow();
+		// Active window
+		xcb_window_t ActiveWindowID;
+		mutable std::mutex	ActiveWindowMutex;
+		locked_accessor<xcb_window_t> GetActiveWindow();
 
 
 		// Window data

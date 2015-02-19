@@ -452,81 +452,45 @@ void X11XCB_DisplayServer::FocusWindow(Window const &Window)
 	if (WindowData != WindowDataAccessor->end())
 	{
 		// Focus the window
+		xcb_window_t const &WindowID = (*WindowData)->ID;
+
+		if (Glass::ClientWindowData const * const ClientWindowData = dynamic_cast<Glass::ClientWindowData const *>(*WindowData))
 		{
-			xcb_window_t const &WindowID = (*WindowData)->ID;
-
-			if (Glass::ClientWindowData const * const ClientWindowData = dynamic_cast<Glass::ClientWindowData const *>(*WindowData))
-			{
-				if (!ClientWindowData->NeverFocus)
-				{
-					xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_POINTER_ROOT, WindowID, XCB_CURRENT_TIME);
-
-					// XXX Set EWMH active window and add to the EWMH focus stack
-				}
-
-				if (WindowSupportsProtocol(this->Data->XConnection, WindowID, Atoms::WM_TAKE_FOCUS))
-				{
-					xcb_client_message_event_t ClientMessage;
-
-					memset(&ClientMessage, 0, sizeof(ClientMessage));
-
-					ClientMessage.response_type = XCB_CLIENT_MESSAGE;
-					ClientMessage.window = WindowID;
-					ClientMessage.format = 32;
-					ClientMessage.type = Atoms::WM_PROTOCOLS;
-					ClientMessage.data.data32[0] = Atoms::WM_TAKE_FOCUS;
-					ClientMessage.data.data32[1] = XCB_CURRENT_TIME;
-
-					xcb_send_event(this->Data->XConnection, false, WindowID, XCB_EVENT_MASK_NO_EVENT, (char *)&ClientMessage);
-				}
-			}
-			else
+			if (!ClientWindowData->NeverFocus)
 			{
 				xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_POINTER_ROOT, WindowID, XCB_CURRENT_TIME);
 
 				// XXX Set EWMH active window and add to the EWMH focus stack
 			}
+
+			if (WindowSupportsProtocol(this->Data->XConnection, WindowID, Atoms::WM_TAKE_FOCUS))
+			{
+				xcb_client_message_event_t ClientMessage;
+
+				memset(&ClientMessage, 0, sizeof(ClientMessage));
+
+				ClientMessage.response_type = XCB_CLIENT_MESSAGE;
+				ClientMessage.window = WindowID;
+				ClientMessage.format = 32;
+				ClientMessage.type = Atoms::WM_PROTOCOLS;
+				ClientMessage.data.data32[0] = Atoms::WM_TAKE_FOCUS;
+				ClientMessage.data.data32[1] = XCB_CURRENT_TIME;
+
+				xcb_send_event(this->Data->XConnection, false, WindowID, XCB_EVENT_MASK_NO_EVENT, (char *)&ClientMessage);
+			}
+		}
+		else
+		{
+			xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_POINTER_ROOT, WindowID, XCB_CURRENT_TIME);
+
+			// XXX Set EWMH active window and add to the EWMH focus stack
 		}
 
 		// Keep track of which window has the input focus so we can detect unauthorized changes to the focus and revert them
 		{
-			auto ActiveRootWindowAccessor =		this->Data->GetActiveRootWindow();
-			auto ActiveClientWindowAccessor =	this->Data->GetActiveClientWindow();
+			auto ActiveWindowAccessor = this->Data->GetActiveWindow();
 
-			RootWindow	  *&ActiveRootWindow =		*ActiveRootWindowAccessor;
-			ClientWindow  *&ActiveClientWindow =	*ActiveClientWindowAccessor;
-
-			if (ClientWindow const * const WindowCast = dynamic_cast<ClientWindow const *>(&Window))
-			{
-				if (ActiveClientWindow != WindowCast)
-				{
-					ActiveClientWindow = const_cast<ClientWindow *>(WindowCast);
-					ActiveRootWindow = WindowCast->GetRootWindow();
-				}
-			}
-			else if (AuxiliaryWindow const * const WindowCast = dynamic_cast<AuxiliaryWindow const *>(&Window))
-			{
-				PrimaryWindow * const Owner = &WindowCast->GetPrimaryWindow();
-
-				if (ClientWindow * const OwnerCast = dynamic_cast<ClientWindow *>(Owner))
-				{
-					if (ActiveClientWindow != OwnerCast)
-					{
-						ActiveClientWindow = OwnerCast;
-						ActiveRootWindow = OwnerCast->GetRootWindow();
-					}
-				}
-				else if (RootWindow * const OwnerCast = dynamic_cast<RootWindow *>(Owner))
-				{
-					ActiveClientWindow = nullptr;
-					ActiveRootWindow = OwnerCast;
-				}
-			}
-			else if (RootWindow const * const WindowCast = dynamic_cast<RootWindow const *>(&Window))
-			{
-				ActiveClientWindow = nullptr;
-				ActiveRootWindow = const_cast<RootWindow *>(WindowCast);
-			}
+			*ActiveWindowAccessor = WindowID;
 		}
 	}
 	else
@@ -582,22 +546,16 @@ void X11XCB_DisplayServer::DeleteWindow(Window &Window)
 {
 	DisplayServer::DeleteWindow(Window);
 
-	if (RootWindow * const WindowCast = dynamic_cast<RootWindow *>(&Window))
-	{
-		auto ActiveRootWindowAccessor = this->Data->GetActiveRootWindow();
-
-		if (*ActiveRootWindowAccessor == WindowCast)
-			*ActiveRootWindowAccessor = nullptr;
-	}
-	else if (ClientWindow * const WindowCast = dynamic_cast<ClientWindow *>(&Window))
-	{
-		auto ActiveClientWindowAccessor = this->Data->GetActiveClientWindow();
-
-		if (*ActiveClientWindowAccessor == WindowCast)
-			*ActiveClientWindowAccessor = nullptr;
-	}
-
 	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&Window);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		auto ActiveWindowAccessor = this->Data->GetActiveWindow();
+
+		if (*ActiveWindowAccessor == (*WindowData)->ID)
+			*ActiveWindowAccessor = XCB_NONE;
+	}
 
 	WindowDataAccessor->erase(&Window);
 }

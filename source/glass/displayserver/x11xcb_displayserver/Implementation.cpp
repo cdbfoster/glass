@@ -30,8 +30,7 @@ X11XCB_DisplayServer::Implementation::Implementation(X11XCB_DisplayServer &Displ
 	DisplayServer(DisplayServer),
 	XConnection(nullptr),
 	DefaultScreenInfo(nullptr),
-	ActiveRootWindow(nullptr),
-	ActiveClientWindow(nullptr)
+	ActiveWindowID(XCB_NONE)
 {
 
 }
@@ -43,8 +42,7 @@ X11XCB_DisplayServer::Implementation::~Implementation()
 }
 
 
-locked_accessor<RootWindow *>	X11XCB_DisplayServer::Implementation::GetActiveRootWindow()		{ return { this->ActiveRootWindow, this->ActiveRootWindowMutex }; }
-locked_accessor<ClientWindow *>	X11XCB_DisplayServer::Implementation::GetActiveClientWindow()	{ return { this->ActiveClientWindow, this->ActiveClientWindowMutex }; }
+locked_accessor<xcb_window_t>	X11XCB_DisplayServer::Implementation::GetActiveWindow()	{ return { this->ActiveWindowID, this->ActiveWindowMutex }; }
 
 
 locked_accessor<RootWindowList>		X11XCB_DisplayServer::Implementation::GetRootWindows()		{ return this->DisplayServer.GetRootWindows(); }
