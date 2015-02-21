@@ -739,108 +739,129 @@ void X11XCB_DisplayServer::KillClientWindow(ClientWindow const &ClientWindow)
 
 void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow)
 {
-	// Get/create window data/window
+	auto WindowDataAccessor = this->Data->GetWindowData();
 
-	PrimaryWindow &PrimaryWindow = AuxiliaryWindow.GetPrimaryWindow();
-
+	auto WindowData = WindowDataAccessor->find(&AuxiliaryWindow);
+	if (WindowData == WindowDataAccessor->end())
 	{
-		auto WindowDataAccessor = this->Data->GetWindowData();
-
-		auto WindowData = WindowDataAccessor->find(&AuxiliaryWindow);
-		if (WindowData == WindowDataAccessor->end())
+		// Get the primary window data
+		xcb_window_t			PrimaryWindowID =	XCB_NONE;
+		Glass::WindowData	   *PrimaryWindowData =	nullptr;
+		Glass::PrimaryWindow   &PrimaryWindow =		AuxiliaryWindow.GetPrimaryWindow();
 		{
-			xcb_window_t PrimaryWindowID = XCB_NONE;
-			ClientWindowData *ClientWindowData = nullptr;
+			auto WindowData = WindowDataAccessor->find(&PrimaryWindow);
+			if (WindowData != WindowDataAccessor->end())
 			{
-				auto WindowData = WindowDataAccessor->find(&PrimaryWindow);
+				PrimaryWindowID = (*WindowData)->ID;
+				PrimaryWindowData = *WindowData;
+			}
+			else
+			{
+				LOG_DEBUG_ERROR << "Could not find a window ID for the primary window!" << std::endl;
+				return;
+			}
+		}
+
+
+		// Get the root window data
+		xcb_window_t	RootWindowID =		this->Data->DefaultScreenInfo->root;
+		RootWindowData *RootWindowData =	nullptr;
+		{
+			Window *RootWindow = nullptr;
+
+			if (ClientWindow const * const WindowCast = dynamic_cast<ClientWindow const *>(&PrimaryWindow))
+				RootWindow = WindowCast->GetRootWindow();
+			else
+				RootWindow = &PrimaryWindow;
+
+			if (RootWindow != nullptr)
+			{
+				auto WindowData = WindowDataAccessor->find(RootWindow);
 				if (WindowData != WindowDataAccessor->end())
 				{
-					PrimaryWindowID = (*WindowData)->ID;
-					ClientWindowData = static_cast<Glass::ClientWindowData *>(*WindowData);
+					RootWindowID = (*WindowData)->ID;
+					RootWindowData = static_cast<Glass::RootWindowData *>(*WindowData);
 				}
 				else
-					LOG_DEBUG_ERROR << "Could not find a window ID for the primary window!" << std::endl;
-			}
-
-			xcb_window_t const AuxiliaryWindowID = xcb_generate_id(this->Data->XConnection);
-
-			xcb_window_t	RootWindowID =		this->Data->DefaultScreenInfo->root;
-			RootWindowData *RootWindowData =	nullptr;
-			{
-				Window *RootWindow = nullptr;
-
-				if (ClientWindow const * const WindowCast = dynamic_cast<ClientWindow const *>(&PrimaryWindow))
-					RootWindow = WindowCast->GetRootWindow();
-				else
-					RootWindow = &PrimaryWindow;
-
-				if (RootWindow != nullptr)
 				{
-					auto WindowData = WindowDataAccessor->find(RootWindow);
-					if (WindowData != WindowDataAccessor->end())
-					{
-						RootWindowID = (*WindowData)->ID;
-						RootWindowData = static_cast<Glass::RootWindowData *>(*WindowData);
-					}
-					else
-						LOG_DEBUG_ERROR << "Could not find root window data!" << std::endl;
+					LOG_DEBUG_ERROR << "Could not find root window data!" << std::endl;
+					return;
 				}
-				else
-					LOG_DEBUG_ERROR << "Could not find the root window!" << std::endl;
 			}
-
-			Vector const Position =	AuxiliaryWindow.GetPosition();
-			Vector const Size =		AuxiliaryWindow.GetSize();
-
-			uint32_t const EventMask = //XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT |
-									   //XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY |
-									   XCB_EVENT_MASK_ENTER_WINDOW |
-									   XCB_EVENT_MASK_LEAVE_WINDOW |
-									   //XCB_EVENT_MASK_STRUCTURE_NOTIFY |
-									   XCB_EVENT_MASK_PROPERTY_CHANGE |
-									   XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE |
-									   XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
-
-			uint32_t const Values[] = {
-				this->Data->DefaultScreenInfo->white_pixel,
-				1,
-				EventMask
-			};
-
-			xcb_create_window(this->Data->XConnection, this->Data->DefaultScreenInfo->root_depth, AuxiliaryWindowID, RootWindowID,
-							  Position.x, Position.y, Size.x, Size.y, 0, XCB_COPY_FROM_PARENT, this->Data->DefaultScreenInfo->root_visual,
-							  XCB_CW_BACK_PIXEL | XCB_CW_OVERRIDE_REDIRECT | XCB_CW_EVENT_MASK, Values);
-
-			xcb_grab_server(this->Data->XConnection);
-
-			// Disable root events
-			uint32_t const NoEvent = 0;
-			xcb_change_window_attributes(this->Data->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &NoEvent);
-
-			// Parent
-			if (Frame_AuxiliaryWindow const * const WindowCast = dynamic_cast<Frame_AuxiliaryWindow const *>(&AuxiliaryWindow))
+			else
 			{
-				Vector const Position = WindowCast->GetULOffset() * -1;
-				xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, AuxiliaryWindowID, Position.x, Position.y);
-
-				if (PrimaryWindow.GetVisibility() == true)
-					xcb_map_window(this->Data->XConnection, AuxiliaryWindowID);
-
-				uint32_t const StackMode = XCB_STACK_MODE_BELOW;
-				xcb_configure_window(this->Data->XConnection, AuxiliaryWindowID,
-									 XCB_CONFIG_WINDOW_STACK_MODE, &StackMode);
+				LOG_DEBUG_ERROR << "Could not find the root window!" << std::endl;
+				return;
 			}
-
-			// Enable root events
-			xcb_change_window_attributes(this->Data->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &RootWindowData->EventMask);
-
-			xcb_ungrab_server(this->Data->XConnection);
-
-
-			// Store window data
-			ClientWindowData->ParentID = AuxiliaryWindowID;
-			WindowDataAccessor->push_back(new AuxiliaryWindowData(AuxiliaryWindow, AuxiliaryWindowID, EventMask, PrimaryWindowID));
 		}
+
+
+		// Sanity check
+		if (dynamic_cast<Frame_AuxiliaryWindow const *>(&AuxiliaryWindow) && !dynamic_cast<Glass::ClientWindow *>(&PrimaryWindow))
+		{
+			LOG_DEBUG_ERROR << "A frame can only be added to a client window!" << std::endl;
+			return;
+		}
+
+
+		// Create the auxiliary window on the server
+		xcb_window_t const AuxiliaryWindowID = xcb_generate_id(this->Data->XConnection);
+
+		Vector const Position =	AuxiliaryWindow.GetPosition();
+		Vector const Size =		AuxiliaryWindow.GetSize();
+
+		uint32_t const EventMask = XCB_EVENT_MASK_ENTER_WINDOW |
+								   XCB_EVENT_MASK_PROPERTY_CHANGE |
+								   XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE |
+								   XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
+
+		uint32_t const Values[] = {
+			this->Data->DefaultScreenInfo->white_pixel,
+			1,
+			EventMask
+		};
+
+		xcb_create_window(this->Data->XConnection, this->Data->DefaultScreenInfo->root_depth, AuxiliaryWindowID, RootWindowID,
+						  Position.x, Position.y, Size.x, Size.y, 0, XCB_COPY_FROM_PARENT, this->Data->DefaultScreenInfo->root_visual,
+						  XCB_CW_BACK_PIXEL | XCB_CW_OVERRIDE_REDIRECT | XCB_CW_EVENT_MASK, Values);
+
+		xcb_grab_server(this->Data->XConnection);
+
+
+		// Disable root events
+		uint32_t const NoEvent = 0;
+		xcb_change_window_attributes(this->Data->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &NoEvent);
+
+
+		// Apply the auxiliary window
+		if (Frame_AuxiliaryWindow const * const WindowCast = dynamic_cast<Frame_AuxiliaryWindow const *>(&AuxiliaryWindow))
+		{
+			Vector const Position = WindowCast->GetULOffset() * -1;
+			xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, AuxiliaryWindowID, Position.x, Position.y);
+
+			if (PrimaryWindow.GetVisibility() == true)
+				xcb_map_window(this->Data->XConnection, AuxiliaryWindowID);
+
+			uint32_t const StackMode = XCB_STACK_MODE_BELOW;
+			xcb_configure_window(this->Data->XConnection, AuxiliaryWindowID,
+								 XCB_CONFIG_WINDOW_STACK_MODE, &StackMode);
+
+			static_cast<ClientWindowData *>(PrimaryWindowData)->ParentID = AuxiliaryWindowID; // Safe assumption
+		}
+
+
+		// Enable root events
+		xcb_change_window_attributes(this->Data->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &RootWindowData->EventMask);
+
+		xcb_ungrab_server(this->Data->XConnection);
+
+
+		// Store window data
+		WindowDataAccessor->push_back(new AuxiliaryWindowData(AuxiliaryWindow, AuxiliaryWindowID, EventMask, PrimaryWindowID));
+	}
+	else
+	{
+		LOG_DEBUG_ERROR << "Auxiliary window already exists on the server!" << std::endl;
 	}
 }
 
