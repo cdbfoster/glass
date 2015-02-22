@@ -374,41 +374,6 @@ void X11XCB_DisplayServer::SetWindowSize(Window &Window, Vector const &Size)
 }
 
 
-bool WindowExists(xcb_connection_t *XConnection, xcb_window_t RootWindowID, xcb_window_t WindowID)
-{
-	// Query the tree
-	xcb_query_tree_cookie_t	TreeQueryCookie = xcb_query_tree_unchecked(XConnection, RootWindowID);
-	scoped_free<xcb_query_tree_reply_t *> TreeQueryReply = nullptr;
-
-	if (!(*TreeQueryReply = xcb_query_tree_reply(XConnection, TreeQueryCookie, NULL)))
-	{
-		LOG_DEBUG_ERROR << "Could not get the tree query reply!" << std::endl;
-	}
-	else
-	{
-		// Get an array of window IDs currently held by the server
-		xcb_window_t *WindowIDs;
-
-		if (!(WindowIDs = xcb_query_tree_children(*TreeQueryReply)))
-		{
-			LOG_ERROR << "Could not get the children of the tree!" << std::endl;
-		}
-		else
-		{
-			int const TreeLength = xcb_query_tree_children_length(*TreeQueryReply);
-
-			for (int Index = 0; Index < TreeLength; Index++)
-			{
-				if (WindowIDs[Index] == WindowID)
-					return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-
 void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 {
 	auto WindowDataAccessor = this->Data->GetWindowData();
@@ -417,11 +382,9 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 	if (WindowData != WindowDataAccessor->end())
 	{
 		xcb_window_t const &WindowID = (*WindowData)->ID;
-		xcb_window_t RootWindowID = this->Data->DefaultScreenInfo->root;
 
 		if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
 		{
-			RootWindowID = WindowDataCast->RootID;
 			xcb_window_t const &ParentID = WindowDataCast->ParentID;
 
 			if (ParentID != XCB_NONE)
@@ -432,27 +395,20 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 					xcb_map_window(this->Data->XConnection, ParentID);
 			}
 		}
-		else if (AuxiliaryWindowData const * const WindowDataCast = dynamic_cast<AuxiliaryWindowData const *>(*WindowData))
-		{
-			RootWindowID = WindowDataCast->RootID;
-		}
 
 		// Check the window's map state
-		if (WindowExists(this->Data->XConnection, RootWindowID, WindowID))
+		xcb_get_window_attributes_cookie_t const WindowAttributesCookie = xcb_get_window_attributes(this->Data->XConnection, WindowID);
+		xcb_get_window_attributes_reply_t *WindowAttributes = xcb_get_window_attributes_reply(this->Data->XConnection, WindowAttributesCookie, nullptr);
+
+		if (WindowAttributes != nullptr && WindowAttributes->map_state == (Visible ? XCB_MAP_STATE_UNMAPPED : XCB_MAP_STATE_VIEWABLE))
 		{
-			xcb_get_window_attributes_cookie_t const WindowAttributesCookie = xcb_get_window_attributes(this->Data->XConnection, WindowID);
-			xcb_get_window_attributes_reply_t *WindowAttributes = xcb_get_window_attributes_reply(this->Data->XConnection, WindowAttributesCookie, nullptr);
-
-			if (WindowAttributes != nullptr && WindowAttributes->map_state == (Visible ? XCB_MAP_STATE_UNMAPPED : XCB_MAP_STATE_VIEWABLE))
-			{
-				if (!Visible)
-					xcb_unmap_window(this->Data->XConnection, WindowID);
-				else
-					xcb_map_window(this->Data->XConnection, WindowID);
-			}
-
-			free(WindowAttributes);
+			if (!Visible)
+				xcb_unmap_window(this->Data->XConnection, WindowID);
+			else
+				xcb_map_window(this->Data->XConnection, WindowID);
 		}
+
+		free(WindowAttributes);
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window! Cannot set window visibility." << std::endl;
@@ -889,10 +845,6 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 
 			if (PrimaryWindow.GetVisibility() == true)
 				xcb_map_window(this->Data->XConnection, AuxiliaryWindowID);
-
-			uint32_t const StackMode = XCB_STACK_MODE_BELOW;
-			xcb_configure_window(this->Data->XConnection, AuxiliaryWindowID,
-								 XCB_CONFIG_WINDOW_STACK_MODE, &StackMode);
 
 			static_cast<ClientWindowData *>(PrimaryWindowData)->ParentID = AuxiliaryWindowID; // Safe assumption because of the sanity check above
 		}
