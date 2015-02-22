@@ -73,6 +73,15 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 	switch (XCB_EVENT_RESPONSE_TYPE(Event))
 	{
+	case 0:
+		{
+			xcb_generic_error_t *Error = (xcb_generic_error_t *)Event;
+
+			LOG_DEBUG_INFO_NOHEADER << " - Error: " << xcb_event_get_error_label(Error->error_code) << ", " <<
+													   (int)Error->major_code << ", " << (int)Error->minor_code << ", " <<
+													   (unsigned int)Error->resource_id;
+		}
+		break;
 	case XCB_CREATE_NOTIFY:
 		LOG_DEBUG_INFO_NOHEADER << " - Create on " << ((xcb_create_notify_event_t *)Event)->window;
 		break;
@@ -229,7 +238,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 				auto WindowData = WindowDataAccessor->find(UnmapNotify->window);
 				if (WindowData != WindowDataAccessor->end())
-					EventWindow = &(*WindowData)->Window;
+					EventWindow = dynamic_cast<ClientWindow *>(&(*WindowData)->Window);
 			}
 
 			if (EventWindow != nullptr)
