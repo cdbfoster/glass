@@ -50,20 +50,22 @@ namespace Glass
 
 	struct ClientWindowData : public WindowData
 	{
-		ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID, uint32_t EventMask, bool NeverFocus, xcb_window_t ParentID);
+		ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID, uint32_t EventMask, bool NeverFocus, xcb_window_t ParentID, xcb_window_t RootID);
 
 		bool const NeverFocus;
 		std::set<xcb_atom_t> _NET_WM_STATE;
 
 		xcb_window_t ParentID;
+		xcb_window_t RootID;
 	};
 
 
 	struct AuxiliaryWindowData : public WindowData
 	{
-		AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, uint32_t EventMask, xcb_window_t PrimaryID);
+		AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, uint32_t EventMask, xcb_window_t PrimaryID, xcb_window_t RootID);
 
 		xcb_window_t const PrimaryID;
+		xcb_window_t RootID;
 	};
 
 
