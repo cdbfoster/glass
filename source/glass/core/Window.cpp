@@ -37,7 +37,7 @@ Window::Window(Glass::DisplayServer &DisplayServer, Vector const &Position, Vect
 
 Window::~Window()
 {
-	this->DisplayServer.DeleteWindow(*this);
+
 }
 
 
@@ -99,11 +99,12 @@ bool Window::ContainsPoint(Vector const &Point) const
 }
 
 
-AuxiliaryWindow::AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
+AuxiliaryWindow::AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name, Type TypeValue,
 								 Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible) :
 	Window(DisplayServer, Position, Size, Visible),
 	PrimaryWindow(PrimaryWindow),
-	Name(Name)
+	Name(Name),
+	TypeValue(TypeValue)
 {
 
 }
@@ -111,12 +112,13 @@ AuxiliaryWindow::AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::strin
 
 AuxiliaryWindow::~AuxiliaryWindow()
 {
-
+	this->DisplayServer.DeleteWindow(*this);
 }
 
 
 PrimaryWindow		   &AuxiliaryWindow::GetPrimaryWindow() const	{ return this->PrimaryWindow; }
 std::string				AuxiliaryWindow::GetName() const			{ return this->Name; }
+AuxiliaryWindow::Type	AuxiliaryWindow::GetType() const			{ return this->TypeValue; }
 
 
 void AuxiliaryWindow::SetName(std::string const &Name)
@@ -134,8 +136,7 @@ PrimaryWindow::PrimaryWindow(Glass::DisplayServer &DisplayServer, Vector const &
 
 PrimaryWindow::~PrimaryWindow()
 {
-	for (auto &AuxiliaryWindow : this->AuxiliaryWindows)
-		delete AuxiliaryWindow;
+
 }
 
 
@@ -184,6 +185,15 @@ void PrimaryWindow::UpdateAuxiliaryWindows()
 }
 
 
+void PrimaryWindow::DeleteAuxiliaryWindows()
+{
+	auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+
+	for (auto &AuxiliaryWindow : *AuxiliaryWindowsAccessor)
+		delete AuxiliaryWindow;
+}
+
+
 ClientWindow::ClientWindow(std::string const &Name, Type TypeValue, Vector const &BaseSize,
 						   bool Iconified, bool Fullscreen, bool Urgent, ClientWindow *TransientFor,
 						   Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible) :
@@ -203,7 +213,9 @@ ClientWindow::ClientWindow(std::string const &Name, Type TypeValue, Vector const
 
 ClientWindow::~ClientWindow()
 {
+	this->DeleteAuxiliaryWindows();
 
+	this->DisplayServer.DeleteWindow(*this);
 }
 
 
@@ -386,7 +398,9 @@ RootWindow::RootWindow(Glass::DisplayServer &DisplayServer, Vector const &Positi
 
 RootWindow::~RootWindow()
 {
+	this->DeleteAuxiliaryWindows();
 
+	this->DisplayServer.DeleteWindow(*this);
 }
 
 

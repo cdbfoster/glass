@@ -7,13 +7,19 @@ using namespace Glass;
 
 Frame_AuxiliaryWindow::Frame_AuxiliaryWindow(Glass::ClientWindow &ClientWindow, std::string const &Name,
 											 Glass::DisplayServer &DisplayServer, Vector const &ULOffset, Vector const &LROffset, bool Visible) :
-	AuxiliaryWindow(ClientWindow, Name, DisplayServer,
+	AuxiliaryWindow(ClientWindow, Name, AuxiliaryWindow::Type::FRAME, DisplayServer,
 					ClientWindow.GetPosition() + ULOffset, ClientWindow.GetSize() - ULOffset + LROffset,
 					Visible),
 	ULOffset(ULOffset),
 	LROffset(LROffset),
 	CurrentULOffset(ULOffset),
 	CurrentLROffset(LROffset)
+{
+
+}
+
+
+Frame_AuxiliaryWindow::~Frame_AuxiliaryWindow()
 {
 
 }

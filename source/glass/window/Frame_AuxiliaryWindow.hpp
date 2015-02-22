@@ -30,6 +30,8 @@ namespace Glass
 		Frame_AuxiliaryWindow(Glass::ClientWindow &ClientWindow, std::string const &Name,
 							  Glass::DisplayServer &DisplayServer, Vector const &ULOffset, Vector const &LROffset, bool Visible);
 
+		~Frame_AuxiliaryWindow();
+
 		Vector GetULOffset() const;
 		Vector GetLROffset() const;
 
