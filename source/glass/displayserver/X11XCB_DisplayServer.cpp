@@ -44,7 +44,7 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 	Data(new Implementation(*this))
 {
 	// Connect to X
-	this->Data->XConnection = xcb_connect(NULL, &this->Data->DefaultScreenIndex);
+	this->Data->XConnection = xcb_connect(nullptr, &this->Data->DefaultScreenIndex);
 	if (xcb_connection_has_error(this->Data->XConnection))
 	{
 		LOG_FATAL << "Could not connect to the X server!" << std::endl;
@@ -63,9 +63,9 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 	// Delete pre-existing events, displaying any errors
 	xcb_aux_sync(this->Data->XConnection);
 	{
-		xcb_generic_event_t *Event = NULL;
+		xcb_generic_event_t *Event = nullptr;
 
-		while ((Event = xcb_poll_for_event(this->Data->XConnection)) != NULL)
+		while ((Event = xcb_poll_for_event(this->Data->XConnection)) != nullptr)
 		{
 			if (XCB_EVENT_RESPONSE_TYPE(Event) == 0)
 			{
@@ -78,7 +78,7 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 			}
 
 			free(Event);
-			Event = NULL;
+			Event = nullptr;
 		}
 	}
 
@@ -96,7 +96,7 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 		xcb_aux_sync(this->Data->XConnection);
 
 		// Any resulting event must be an error
-		if (xcb_poll_for_event(this->Data->XConnection) != NULL)
+		if (xcb_poll_for_event(this->Data->XConnection) != nullptr)
 		{
 			LOG_FATAL << "Could not set substructure redirect.  Is another window manager running?" << std::endl;
 			exit(1);
@@ -129,7 +129,7 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 			xcb_query_tree_cookie_t	TreeQueryCookie = xcb_query_tree_unchecked(this->Data->XConnection, this->Data->DefaultScreenInfo->root);
 			xcb_query_tree_reply_t *TreeQueryReply = nullptr;
 
-			if (!(TreeQueryReply = xcb_query_tree_reply(this->Data->XConnection, TreeQueryCookie, NULL)))
+			if (!(TreeQueryReply = xcb_query_tree_reply(this->Data->XConnection, TreeQueryCookie, nullptr)))
 			{
 				LOG_ERROR << "Could not get the tree query reply!" << std::endl;
 			}
@@ -180,7 +180,7 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 			{
 				// Get the client's attributes
 				xcb_get_window_attributes_reply_t *AttributesReply;
-				if (!(AttributesReply = xcb_get_window_attributes_reply(this->Data->XConnection, AttributesCookies[Index], NULL)))
+				if (!(AttributesReply = xcb_get_window_attributes_reply(this->Data->XConnection, AttributesCookies[Index], nullptr)))
 				{
 					LOG_DEBUG_WARNING << "Could not get window attributes for prospective client. Skipping." << std::endl;
 					continue;
@@ -194,7 +194,7 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 				// Get the client's state
 				uint32_t ClientWindowState = XCB_ICCCM_WM_STATE_NORMAL; // Default if no WM_STATE property is set
 				xcb_get_property_reply_t *StateReply;
-				if ((StateReply = xcb_get_property_reply(this->Data->XConnection, StateCookies[Index], NULL)))
+				if ((StateReply = xcb_get_property_reply(this->Data->XConnection, StateCookies[Index], nullptr)))
 				{
 					if (xcb_get_property_value_length(StateReply))
 						ClientWindowState = *(uint32_t *)xcb_get_property_value(StateReply);
@@ -421,7 +421,7 @@ bool WindowSupportsProtocol(xcb_connection_t *XConnection, xcb_window_t WindowID
 
 	xcb_icccm_get_wm_protocols_reply_t ProtocolsReply;
 
-	if (!xcb_icccm_get_wm_protocols_reply(XConnection, ProtocolsCookie, &ProtocolsReply, NULL))
+	if (!xcb_icccm_get_wm_protocols_reply(XConnection, ProtocolsCookie, &ProtocolsReply, nullptr))
 	{
 		LOG_DEBUG_WARNING << "Could not get WM_PROTOCOLS on window ID: " << WindowID << std::endl;
 		return false;
