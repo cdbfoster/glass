@@ -15,21 +15,12 @@
 #
 # Copyright 2014-2015 Chris Foster
 
-set(glass_include)
-set(glass_source)
+add_subdirectory(dynamic_windowmanager)
 
-add_subdirectory(core)
-add_subdirectory(displayserver)
-add_subdirectory(window)
-add_subdirectory(windowmanager)
-
-prefix_list(glass_include "glass/")
-prefix_list(glass_source "glass/")
-
-set(include ${include}
-	${glass_include}
+set(glass_include ${glass_include}
+	windowmanager/Dynamic_WindowManager.hpp
 PARENT_SCOPE)
 
-set(source ${source}
-	${glass_source}
+set(glass_source ${glass_source}
+	windowmanager/Dynamic_WindowManager.cpp
 PARENT_SCOPE)
