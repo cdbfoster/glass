@@ -28,7 +28,8 @@ namespace Glass
 						  KEYBOARD };
 
 		// Not intended to be a complete list.  Expand as necessary.
-		enum class Value { BUTTON_1,
+		enum class Value { UNKNOWN,
+						   BUTTON_1,
 						   BUTTON_2,
 						   BUTTON_3,
 						   KEY_0,
@@ -55,7 +56,6 @@ namespace Glass
 						   KEY_L,
 						   KEY_M,
 						   KEY_N,
-						   KEY_N,
 						   KEY_O,
 						   KEY_P,
 						   KEY_Q,
@@ -80,12 +80,12 @@ namespace Glass
 						   KEY_CAPSLOCK,
 						   KEY_RETURN };
 
-		enum class Modifier { CONTROL	= 0x01,
-							  SHIFT		= 0x02,
-							  ALT		= 0x04,
-							  SUPER		= 0x08,
-							  CAPSLOCK	= 0x10,
-							  NUMLOCK	= 0x20 };
+		enum Modifier { CONTROL		= 0x01,
+						SHIFT		= 0x02,
+						ALT			= 0x04,
+						SUPER		= 0x08,
+						CAPSLOCK	= 0x10,
+						NUMLOCK		= 0x20 };
 
 		enum class State { PRESSED,
 						   RELEASED };
@@ -98,6 +98,7 @@ namespace Glass
 		{ }
 
 
+		bool			IsValid() const		{ return this->InputValue != Value::UNKNOWN; }
 		Type			GetType() const		{ return this->InputType; }
 		Value			GetValue() const	{ return this->InputValue; }
 		unsigned char	GetModifier() const	{ return this->InputModifierMask; }
