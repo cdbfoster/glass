@@ -27,6 +27,7 @@
 #include "glass/core/EventQueue.hpp"
 #include "glass/core/Log.hpp"
 #include "glass/displayserver/x11xcb_displayserver/EventHandler.hpp"
+#include "glass/displayserver/x11xcb_displayserver/InputTranslator.hpp"
 #include "util/scoped_free.hpp"
 
 using namespace Glass;
@@ -35,7 +36,7 @@ X11XCB_DisplayServer::Implementation::EventHandler::EventHandler(X11XCB_DisplayS
 	Owner(Owner),
 	Worker(&EventHandler::Listen, this)
 {
-
+	InputTranslator::Initialize(this->Owner.XConnection);
 }
 
 
@@ -43,6 +44,8 @@ X11XCB_DisplayServer::Implementation::EventHandler::~EventHandler()
 {
 	this->Worker.interrupt();
 	this->Worker->detach();
+
+	InputTranslator::Terminate();
 }
 
 
@@ -105,6 +108,8 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 															 ((xcb_motion_notify_event_t *)Event)->event << " at " <<
 															 ((xcb_motion_notify_event_t *)Event)->event_x << ", " << ((xcb_motion_notify_event_t *)Event)->event_y;
 		break;*/
+
+
 	case XCB_KEY_PRESS:
 	case XCB_KEY_RELEASE:
 		LOG_DEBUG_INFO_NOHEADER << " - Key " << (XCB_EVENT_RESPONSE_TYPE(Event) == XCB_KEY_PRESS ? "Press" : "Release") << ": ";
@@ -113,10 +118,31 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 	case XCB_BUTTON_RELEASE:
 		LOG_DEBUG_INFO_NOHEADER << " - Button " << (XCB_EVENT_RESPONSE_TYPE(Event) == XCB_BUTTON_PRESS ? "Press" : "Release") << ": ";
 		KeyContinue:
-		LOG_DEBUG_INFO_NOHEADER << (unsigned int)((xcb_key_press_event_t *)Event)->detail << ", " << ((xcb_key_press_event_t *)Event)->state << " on " <<
-								   ((xcb_key_press_event_t *)Event)->child << ", " << ((xcb_key_press_event_t *)Event)->event << " at " <<
-								   ((xcb_key_press_event_t *)Event)->event_x << ", " << ((xcb_key_press_event_t *)Event)->event_y;
+		{
+			xcb_key_press_event_t *KeyPress = (xcb_key_press_event_t *)Event;
+
+			LOG_DEBUG_INFO_NOHEADER << (unsigned int)KeyPress->detail << ", " << KeyPress->state << " on " <<
+									   KeyPress->child << ", " << KeyPress->event << " at " <<
+									   KeyPress->root_x << ", " << KeyPress->root_y;
+
+			Glass::Input Input = InputTranslator::ToGlass(Event);
+
+			if (!Input.IsValid())
+				break;
+
+			auto WindowDataAccessor = this->Owner.GetWindowData();
+
+			auto WindowData = WindowDataAccessor->find(KeyPress->event);
+			if (WindowData != WindowDataAccessor->end())
+			{
+				Window &EventWindow = (*WindowData)->Window;
+				Vector const Position = Vector(KeyPress->root_x, KeyPress->root_y);
+
+				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new Input_Event(EventWindow, Input, Position)));
+			}
+		}
 		break;
+
 
 	case XCB_CONFIGURE_REQUEST:
 		{

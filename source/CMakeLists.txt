@@ -32,4 +32,4 @@ include_directories(${Boost_INCLUDE_DIRS}
 
 add_executable(glass ${include} ${source})
 
-target_link_libraries(glass pthread xcb xcb-util xcb-icccm)
+target_link_libraries(glass pthread xcb xcb-util xcb-icccm xcb-keysyms X11)

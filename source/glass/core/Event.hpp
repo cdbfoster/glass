@@ -20,6 +20,7 @@
 #ifndef GLASS_CORE_EVENT
 #define GLASS_CORE_EVENT
 
+#include "glass/core/Input.hpp"
 #include "glass/core/Vector.hpp"
 #include "glass/core/Window.hpp"
 
@@ -34,7 +35,8 @@ namespace Glass
 						  CLIENT_GEOMETRY_CHANGE_REQUEST,
 						  CLIENT_ICONIFIED_REQUEST,
 						  CLIENT_FULLSCREEN_REQUEST,
-						  ENTER_WINDOW };
+						  ENTER_WINDOW,
+						  INPUT };
 
 		virtual ~Event() { }
 
@@ -136,8 +138,24 @@ namespace Glass
 
 		Type GetType() const { return Type::ENTER_WINDOW; }
 
-		Glass::Window &Window;
-		Vector const Position;
+		Glass::Window  &Window;
+		Vector const	Position;
+	};
+
+
+	struct Input_Event : public Event
+	{
+		Input_Event(Glass::Window &Window, Glass::Input const &Input, Vector const &Position) :
+			Window(Window),
+			Input(Input),
+			Position(Position)
+		{ }
+
+		Type GetType() const { return Type::INPUT; }
+
+		Glass::Window	   &Window;
+		Glass::Input const	Input;
+		Vector const		Position;
 	};
 }
 
