@@ -19,6 +19,7 @@ set(glass_include ${glass_include}
 	core/DisplayServer.hpp
 	core/Event.hpp
 	core/EventQueue.hpp
+	core/Input.hpp
 	core/InputListener.hpp
 	core/Log.hpp
 	core/Vector.hpp
