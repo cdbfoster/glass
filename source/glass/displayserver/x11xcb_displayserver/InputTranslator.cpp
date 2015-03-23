@@ -22,6 +22,7 @@
 
 #include <xcb/xcb_event.h>
 
+#include "glass/core/Log.hpp"
 #include "glass/displayserver/x11xcb_displayserver/InputTranslator.hpp"
 
 using namespace Glass;
@@ -178,6 +179,85 @@ Input InputTranslator::ToGlass(xcb_generic_event_t const *InputEvent)
 	}
 
 	return Input(InputType, InputValue, InputModifierMask, InputState);
+}
+
+
+XInput InputTranslator::ToX(Input const &GlassInput)
+{
+	XInput TranslatedInput;
+
+	switch (GlassInput.GetType())
+	{
+	case Input::Type::KEYBOARD:
+		{
+			TranslatedInput.Type = Input::Type::KEYBOARD;
+
+			// Cache any key codes we successfully translate for fast recall
+			static std::map<std::string, xcb_keycode_t> KeyCodes;
+
+			auto FindValue = InputTranslator::Keys_GlassToX.find(GlassInput.GetValue());
+			if (FindValue == InputTranslator::Keys_GlassToX.end())
+			{
+				LOG_DEBUG_WARNING << "Could not find the X equivalent of keyboard input value." << std::endl;
+				return XInput();
+			}
+
+			// Check the cache before translating
+			std::string const &KeyCharacter = FindValue->second;
+			auto KeyCodeEntry = KeyCodes.find(KeyCharacter);
+
+			if (KeyCodeEntry != KeyCodes.end())
+				TranslatedInput.Value.KeyCode = KeyCodeEntry->second;
+			else
+			{
+				// Use Xlib to find the key symbol for now
+				if (xcb_keysym_t const KeySymbol = XStringToKeysym(KeyCharacter.c_str()))
+				{
+					// Translate it
+					xcb_keycode_t *KeyCode = xcb_key_symbols_get_keycode(InputTranslator::KeySymbols, KeySymbol);
+
+					// Cache and use what we found
+					KeyCodes[KeyCharacter] = *KeyCode;
+					TranslatedInput.Value.KeyCode = *KeyCode;
+
+					free(KeyCode);
+				}
+				else
+				{
+					LOG_DEBUG_WARNING << "Could not find key symbol for \"" << KeyCharacter << "\"." << std::endl;
+					return XInput();
+				}
+			}
+		}
+		break;
+	case Input::Type::MOUSE:
+		{
+			TranslatedInput.Type = Input::Type::MOUSE;
+
+			auto FindValue = InputTranslator::Buttons_GlassToX.find(GlassInput.GetValue());
+			if (FindValue == InputTranslator::Buttons_GlassToX.end())
+			{
+				LOG_DEBUG_WARNING << "Could not find the X equivalent of mouse input value." << std::endl;
+				return XInput();
+			}
+
+			TranslatedInput.Value.Button = FindValue->second;
+		}
+		break;
+	default:
+		return XInput();
+		break;
+	}
+
+	unsigned char const ModifierMask = GlassInput.GetModifier();
+	TranslatedInput.ModifierState = (ModifierMask & Input::Modifier::CONTROL ?	XCB_MOD_MASK_CONTROL	: 0) |
+									(ModifierMask & Input::Modifier::SHIFT ?	XCB_MOD_MASK_SHIFT		: 0) |
+									(ModifierMask & Input::Modifier::ALT ?		XCB_MOD_MASK_1			: 0) |
+									(ModifierMask & Input::Modifier::SUPER ?	XCB_MOD_MASK_4			: 0) |
+									(ModifierMask & Input::Modifier::CAPSLOCK ?	XCB_MOD_MASK_LOCK		: 0) |
+									(ModifierMask & Input::Modifier::NUMLOCK ?	XCB_MOD_MASK_2			: 0);
+
+	return TranslatedInput;
 }
 
 

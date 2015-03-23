@@ -51,7 +51,7 @@ namespace Glass
 		static void		Terminate();
 
 		static Input	ToGlass(xcb_generic_event_t const *InputEvent);
-		static XInput	ToX(Input const &Input);
+		static XInput	ToX(Input const &GlassInput);
 
 	private:
 		static std::map<Input::Value, xcb_button_t>	Buttons_GlassToX;
