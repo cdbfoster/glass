@@ -92,7 +92,11 @@ void InputTranslator::Initialize(xcb_connection_t *XConnection)
 			{ Input::Value::KEY_SUPER,		"Super_L" },
 			{ Input::Value::KEY_TAB,		"Tab" },
 			{ Input::Value::KEY_CAPSLOCK,	"Caps_Lock" },
-			{ Input::Value::KEY_RETURN,		"Return" }
+			{ Input::Value::KEY_RETURN,		"Return" },
+			{ Input::Value::KEY_LEFT,		"Left" },
+			{ Input::Value::KEY_RIGHT,		"Right" },
+			{ Input::Value::KEY_UP,			"Up" },
+			{ Input::Value::KEY_DOWN,		"Down" }
 		};
 
 		InputTranslator::Keys_GlassToX.insert(Pairs.begin(), Pairs.end());

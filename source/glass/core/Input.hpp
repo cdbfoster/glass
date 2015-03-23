@@ -78,9 +78,14 @@ namespace Glass
 						   KEY_SUPER,
 						   KEY_TAB,
 						   KEY_CAPSLOCK,
-						   KEY_RETURN };
+						   KEY_RETURN,
+						   KEY_LEFT,
+						   KEY_RIGHT,
+						   KEY_UP,
+						   KEY_DOWN };
 
-		enum Modifier { CONTROL		= 0x01,
+		enum Modifier { NONE		= 0x00,
+						CONTROL		= 0x01,
 						SHIFT		= 0x02,
 						ALT			= 0x04,
 						SUPER		= 0x08,
@@ -90,7 +95,7 @@ namespace Glass
 		enum class State { PRESSED,
 						   RELEASED };
 
-		Input(Type InputType, Value InputValue, unsigned char InputModifierMask, State InputState) :
+		Input(Type InputType, Value InputValue, unsigned char InputModifierMask = 0x00, State InputState = State::PRESSED) :
 			InputType(InputType),
 			InputValue(InputValue),
 			InputModifierMask(InputModifierMask),
