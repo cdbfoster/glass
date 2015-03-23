@@ -20,6 +20,9 @@
 #ifndef GLASS_CORE_EVENT
 #define GLASS_CORE_EVENT
 
+#include <string>
+#include <vector>
+
 #include "glass/core/Input.hpp"
 #include "glass/core/Vector.hpp"
 #include "glass/core/Window.hpp"
@@ -28,15 +31,28 @@ namespace Glass
 {
 	struct Event
 	{
-		enum class Type { ROOT_CREATE,
+		enum class Type { // Server
+						  ROOT_CREATE,
 						  CLIENT_CREATE,
 						  CLIENT_DESTROY,
 						  CLIENT_SHOW_REQUEST,
 						  CLIENT_GEOMETRY_CHANGE_REQUEST,
 						  CLIENT_ICONIFIED_REQUEST,
 						  CLIENT_FULLSCREEN_REQUEST,
-						  ENTER_WINDOW,
-						  INPUT };
+						  WINDOW_ENTER,
+						  INPUT,
+
+						  // Window
+						  WINDOW_MOVE_MODAL,
+						  WINDOW_RESIZE_MODAL,
+						  WINDOW_CLOSE,
+
+						  // Window manager
+						  FLOATING_TOGGLE,
+						  FLOATING_RAISE,
+						  SWITCH_TABBED,
+						  FOCUS_CYCLE,
+						  SPAWN_COMMAND };
 
 		virtual ~Event() { }
 
@@ -129,14 +145,14 @@ namespace Glass
 	};
 
 
-	struct EnterWindow_Event : public Event
+	struct WindowEnter_Event : public Event
 	{
-		EnterWindow_Event(Glass::Window &Window, Vector const &Position) :
+		WindowEnter_Event(Glass::Window &Window, Vector const &Position) :
 			Window(Window),
 			Position(Position)
 		{ }
 
-		Type GetType() const { return Type::ENTER_WINDOW; }
+		Type GetType() const { return Type::WINDOW_ENTER; }
 
 		Glass::Window  &Window;
 		Vector const	Position;
@@ -156,6 +172,106 @@ namespace Glass
 		Glass::Window	   &Window;
 		Glass::Input const	Input;
 		Vector const		Position;
+	};
+
+
+	/*// Window
+	WINDOW_MOVE_MODAL,
+	WINDOW_RESIZE_MODAL,
+	WINDOW_CLOSE,
+
+	// Window manager
+	FLOATING_TOGGLE,
+	FLOATING_RAISE,
+	SWITCH_TABBED,
+	FOCUS_CYCLE,
+	SPAWN_COMMAND*/
+
+	struct UserCommand_Event : public Event
+	{
+		UserCommand_Event(Event::Type Type) :
+			Type(Type)
+		{ }
+
+		Event::Type GetType() const { return this->Type; }
+
+	private:
+		Event::Type const Type;
+	};
+
+
+	struct WindowMoveModal_Event : public UserCommand_Event
+	{
+		WindowMoveModal_Event() :
+			UserCommand_Event(Event::Type::WINDOW_MOVE_MODAL)
+		{ }
+	};
+
+
+	struct WindowResizeModal_Event : public UserCommand_Event
+	{
+		WindowResizeModal_Event() :
+			UserCommand_Event(Event::Type::WINDOW_RESIZE_MODAL)
+		{ }
+	};
+
+
+	struct WindowClose_Event : public UserCommand_Event
+	{
+		WindowClose_Event() :
+			UserCommand_Event(Event::Type::WINDOW_CLOSE)
+		{ }
+	};
+
+
+	struct FloatingToggle_Event : public UserCommand_Event
+	{
+		FloatingToggle_Event() :
+			UserCommand_Event(Event::Type::FLOATING_TOGGLE)
+		{ }
+	};
+
+
+	struct FloatingRaise_Event : public UserCommand_Event
+	{
+		FloatingRaise_Event() :
+			UserCommand_Event(Event::Type::FLOATING_RAISE)
+		{ }
+	};
+
+
+	struct SwitchTabbed_Event : public UserCommand_Event
+	{
+		SwitchTabbed_Event() :
+			UserCommand_Event(Event::Type::SWITCH_TABBED)
+		{ }
+	};
+
+
+	struct FocusCycle_Event : public UserCommand_Event
+	{
+		enum class Direction { LEFT,
+							   RIGHT,
+							   UP,
+							   DOWN };
+
+		FocusCycle_Event(Direction CycleDirection) :
+			UserCommand_Event(Event::Type::FOCUS_CYCLE),
+			CycleDirection(CycleDirection)
+		{ }
+
+		Direction const CycleDirection;
+	};
+
+
+	struct SpawnCommand_Event : public UserCommand_Event
+	{
+		SpawnCommand_Event(std::vector<std::string> const &Command) :
+			UserCommand_Event(Event::Type::SPAWN_COMMAND),
+			Command(Command)
+		{ }
+
+		std::vector<std::string> const Command;
 	};
 }
 
