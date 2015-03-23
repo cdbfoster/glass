@@ -34,15 +34,15 @@ namespace Glass
 		Input::Modifier const	CommandModifier =	Input::Modifier::SUPER;
 	}
 
-	std::vector<std::pair<Event const *, Input>> InputBindings = {
-		{ new WindowMoveModal_Event(),		Input(Input::Type::MOUSE,		Input::Value::BUTTON_1,	Keys::CommandModifier) },
-		{ new WindowResizeModal_Event(),	Input(Input::Type::MOUSE,		Input::Value::BUTTON_3,	Keys::CommandModifier) },
-		{ new WindowClose_Event(),			Input(Input::Type::KEYBOARD,	Input::Value::KEY_Q,	Keys::CommandModifier) },
+	std::vector<std::pair<Event const *, Input>> const InputBindings = {
+		{ new WindowMoveModal_Event,	Input(Input::Type::MOUSE,		Input::Value::BUTTON_1,	Keys::CommandModifier) },
+		{ new WindowResizeModal_Event,	Input(Input::Type::MOUSE,		Input::Value::BUTTON_3,	Keys::CommandModifier) },
+		{ new WindowClose_Event,		Input(Input::Type::KEYBOARD,	Input::Value::KEY_Q,	Keys::CommandModifier) },
 
 
-		{ new FloatingToggle_Event(),	Input(Input::Type::KEYBOARD,	Input::Value::KEY_RETURN,	Keys::CommandModifier) },
-		{ new FloatingRaise_Event(),	Input(Input::Type::KEYBOARD,	Keys::CommandKey,			Input::Modifier::NONE) },
-		{ new SwitchTabbed_Event(),		Input(Input::Type::KEYBOARD,	Input::Value::KEY_TAB,		Keys::CommandModifier) },
+		{ new FloatingToggle_Event,	Input(Input::Type::KEYBOARD,	Input::Value::KEY_RETURN,	Keys::CommandModifier) },
+		{ new FloatingRaise_Event,	Input(Input::Type::KEYBOARD,	Keys::CommandKey,			Input::Modifier::NONE) },
+		{ new SwitchTabbed_Event,	Input(Input::Type::KEYBOARD,	Input::Value::KEY_TAB,		Keys::CommandModifier) },
 
 
 		{ new FocusCycle_Event(FocusCycle_Event::Direction::LEFT),	Input(Input::Type::KEYBOARD,	Input::Value::KEY_LEFT,		Keys::CommandModifier) },
