@@ -87,10 +87,10 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			Glass::ClientDestroy_Event const *ClientDestroy = static_cast<Glass::ClientDestroy_Event const *>(Event);
 		}
 		break;
-	case Glass::Event::Type::ENTER_WINDOW:
+	case Glass::Event::Type::WINDOW_ENTER:
 		LOG_DEBUG_INFO << "Enter Window event!" << std::endl;
 		{
-			Glass::EnterWindow_Event const *Enter = static_cast<Glass::EnterWindow_Event const *>(Event);
+			Glass::WindowEnter_Event const *Enter = static_cast<Glass::WindowEnter_Event const *>(Event);
 		}
 		break;
 	default:

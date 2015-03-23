@@ -301,7 +301,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 			auto WindowData = WindowDataAccessor->find(EnterNotify->event);
 			if (WindowData != WindowDataAccessor->end())
 			{
-				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new EnterWindow_Event((*WindowData)->Window,
+				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new WindowEnter_Event((*WindowData)->Window,
 																							  Vector(EnterNotify->root_x,
 																									 EnterNotify->root_y))));
 			}
