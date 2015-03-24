@@ -110,7 +110,7 @@ namespace Glass
 		State			GetState() const	{ return this->InputState; }
 
 
-		bool operator==(Input const &Other)
+		bool operator==(Input const &Other) const
 		{
 			if (this->InputType != Other.InputType)
 				return false;
@@ -121,7 +121,16 @@ namespace Glass
 			return this->InputState == Other.InputState;
 		}
 
-		bool operator!=(Input const &Other) { return !(*this == Other); }
+		bool operator<(Input const &Other) const
+		{
+			if (this->InputType != Other.InputType)
+				return this->InputType < Other.InputType;
+			if (this->InputValue != Other.InputValue)
+				return this->InputValue < Other.InputValue;
+			if (this->InputModifierMask != Other.InputModifierMask)
+				return this->InputModifierMask < Other.InputModifierMask;
+			return this->InputState < Other.InputState;
+		}
 
 	private:
 		Type const			InputType;
