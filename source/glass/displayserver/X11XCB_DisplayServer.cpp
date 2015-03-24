@@ -348,6 +348,14 @@ Vector X11XCB_DisplayServer::GetMousePosition()
 
 void X11XCB_DisplayServer::SetWindowPosition(Window &Window, Vector const &Position)
 {
+	// If the window is a client that is fullscreen, effect no actual change.  The new position has already been recorded.
+	{
+		ClientWindow * const WindowCast = dynamic_cast<ClientWindow *>(&Window);
+
+		if (WindowCast != nullptr && WindowCast->GetFullscreen() == true)
+			return;
+	}
+
 	auto WindowDataAccessor = this->Data->GetWindowData();
 
 	auto WindowData = WindowDataAccessor->find(&Window);
@@ -362,6 +370,14 @@ void X11XCB_DisplayServer::SetWindowPosition(Window &Window, Vector const &Posit
 
 void X11XCB_DisplayServer::SetWindowSize(Window &Window, Vector const &Size)
 {
+	// If the window is a client that is fullscreen, effect no actual change.  The new size has already been recorded.
+	{
+		ClientWindow * const WindowCast = dynamic_cast<ClientWindow *>(&Window);
+
+		if (WindowCast != nullptr && WindowCast->GetFullscreen() == true)
+			return;
+	}
+
 	auto WindowDataAccessor = this->Data->GetWindowData();
 
 	auto WindowData = WindowDataAccessor->find(&Window);

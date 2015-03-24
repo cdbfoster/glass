@@ -266,24 +266,6 @@ RootWindow *ClientWindow::GetRootWindow() const
 }
 
 
-void ClientWindow::SetPosition(Vector const &Position)
-{
-	if (this->Fullscreen)
-		this->Position = Position; // Simply record the new position without effecting any change
-	else
-		PrimaryWindow::SetPosition(Position);
-}
-
-
-void ClientWindow::SetSize(Vector const &Size)
-{
-	if (this->Fullscreen)
-		this->Size = Size; // Simply record the new size without effecting any change
-	else
-		PrimaryWindow::SetSize(Size);
-}
-
-
 void ClientWindow::SetVisibility(bool Visible)
 {
 	std::lock_guard<std::mutex> LockVisible(this->VisibleMutex);

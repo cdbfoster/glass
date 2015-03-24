@@ -159,8 +159,6 @@ namespace Glass
 		ClientWindow	   *GetTransientFor() const;
 		Glass::RootWindow  *GetRootWindow() const;
 
-		void SetPosition(Vector const &Position);
-		void SetSize(Vector const &Size);
 		void SetVisibility(bool Visible);
 
 		void SetIconified(bool Value);
