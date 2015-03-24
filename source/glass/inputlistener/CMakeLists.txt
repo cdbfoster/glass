@@ -15,22 +15,10 @@
 #
 # Copyright 2014-2015 Chris Foster
 
-set(glass_include)
-set(glass_source)
-
-add_subdirectory(core)
-add_subdirectory(displayserver)
-add_subdirectory(inputlistener)
-add_subdirectory(window)
-add_subdirectory(windowmanager)
-
-prefix_list(glass_include "glass/")
-prefix_list(glass_source "glass/")
-
-set(include ${include}
-	${glass_include}
+set(glass_include ${glass_include}
+	inputlistener/X11XCB_InputListener.hpp
 PARENT_SCOPE)
 
-set(source ${source}
-	${glass_source}
+set(glass_source ${glass_source}
+	inputlistener/X11XCB_InputListener.cpp
 PARENT_SCOPE)
