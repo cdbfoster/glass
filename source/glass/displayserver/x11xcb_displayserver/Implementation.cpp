@@ -419,7 +419,6 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 		free(WindowAttributesReplies[Index]);
 
 
-
 		// Select events on the client
 		xcb_window_t const &ClientWindowID = ManageableWindowIDs[Index];
 
