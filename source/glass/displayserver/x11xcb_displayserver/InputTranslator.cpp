@@ -165,9 +165,6 @@ Input InputTranslator::ToGlass(xcb_generic_event_t const *InputEvent)
 				InputValue = Input::Value::UNKNOWN;
 		}
 		break;
-
-	default:
-		break;
 	}
 
 	// Get InputModifier

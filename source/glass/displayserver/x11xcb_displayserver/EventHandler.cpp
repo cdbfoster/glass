@@ -391,7 +391,6 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 				}
 			}
 		}
-	default:
 		break;
 	}
 
