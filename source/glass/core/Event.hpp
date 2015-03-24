@@ -39,6 +39,7 @@ namespace Glass
 						  CLIENT_GEOMETRY_CHANGE_REQUEST,
 						  CLIENT_ICONIFIED_REQUEST,
 						  CLIENT_FULLSCREEN_REQUEST,
+						  POINTER_MOVE,
 						  WINDOW_ENTER,
 						  INPUT,
 
@@ -159,6 +160,20 @@ namespace Glass
 		Event *Copy() const { return new ClientFullscreenRequest_Event(this->ClientWindow, this->Value); }
 
 		bool const Value;
+	};
+
+
+	struct PointerMove_Event : public Event
+	{
+		PointerMove_Event(Vector const &Position) :
+			Position(Position)
+		{ }
+
+		Type GetType() const { return Type::POINTER_MOVE; }
+
+		Event *Copy() const { return new PointerMove_Event(this->Position); }
+
+		Vector const Position;
 	};
 
 

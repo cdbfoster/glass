@@ -103,11 +103,17 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 	case XCB_PROPERTY_NOTIFY:
 		LOG_DEBUG_INFO_NOHEADER << " - Property notify on " << ((xcb_property_notify_event_t *)Event)->window;
 		break;
-	/*case XCB_MOTION_NOTIFY:
-		LOG_DEBUG_INFO_NOHEADER << " - Motion notify on " << ((xcb_motion_notify_event_t *)Event)->child << ", " <<
-															 ((xcb_motion_notify_event_t *)Event)->event << " at " <<
-															 ((xcb_motion_notify_event_t *)Event)->event_x << ", " << ((xcb_motion_notify_event_t *)Event)->event_y;
-		break;*/
+	case XCB_MOTION_NOTIFY:
+		//LOG_DEBUG_INFO_NOHEADER << " - Motion notify on " << ((xcb_motion_notify_event_t *)Event)->child << ", " <<
+		//													 ((xcb_motion_notify_event_t *)Event)->event << " at " <<
+		//													 ((xcb_motion_notify_event_t *)Event)->event_x << ", " << ((xcb_motion_notify_event_t *)Event)->event_y;
+		{
+			xcb_motion_notify_event_t * const MotionNotify = (xcb_motion_notify_event_t *)Event;
+
+			this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new PointerMove_Event(Vector(MotionNotify->root_x,
+																								 MotionNotify->root_y))));
+		}
+		break;
 
 
 	case XCB_KEY_PRESS:
@@ -119,7 +125,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 		LOG_DEBUG_INFO_NOHEADER << " - Button " << (XCB_EVENT_RESPONSE_TYPE(Event) == XCB_BUTTON_PRESS ? "Press" : "Release") << ": ";
 		KeyContinue:
 		{
-			xcb_key_press_event_t *KeyPress = (xcb_key_press_event_t *)Event;
+			xcb_key_press_event_t * const KeyPress = (xcb_key_press_event_t *)Event;
 
 			LOG_DEBUG_INFO_NOHEADER << (unsigned int)KeyPress->detail << ", " << KeyPress->state << " on " <<
 									   KeyPress->child << ", " << KeyPress->event << " at " <<
@@ -146,7 +152,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 	case XCB_CONFIGURE_REQUEST:
 		{
-			xcb_configure_request_event_t *ConfigureRequest = (xcb_configure_request_event_t *)Event;
+			xcb_configure_request_event_t * const ConfigureRequest = (xcb_configure_request_event_t *)Event;
 
 			LOG_DEBUG_INFO_NOHEADER << " - Configure request on " << ConfigureRequest->window;
 
@@ -223,7 +229,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 	case XCB_MAP_REQUEST:
 		{
-			xcb_map_request_event_t *MapRequest = (xcb_map_request_event_t *)Event;
+			xcb_map_request_event_t * const MapRequest = (xcb_map_request_event_t *)Event;
 
 			LOG_DEBUG_INFO_NOHEADER << " - Map request on " << MapRequest->window;
 
@@ -253,7 +259,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 	case XCB_UNMAP_NOTIFY:
 		{
-			xcb_unmap_notify_event_t *UnmapNotify = (xcb_unmap_notify_event_t *)Event;
+			xcb_unmap_notify_event_t * const UnmapNotify = (xcb_unmap_notify_event_t *)Event;
 
 			LOG_DEBUG_INFO_NOHEADER << " - Unmap notify on " << UnmapNotify->window;
 
@@ -275,7 +281,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 	case XCB_DESTROY_NOTIFY:
 		{
-			xcb_destroy_notify_event_t *DestroyNotify = (xcb_destroy_notify_event_t *)Event;
+			xcb_destroy_notify_event_t * const DestroyNotify = (xcb_destroy_notify_event_t *)Event;
 
 			LOG_DEBUG_INFO_NOHEADER << " - Destroy notify on " << DestroyNotify->window;
 
@@ -292,7 +298,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 	case XCB_ENTER_NOTIFY:
 		{
-			xcb_enter_notify_event_t *EnterNotify = (xcb_enter_notify_event_t *)Event;
+			xcb_enter_notify_event_t * const EnterNotify = (xcb_enter_notify_event_t *)Event;
 
 			LOG_DEBUG_INFO_NOHEADER << " - Enter notify on " << EnterNotify->event << " at " << EnterNotify->root_x << ", " << EnterNotify->root_y;
 
@@ -311,7 +317,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 	case XCB_FOCUS_IN:
 		{
-			xcb_focus_in_event_t *FocusIn = (xcb_focus_in_event_t *)Event;
+			xcb_focus_in_event_t * const FocusIn = (xcb_focus_in_event_t *)Event;
 
 			LOG_DEBUG_INFO_NOHEADER << " - Focus in on " << FocusIn->event;
 
@@ -347,7 +353,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 	case XCB_CLIENT_MESSAGE:
 		{
-			xcb_client_message_event_t *ClientMessage = (xcb_client_message_event_t *)Event;
+			xcb_client_message_event_t * const ClientMessage = (xcb_client_message_event_t *)Event;
 
 			LOG_DEBUG_INFO_NOHEADER << " - Client message from " << ClientMessage->window;
 
