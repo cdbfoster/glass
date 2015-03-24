@@ -57,6 +57,8 @@ namespace Glass
 		virtual ~Event() { }
 
 		virtual Type GetType() const = 0;
+
+		virtual Event *Copy() const = 0;
 	};
 
 
@@ -67,6 +69,8 @@ namespace Glass
 		{ }
 
 		Type GetType() const { return Type::ROOT_CREATE; }
+
+		Event *Copy() const { return new RootCreate_Event(this->RootWindow); }
 
 		Glass::RootWindow &RootWindow;
 	};
@@ -93,6 +97,8 @@ namespace Glass
 		ClientCreate_Event(Glass::ClientWindow &ClientWindow) :
 			Client_Event(ClientWindow, Event::Type::CLIENT_CREATE)
 		{ }
+
+		Event *Copy() const { return new ClientCreate_Event(this->ClientWindow); }
 	};
 
 
@@ -101,6 +107,8 @@ namespace Glass
 		ClientDestroy_Event(Glass::ClientWindow &ClientWindow) :
 			Client_Event(ClientWindow, Event::Type::CLIENT_DESTROY)
 		{ }
+
+		Event *Copy() const { return new ClientDestroy_Event(this->ClientWindow); }
 	};
 
 
@@ -109,6 +117,8 @@ namespace Glass
 		ClientShowRequest_Event(Glass::ClientWindow &ClientWindow) :
 			Client_Event(ClientWindow, Event::Type::CLIENT_SHOW_REQUEST)
 		{ }
+
+		Event *Copy() const { return new ClientShowRequest_Event(this->ClientWindow); }
 	};
 
 
@@ -121,6 +131,9 @@ namespace Glass
 			RequestedSize(RequestedSize)
 		{ }
 
+		Event *Copy() const { return new ClientGeometryChangeRequest_Event(this->ClientWindow, this->RequestedPosition,
+																							   this->RequestedSize); }
+
 		Vector const RequestedPosition;
 		Vector const RequestedSize;
 	};
@@ -131,6 +144,8 @@ namespace Glass
 		ClientIconifiedRequest_Event(Glass::ClientWindow &ClientWindow) :
 			Client_Event(ClientWindow, Event::Type::CLIENT_ICONIFIED_REQUEST)
 		{ }
+
+		Event *Copy() const { return new ClientIconifiedRequest_Event(this->ClientWindow); }
 	};
 
 
@@ -140,6 +155,8 @@ namespace Glass
 			Client_Event(ClientWindow, Event::Type::CLIENT_FULLSCREEN_REQUEST),
 			Value(Value)
 		{ }
+
+		Event *Copy() const { return new ClientFullscreenRequest_Event(this->ClientWindow, this->Value); }
 
 		bool const Value;
 	};
@@ -153,6 +170,8 @@ namespace Glass
 		{ }
 
 		Type GetType() const { return Type::WINDOW_ENTER; }
+
+		Event *Copy() const { return new WindowEnter_Event(this->Window, this->Position); }
 
 		Glass::Window  &Window;
 		Vector const	Position;
@@ -169,23 +188,13 @@ namespace Glass
 
 		Type GetType() const { return Type::INPUT; }
 
+		Event *Copy() const { return new Input_Event(this->Window, this->Input, this->Position); }
+
 		Glass::Window	   &Window;
 		Glass::Input const	Input;
 		Vector const		Position;
 	};
 
-
-	/*// Window
-	WINDOW_MOVE_MODAL,
-	WINDOW_RESIZE_MODAL,
-	WINDOW_CLOSE,
-
-	// Window manager
-	FLOATING_TOGGLE,
-	FLOATING_RAISE,
-	SWITCH_TABBED,
-	FOCUS_CYCLE,
-	SPAWN_COMMAND*/
 
 	struct UserCommand_Event : public Event
 	{
@@ -205,6 +214,8 @@ namespace Glass
 		WindowMoveModal_Event() :
 			UserCommand_Event(Event::Type::WINDOW_MOVE_MODAL)
 		{ }
+
+		Event *Copy() const { return new WindowMoveModal_Event; }
 	};
 
 
@@ -213,6 +224,8 @@ namespace Glass
 		WindowResizeModal_Event() :
 			UserCommand_Event(Event::Type::WINDOW_RESIZE_MODAL)
 		{ }
+
+		Event *Copy() const { return new WindowResizeModal_Event; }
 	};
 
 
@@ -221,6 +234,8 @@ namespace Glass
 		WindowClose_Event() :
 			UserCommand_Event(Event::Type::WINDOW_CLOSE)
 		{ }
+
+		Event *Copy() const { return new WindowClose_Event; }
 	};
 
 
@@ -229,6 +244,8 @@ namespace Glass
 		FloatingToggle_Event() :
 			UserCommand_Event(Event::Type::FLOATING_TOGGLE)
 		{ }
+
+		Event *Copy() const { return new FloatingToggle_Event; }
 	};
 
 
@@ -237,6 +254,8 @@ namespace Glass
 		FloatingRaise_Event() :
 			UserCommand_Event(Event::Type::FLOATING_RAISE)
 		{ }
+
+		Event *Copy() const { return new FloatingRaise_Event; }
 	};
 
 
@@ -245,6 +264,8 @@ namespace Glass
 		SwitchTabbed_Event() :
 			UserCommand_Event(Event::Type::SWITCH_TABBED)
 		{ }
+
+		Event *Copy() const { return new SwitchTabbed_Event; }
 	};
 
 
@@ -260,6 +281,8 @@ namespace Glass
 			CycleDirection(CycleDirection)
 		{ }
 
+		Event *Copy() const { return new FocusCycle_Event(this->CycleDirection); }
+
 		Direction const CycleDirection;
 	};
 
@@ -270,6 +293,8 @@ namespace Glass
 			UserCommand_Event(Event::Type::SPAWN_COMMAND),
 			Command(Command)
 		{ }
+
+		Event *Copy() const { return new SpawnCommand_Event(this->Command); }
 
 		std::vector<std::string> const Command;
 	};
