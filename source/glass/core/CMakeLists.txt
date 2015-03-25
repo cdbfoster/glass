@@ -24,6 +24,7 @@ set(glass_include ${glass_include}
 	core/Log.hpp
 	core/Vector.hpp
 	core/Window.hpp
+	core/WindowDecorator.hpp
 	core/WindowLayout.hpp
 	core/WindowManager.hpp
 PARENT_SCOPE)
