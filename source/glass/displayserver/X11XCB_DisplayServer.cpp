@@ -362,6 +362,17 @@ void X11XCB_DisplayServer::SetWindowPosition(Window &Window, Vector const &Posit
 	if (WindowData != WindowDataAccessor->end())
 	{
 		this->Data->SetWindowPosition((*WindowData)->ID, Window, Position);
+
+		if (Frame_AuxiliaryWindow const * const WindowCast = dynamic_cast<Frame_AuxiliaryWindow const *>(&Window))
+		{
+			Glass::PrimaryWindow * const PrimaryWindow = &WindowCast->GetPrimaryWindow();
+
+			auto WindowData = WindowDataAccessor->find(PrimaryWindow);
+			if (WindowData != WindowDataAccessor->end())
+			{
+				this->Data->SetWindowPosition((*WindowData)->ID, *PrimaryWindow, PrimaryWindow->GetPosition());
+			}
+		}
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set window position." << std::endl;
@@ -384,6 +395,17 @@ void X11XCB_DisplayServer::SetWindowSize(Window &Window, Vector const &Size)
 	if (WindowData != WindowDataAccessor->end())
 	{
 		this->Data->SetWindowSize((*WindowData)->ID, Window, Size);
+
+		if (Frame_AuxiliaryWindow const * const WindowCast = dynamic_cast<Frame_AuxiliaryWindow const *>(&Window))
+		{
+			Glass::PrimaryWindow * const PrimaryWindow = &WindowCast->GetPrimaryWindow();
+
+			auto WindowData = WindowDataAccessor->find(PrimaryWindow);
+			if (WindowData != WindowDataAccessor->end())
+			{
+				this->Data->SetWindowSize((*WindowData)->ID, *PrimaryWindow, PrimaryWindow->GetSize());
+			}
+		}
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set window size." << std::endl;
