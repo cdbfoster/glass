@@ -21,18 +21,18 @@
 #define GLASS_CORE_WINDOWDECORATOR
 
 #include "glass/core/Vector.hpp"
+#include "glass/core/Window.hpp"
 
 namespace Glass
 {
-	class ClientWindow;
-	class PrimaryWindow;
-	class RootWindow;
+	class DisplayServer;
 	class WindowManager;
 
 	class WindowDecorator
 	{
 	public:
-		virtual ~WindowDecorator() { }
+		WindowDecorator(Glass::DisplayServer &DisplayServer);
+		virtual ~WindowDecorator();
 
 		enum Hint { NONE	= 0x00,
 					ACTIVE	= 0x01,
@@ -48,6 +48,11 @@ namespace Glass
 
 		virtual Vector GetDecoratedActiveAreaPosition(RootWindow &RootWindow) = 0;
 		virtual Vector GetDecoratedActiveAreaSize(RootWindow &RootWindow) = 0;
+
+	protected:
+		locked_accessor<AuxiliaryWindowList> GetAuxiliaryWindows(PrimaryWindow &PrimaryWindow);
+
+		Glass::DisplayServer &DisplayServer;
 	};
 }
 

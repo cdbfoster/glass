@@ -16,25 +16,9 @@
 # Copyright 2014-2015 Chris Foster
 
 set(glass_include ${glass_include}
-	core/DisplayServer.hpp
-	core/Event.hpp
-	core/EventQueue.hpp
-	core/Input.hpp
-	core/InputListener.hpp
-	core/Log.hpp
-	core/Vector.hpp
-	core/Window.hpp
-	core/WindowDecorator.hpp
-	core/WindowLayout.hpp
-	core/WindowManager.hpp
+	windowdecorator/Default_WindowDecorator.hpp
 PARENT_SCOPE)
 
 set(glass_source ${glass_source}
-	core/DisplayServer.cpp
-	core/EventQueue.cpp
-	core/InputListener.cpp
-	core/Window.cpp
-	core/WindowDecorator.cpp
-	core/WindowLayout.cpp
-	core/WindowManager.cpp
+	windowdecorator/Default_WindowDecorator.cpp
 PARENT_SCOPE)

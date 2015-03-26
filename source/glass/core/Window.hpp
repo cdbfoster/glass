@@ -115,8 +115,8 @@ namespace Glass
 
 		void Focus();
 
-	//private:
-	//	friend class WindowDecorator;
+	private:
+		friend class WindowDecorator;
 
 		locked_accessor<AuxiliaryWindowList> GetAuxiliaryWindows();
 

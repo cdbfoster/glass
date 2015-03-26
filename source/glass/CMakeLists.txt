@@ -22,6 +22,7 @@ add_subdirectory(core)
 add_subdirectory(displayserver)
 add_subdirectory(inputlistener)
 add_subdirectory(window)
+add_subdirectory(windowdecorator)
 add_subdirectory(windowmanager)
 
 prefix_list(glass_include "glass/")
