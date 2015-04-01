@@ -972,13 +972,8 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 
 
 		// Destroy the auxiliary window
-		if (AuxiliaryWindow.GetType() == Glass::AuxiliaryWindow::Type::FRAME)
-		{
-			//Vector const Position = PrimaryWindow.GetPosition();
-			//xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, RootWindowID, Position.x, Position.y);
-
+		if (dynamic_cast<Frame_AuxiliaryWindow *>(&AuxiliaryWindow))
 			static_cast<ClientWindowData *>(PrimaryWindowData)->ParentID = XCB_NONE; // Only client windows have frames
-		}
 
 		xcb_destroy_window(this->Data->XConnection, AuxiliaryWindowData->ID);
 

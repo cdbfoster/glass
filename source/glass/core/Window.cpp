@@ -99,12 +99,11 @@ bool Window::ContainsPoint(Vector const &Point) const
 }
 
 
-AuxiliaryWindow::AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name, Type TypeValue,
+AuxiliaryWindow::AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
 								 Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible) :
 	Window(DisplayServer, Position, Size, Visible),
 	PrimaryWindow(PrimaryWindow),
-	Name(Name),
-	TypeValue(TypeValue)
+	Name(Name)
 {
 
 }
@@ -118,7 +117,6 @@ AuxiliaryWindow::~AuxiliaryWindow()
 
 PrimaryWindow		   &AuxiliaryWindow::GetPrimaryWindow() const	{ return this->PrimaryWindow; }
 std::string				AuxiliaryWindow::GetName() const			{ return this->Name; }
-AuxiliaryWindow::Type	AuxiliaryWindow::GetType() const			{ return this->TypeValue; }
 
 
 void AuxiliaryWindow::SetName(std::string const &Name)

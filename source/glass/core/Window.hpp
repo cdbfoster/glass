@@ -73,10 +73,7 @@ namespace Glass
 	class AuxiliaryWindow : public Window
 	{
 	public:
-		enum class Type { FRAME,
-						  UTILITY };
-
-		AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name, Type TypeValue,
+		AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
 						Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible);
 		AuxiliaryWindow(AuxiliaryWindow const &Other) = delete;
 
@@ -84,7 +81,6 @@ namespace Glass
 
 		Glass::PrimaryWindow   &GetPrimaryWindow() const;
 		std::string				GetName() const;
-		Type					GetType() const;
 
 		void SetName(std::string const &Name);
 
@@ -94,7 +90,6 @@ namespace Glass
 	protected:
 		Glass::PrimaryWindow   &PrimaryWindow;
 		std::string				Name;
-		Type const				TypeValue;
 	};
 
 	typedef std::list<AuxiliaryWindow *> AuxiliaryWindowList;
