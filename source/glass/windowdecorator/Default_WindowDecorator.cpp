@@ -79,7 +79,32 @@ void Default_WindowDecorator::DecorateWindow(RootWindow &RootWindow, WindowManag
 
 void Default_WindowDecorator::StripWindow(PrimaryWindow &PrimaryWindow)
 {
+	auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows(PrimaryWindow);
 
+	if (dynamic_cast<ClientWindow *>(&PrimaryWindow))
+	{
+		for (auto AuxiliaryWindow = AuxiliaryWindowsAccessor->begin();
+				  AuxiliaryWindow != AuxiliaryWindowsAccessor->end();
+				  ++AuxiliaryWindow)
+		{
+			if (dynamic_cast<Frame_AuxiliaryWindow *>(*AuxiliaryWindow))
+			{
+				{
+					auto AuxiliaryWindowsAccessor = this->DisplayServer.GetAuxiliaryWindows();
+
+					AuxiliaryWindowsAccessor->remove(*AuxiliaryWindow);
+				}
+
+				delete *AuxiliaryWindow;
+
+				AuxiliaryWindow = AuxiliaryWindowsAccessor->erase(AuxiliaryWindow);
+			}
+		}
+	}
+	else // PrimaryWindow is a RootWindow
+	{
+
+	}
 }
 
 
