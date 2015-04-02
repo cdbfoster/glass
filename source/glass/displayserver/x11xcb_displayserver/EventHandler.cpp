@@ -81,8 +81,9 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 			xcb_generic_error_t *Error = (xcb_generic_error_t *)Event;
 
 			LOG_DEBUG_INFO_NOHEADER << " - Error: " << xcb_event_get_error_label(Error->error_code) << ", " <<
-													   (int)Error->major_code << ", " << (int)Error->minor_code << ", " <<
+													   xcb_event_get_request_label(Error->major_code) << ", " << (int)Error->minor_code << ", " <<
 													   (unsigned int)Error->resource_id;
+
 		}
 		break;
 	case XCB_CREATE_NOTIFY:
@@ -261,7 +262,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 		{
 			xcb_unmap_notify_event_t * const UnmapNotify = (xcb_unmap_notify_event_t *)Event;
 
-			LOG_DEBUG_INFO_NOHEADER << " - Unmap notify on " << UnmapNotify->window;
+			LOG_DEBUG_INFO_NOHEADER << " - Unmap notify on " << UnmapNotify->window << ", " << UnmapNotify->event;
 
 			Window *EventWindow = nullptr;
 
