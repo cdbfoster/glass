@@ -92,12 +92,6 @@ void DisplayServer::DeleteWindow(Window &Window)
 
 		ClientWindowsAccessor->remove(WindowCast);
 	}
-	else if (AuxiliaryWindow * const WindowCast = dynamic_cast<AuxiliaryWindow *>(&Window))
-	{
-		auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
-
-		AuxiliaryWindowsAccessor->remove(WindowCast);
-	}
 }
 
 
