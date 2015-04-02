@@ -868,11 +868,12 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 						  XCB_CW_BACK_PIXEL | XCB_CW_OVERRIDE_REDIRECT | XCB_CW_EVENT_MASK, Values);
 
 
-		// Disable root events
+		// Disable events
 		xcb_grab_server(this->Data->XConnection);
 
 		uint32_t const NoEvent = 0;
 		xcb_change_window_attributes(this->Data->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &NoEvent);
+		xcb_change_window_attributes(this->Data->XConnection, AuxiliaryWindowID, XCB_CW_EVENT_MASK, &NoEvent);
 
 
 		// Apply the auxiliary window
@@ -884,11 +885,12 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 			if (PrimaryWindow.GetVisibility() == true)
 				xcb_map_window(this->Data->XConnection, AuxiliaryWindowID);
 
-			static_cast<ClientWindowData *>(PrimaryWindowData)->ParentID = AuxiliaryWindowID; // Safe assumption because of the sanity check above
+			static_cast<ClientWindowData *>(PrimaryWindowData)->ParentID = AuxiliaryWindowID; // Safe cast because of the sanity check above
 		}
 
 
-		// Enable root events
+		// Enable events
+		xcb_change_window_attributes(this->Data->XConnection, AuxiliaryWindowID, XCB_CW_EVENT_MASK, &EventMask);
 		xcb_change_window_attributes(this->Data->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &RootWindowData->EventMask);
 
 		xcb_ungrab_server(this->Data->XConnection);
@@ -964,16 +966,22 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 		}
 
 
-		// Disable root events
+		// Disable events
 		xcb_grab_server(this->Data->XConnection);
 
 		uint32_t const NoEvent = 0;
 		xcb_change_window_attributes(this->Data->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &NoEvent);
+		xcb_change_window_attributes(this->Data->XConnection, AuxiliaryWindowData->ID, XCB_CW_EVENT_MASK, &NoEvent);
 
 
 		// Destroy the auxiliary window
 		if (dynamic_cast<Frame_AuxiliaryWindow *>(&AuxiliaryWindow))
+		{
+			Vector const Position = PrimaryWindow.GetPosition();
+			xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, RootWindowID, Position.x, Position.y);
+
 			static_cast<ClientWindowData *>(PrimaryWindowData)->ParentID = XCB_NONE; // Only client windows have frames
+		}
 
 		xcb_destroy_window(this->Data->XConnection, AuxiliaryWindowData->ID);
 
@@ -982,6 +990,7 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 		xcb_change_window_attributes(this->Data->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &RootWindowData->EventMask);
 
 		xcb_ungrab_server(this->Data->XConnection);
+
 
 		// Erase window data
 		WindowDataAccessor->erase(&AuxiliaryWindow);
