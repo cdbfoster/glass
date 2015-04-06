@@ -33,7 +33,7 @@ namespace Glass
 		class ClientWindowList;
 
 	public:
-		WindowLayout(Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size);
+		WindowLayout(Vector const &Position, Vector const &Size);
 		WindowLayout(WindowLayout const &Other) = delete;
 
 		virtual ~WindowLayout();
@@ -92,8 +92,6 @@ namespace Glass
 		};
 
 	protected:
-		Glass::DisplayServer   &DisplayServer;
-
 		Vector const			Position;
 		Vector const			Size;
 

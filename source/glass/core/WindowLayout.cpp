@@ -21,8 +21,7 @@
 
 using namespace Glass;
 
-WindowLayout::WindowLayout(Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size) :
-	DisplayServer(DisplayServer),
+WindowLayout::WindowLayout(Vector const &Position, Vector const &Size) :
 	Position(Position),
 	Size(Size),
 	ClientWindows(*this)
