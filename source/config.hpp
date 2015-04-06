@@ -24,6 +24,8 @@
 
 #include "glass/core/Event.hpp"
 #include "glass/core/Input.hpp"
+#include "glass/core/WindowLayout.hpp"
+#include "glass/windowlayout/Dummy_WindowLayout.hpp"
 
 namespace Glass
 {
@@ -52,6 +54,12 @@ namespace Glass
 
 
 		{ new SpawnCommand_Event({ "xterm" }),	Input(Input::Type::KEYBOARD,	Input::Value::KEY_T,	Keys::CommandModifier) },
+	};
+
+
+	// Window layouts
+	std::vector<WindowLayout *(*)(Vector const &, Vector const &)> const WindowLayouts = {
+		Dummy_WindowLayout::Create
 	};
 }
 
