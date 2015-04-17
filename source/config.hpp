@@ -27,7 +27,7 @@
 #include "glass/core/WindowLayout.hpp"
 #include "glass/windowlayout/Dummy_WindowLayout.hpp"
 
-namespace Glass
+namespace Config
 {
 	// User input bindings
 	namespace Keys

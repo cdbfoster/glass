@@ -69,7 +69,7 @@ void X11XCB_InputListener::Listen()
 
 	// Translate Glass input into X input and grab the bindings
 	std::map<Input, Event const *> BindingMap;
-	for (auto &Binding : InputBindings)
+	for (auto &Binding : Config::InputBindings)
 	{
 		XInput Condition = InputTranslator::ToX(Binding.second);
 
