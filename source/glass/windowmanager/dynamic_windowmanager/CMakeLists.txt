@@ -18,11 +18,13 @@
 set(dynamic_windowmanager_include
 	dynamic_windowmanager/EventHandler.hpp
 	dynamic_windowmanager/Implementation.hpp
+	dynamic_windowmanager/TagManager.hpp
 )
 
 set(dynamic_windowmanager_source
 	dynamic_windowmanager/EventHandler.cpp
 	dynamic_windowmanager/Implementation.cpp
+	dynamic_windowmanager/TagManager.cpp
 )
 
 prefix_list(dynamic_windowmanager_include "windowmanager/")

@@ -24,6 +24,8 @@
 
 namespace Glass
 {
+	class TagManager; // Defined in TagManager.hpp
+
 	struct Dynamic_WindowManager::Implementation
 	{
 		Implementation(Dynamic_WindowManager &WindowManager);
@@ -35,6 +37,10 @@ namespace Glass
 		// Event handling
 		class EventHandler; // Defined in EventHandler.hpp
 		EventHandler *Handler;
+
+
+		// Tags
+		TagManager *RootTags;
 	};
 }
 
