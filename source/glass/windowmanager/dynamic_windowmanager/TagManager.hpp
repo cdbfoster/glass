@@ -21,6 +21,7 @@
 #define GLASS_DYNAMIC_WINDOWMANAGER_TAGMANAGER
 
 #include <list>
+#include <map>
 #include <set>
 
 #include "glass/core/Window.hpp"
@@ -90,14 +91,20 @@ namespace Glass
 
 			void CreateTag(std::string const &Name);
 
+			void AddClientWindow(ClientWindow &ClientWindow);
+			void RemoveClientWindow(ClientWindow &ClientWindow);
+
 			iterator	erase(iterator position);
 			iterator	erase(iterator first, iterator last);
-			void		remove(value_type const &val);
 
 			typedef unsigned int TagMask;
 			void	SetActiveTagMask(TagMask ActiveMask);
 			TagMask	GetActiveTagMask() const;
 			Tag	   *GetActiveTag() const;
+
+			void			SetClientWindowTagMask(ClientWindow &ClientWindow, TagMask ClientMask);
+			TagMask			GetClientWindowTagMask(ClientWindow &ClientWindow) const;
+			std::set<Tag *>	GetClientWindowTags(ClientWindow &ClientWindow) const;
 
 			enum class LayoutCycle { FORWARD,
 									 BACKWARD };
@@ -109,6 +116,9 @@ namespace Glass
 
 			std::list<Tag *>	Tags;
 			Tag				   *ActiveTag;
+			TagMask				ActiveTagMask;
+
+			std::map<ClientWindow *, TagMask> ClientTagMasks;
 
 			std::vector<WindowLayout *(*)(Vector const &, Vector const &)>::const_iterator CurrentLayout; // An iterator into the WindowLayouts config list
 
@@ -155,6 +165,8 @@ namespace Glass
 
 				std::set<ClientWindow *> ClientWindows;
 				std::set<ClientWindow *> ExemptClientWindows; // Clients that aren't participating in window layouts (floating, fullscreen, etc)
+
+				bool IsExempt(ClientWindow &ClientWindow) const;
 
 				bool Activated;
 				void Activate();
