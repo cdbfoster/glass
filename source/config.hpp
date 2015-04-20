@@ -29,6 +29,8 @@
 
 namespace Config
 {
+	using namespace Glass;
+
 	// User input bindings
 	namespace Keys
 	{
