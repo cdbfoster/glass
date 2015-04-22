@@ -155,8 +155,6 @@ namespace Glass
 
 				std::string const &GetName() const;
 
-				void SetExempt(ClientWindow &ClientWindow, bool Exempt);
-
 			private:
 				friend class TagContainer;
 
@@ -167,6 +165,7 @@ namespace Glass
 				std::set<ClientWindow *> ExemptClientWindows; // Clients that aren't participating in window layouts (floating, fullscreen, etc)
 
 				bool IsExempt(ClientWindow &ClientWindow) const;
+				void SetExempt(ClientWindow &ClientWindow, bool Exempt);
 
 				bool Activated;
 				void Activate();
