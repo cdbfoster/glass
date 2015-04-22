@@ -441,7 +441,7 @@ void TagManager::TagContainer::Tag::insert(ClientWindow &ClientWindow, bool Exem
 		if (!Exempt)
 		{
 			for (auto Layout : this->WindowLayouts)
-				Layout->GetClientWindows().push_back(&ClientWindow);
+				Layout->push_back(&ClientWindow);
 		}
 		else
 			this->ExemptClientWindows.insert(&ClientWindow);
@@ -464,7 +464,7 @@ void TagManager::TagContainer::Tag::erase(iterator position)
 	if (!this->ExemptClientWindows.erase(ClientWindow))
 	{
 		for (auto Layout : this->WindowLayouts)
-			Layout->GetClientWindows().remove(ClientWindow);
+			Layout->remove(ClientWindow);
 	}
 
 	if (this->Activated)
@@ -541,7 +541,7 @@ void TagManager::TagContainer::Tag::SetExempt(ClientWindow &ClientWindow, bool E
 			this->ExemptClientWindows.insert(&ClientWindow);
 
 			for (auto Layout : this->WindowLayouts)
-				Layout->GetClientWindows().remove(&ClientWindow);
+				Layout->remove(&ClientWindow);
 
 			(*this->ActiveWindowLayout)->Refresh(); // XXX
 		}
@@ -550,7 +550,7 @@ void TagManager::TagContainer::Tag::SetExempt(ClientWindow &ClientWindow, bool E
 			this->ExemptClientWindows.erase(ClientIterator);
 
 			for (auto Layout : this->WindowLayouts)
-				Layout->GetClientWindows().push_back(&ClientWindow);
+				Layout->push_back(&ClientWindow);
 
 			(*this->ActiveWindowLayout)->Refresh(); // XXX
 		}

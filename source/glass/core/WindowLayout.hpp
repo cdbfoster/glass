@@ -29,17 +29,33 @@ namespace Glass
 
 	class WindowLayout
 	{
-	private:
-		class ClientWindowList;
-
 	public:
 		WindowLayout(Vector const &Position, Vector const &Size);
 		WindowLayout(WindowLayout const &Other) = delete;
 
 		virtual ~WindowLayout();
 
-		ClientWindowList	   &GetClientWindows();
-		ClientWindowList const &GetClientWindows() const;
+		typedef ClientWindowList::size_type			size_type;
+		typedef ClientWindowList::value_type		value_type;
+		typedef ClientWindowList::reference			reference;
+		typedef ClientWindowList::iterator			iterator;
+		typedef ClientWindowList::const_iterator	const_iterator;
+
+		iterator		begin();
+		const_iterator	begin() const;
+		const_iterator	cbegin() const;
+
+		iterator		end();
+		const_iterator	end() const;
+		const_iterator	cend() const;
+
+		bool		empty() const;
+		size_type	size() const;
+
+		void		push_back(value_type const &val);
+		iterator	erase(iterator position);
+		iterator	erase(iterator first, iterator last);
+		void		remove(value_type const &val);
 
 		Vector GetPosition() const;
 		Vector GetSize() const;
@@ -54,48 +70,14 @@ namespace Glass
 		virtual void Refresh() = 0;
 
 	protected:
+		// These get called from push_back and erase/remove, respectively
 		virtual void AddClientWindow(ClientWindow &ClientWindow) = 0;
 		virtual void RemoveClientWindow(ClientWindow &ClientWindow) = 0;
 
-	private:
-		// Wraps Glass::ClientWindowList modification methods with AddClientWindow and RemoveClientWindow
-		class ClientWindowList
-		{
-		public:
-			ClientWindowList(WindowLayout &Owner);
+		Vector const		Position;
+		Vector const		Size;
 
-			typedef Glass::ClientWindowList::size_type		size_type;
-			typedef Glass::ClientWindowList::value_type		value_type;
-			typedef Glass::ClientWindowList::reference		reference;
-			typedef Glass::ClientWindowList::iterator		iterator;
-			typedef Glass::ClientWindowList::const_iterator	const_iterator;
-
-			iterator		begin();
-			const_iterator	begin() const;
-			const_iterator	cbegin() const;
-
-			iterator		end();
-			const_iterator	end() const;
-			const_iterator	cend() const;
-
-			bool		empty() const;
-			size_type	size() const;
-
-			void		push_back(value_type const &val);
-			iterator	erase(iterator position);
-			iterator	erase(iterator first, iterator last);
-			void		remove(value_type const &val);
-
-		private:
-			WindowLayout		   &Owner;
-			Glass::ClientWindowList	ClientWindows;
-		};
-
-	protected:
-		Vector const			Position;
-		Vector const			Size;
-
-		ClientWindowList		ClientWindows;
+		ClientWindowList	ClientWindows;
 	};
 }
 

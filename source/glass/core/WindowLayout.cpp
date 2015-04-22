@@ -23,8 +23,7 @@ using namespace Glass;
 
 WindowLayout::WindowLayout(Vector const &Position, Vector const &Size) :
 	Position(Position),
-	Size(Size),
-	ClientWindows(*this)
+	Size(Size)
 {
 
 }
@@ -36,64 +35,52 @@ WindowLayout::~WindowLayout()
 }
 
 
-WindowLayout::ClientWindowList		   &WindowLayout::GetClientWindows()		{ return this->ClientWindows; }
-WindowLayout::ClientWindowList const   &WindowLayout::GetClientWindows() const	{ return this->ClientWindows; }
+WindowLayout::iterator			WindowLayout::begin()			{ return this->ClientWindows.begin(); }
+WindowLayout::const_iterator	WindowLayout::begin() const		{ return this->ClientWindows.begin(); }
+WindowLayout::const_iterator	WindowLayout::cbegin() const	{ return this->ClientWindows.cbegin(); }
 
 
-Vector WindowLayout::GetPosition() const	{ return this->Position; }
-Vector WindowLayout::GetSize() const		{ return this->Size; }
+WindowLayout::iterator			WindowLayout::end()			{ return this->ClientWindows.end(); }
+WindowLayout::const_iterator	WindowLayout::end() const	{ return this->ClientWindows.end(); }
+WindowLayout::const_iterator	WindowLayout::cend() const	{ return this->ClientWindows.cend(); }
 
 
-WindowLayout::ClientWindowList::ClientWindowList(WindowLayout &Owner) :
-	Owner(Owner)
+bool					WindowLayout::empty() const	{ return this->ClientWindows.empty(); }
+WindowLayout::size_type	WindowLayout::size() const	{ return this->ClientWindows.size(); }
+
+
+void WindowLayout::push_back(value_type const &val)
 {
-
-}
-
-
-WindowLayout::ClientWindowList::iterator		WindowLayout::ClientWindowList::begin()			{ return this->ClientWindows.begin(); }
-WindowLayout::ClientWindowList::const_iterator	WindowLayout::ClientWindowList::begin() const	{ return this->ClientWindows.begin(); }
-WindowLayout::ClientWindowList::const_iterator	WindowLayout::ClientWindowList::cbegin() const	{ return this->ClientWindows.cbegin(); }
-
-
-WindowLayout::ClientWindowList::iterator		WindowLayout::ClientWindowList::end()			{ return this->ClientWindows.end(); }
-WindowLayout::ClientWindowList::const_iterator	WindowLayout::ClientWindowList::end() const		{ return this->ClientWindows.end(); }
-WindowLayout::ClientWindowList::const_iterator	WindowLayout::ClientWindowList::cend() const	{ return this->ClientWindows.cend(); }
-
-
-bool										WindowLayout::ClientWindowList::empty() const	{ return this->ClientWindows.empty(); }
-WindowLayout::ClientWindowList::size_type	WindowLayout::ClientWindowList::size() const	{ return this->ClientWindows.size(); }
-
-
-void WindowLayout::ClientWindowList::push_back(value_type const &val)
-{
-	this->Owner.AddClientWindow(*val);
+	this->AddClientWindow(*val);
 
 	this->ClientWindows.push_back(val);
 }
 
 
-WindowLayout::ClientWindowList::iterator WindowLayout::ClientWindowList::erase(iterator position)
+WindowLayout::iterator WindowLayout::erase(iterator position)
 {
-	this->Owner.RemoveClientWindow(**position);
+	this->RemoveClientWindow(**position);
 
 	return this->ClientWindows.erase(position);
 }
 
 
-WindowLayout::ClientWindowList::iterator WindowLayout::ClientWindowList::erase(iterator first, iterator last)
+WindowLayout::iterator WindowLayout::erase(iterator first, iterator last)
 {
 	for (const_iterator Current = first; Current != last; ++Current)
-		this->Owner.RemoveClientWindow(**Current);
+		this->RemoveClientWindow(**Current);
 
 	return this->ClientWindows.erase(first, last);
 }
 
 
-void WindowLayout::ClientWindowList::remove(value_type const &val)
+void WindowLayout::remove(value_type const &val)
 {
-	this->Owner.RemoveClientWindow(*val);
+	this->RemoveClientWindow(*val);
 
 	this->ClientWindows.remove(val);
 }
 
+
+Vector WindowLayout::GetPosition() const	{ return this->Position; }
+Vector WindowLayout::GetSize() const		{ return this->Size; }
