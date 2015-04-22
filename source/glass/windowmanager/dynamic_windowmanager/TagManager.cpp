@@ -24,6 +24,76 @@
 
 using namespace Glass;
 
+TagManager::~TagManager()
+{
+	for (auto Pair : this->TagContainers)
+		delete Pair.second;
+}
+
+
+TagManager::iterator		TagManager::begin()			{ return this->TagContainers.begin(); }
+TagManager::const_iterator	TagManager::begin() const	{ return this->TagContainers.begin(); }
+TagManager::const_iterator	TagManager::cbegin() const	{ return this->TagContainers.cbegin(); }
+
+
+TagManager::iterator		TagManager::end()			{ return this->TagContainers.end(); }
+TagManager::const_iterator	TagManager::end() const		{ return this->TagContainers.end(); }
+TagManager::const_iterator	TagManager::cend() const	{ return this->TagContainers.cend(); }
+
+
+TagManager::size_type		TagManager::size() const	{ return this->TagContainers.size(); }
+
+
+void TagManager::insert(RootWindow &RootWindow)
+{
+	if (this->TagContainers.find(&RootWindow) == this->TagContainers.end())
+		this->TagContainers.insert(std::make_pair(&RootWindow, new TagContainer(RootWindow)));
+}
+
+
+void TagManager::erase(iterator position)
+{
+	delete position->second;
+	this->TagContainers.erase(position);
+}
+
+
+void TagManager::erase(iterator first, iterator last)
+{
+	for (iterator position = this->TagContainers.begin(); position != this->TagContainers.end(); ++position)
+		this->erase(position);
+}
+
+
+TagManager::size_type TagManager::erase(RootWindow &RootWindow)
+{
+	iterator position = this->find(RootWindow);
+
+	if (position != this->end())
+	{
+		this->erase(position);
+		return 1;
+	}
+	else
+		return 0;
+}
+
+
+TagManager::iterator		TagManager::find(RootWindow &RootWindow)		{ return this->TagContainers.find(&RootWindow); }
+TagManager::const_iterator	TagManager::find(RootWindow &RootWindow) const	{ return this->TagContainers.find(&RootWindow); }
+
+
+TagManager::TagContainer *TagManager::operator[](RootWindow &RootWindow) const
+{
+	auto RootTagContainer = this->find(RootWindow);
+
+	if (RootTagContainer != this->end())
+		return RootTagContainer->second;
+	else
+		return nullptr;
+}
+
+
 TagManager::TagContainer::TagContainer(Glass::RootWindow &RootWindow) :
 	RootWindow(RootWindow),
 	ActiveTag(nullptr),
@@ -35,7 +105,8 @@ TagManager::TagContainer::TagContainer(Glass::RootWindow &RootWindow) :
 
 TagManager::TagContainer::~TagContainer()
 {
-
+	for (auto Tag : this->Tags)
+		delete Tag;
 }
 
 
@@ -161,7 +232,7 @@ TagManager::TagContainer::iterator TagManager::TagContainer::erase(iterator posi
 }
 
 
-TagManager::TagContainer::iterator	TagManager::TagContainer::erase(iterator first, iterator last)
+TagManager::TagContainer::iterator TagManager::TagContainer::erase(iterator first, iterator last)
 {
 	iterator Return;
 
@@ -169,6 +240,19 @@ TagManager::TagContainer::iterator	TagManager::TagContainer::erase(iterator firs
 		Return = this->erase(position);
 
 	return Return;
+}
+
+
+void TagManager::TagContainer::remove(value_type const &val)
+{
+	for (iterator position = this->Tags.begin(); position != this->Tags.end(); ++position)
+	{
+		if (*position == val)
+		{
+			this->erase(position);
+			return;
+		}
+	}
 }
 
 
@@ -294,8 +378,8 @@ std::set<TagManager::TagContainer::Tag *> TagManager::TagContainer::GetClientWin
 
 void TagManager::TagContainer::CycleTagLayouts(LayoutCycle Direction)
 {
-	for (auto CycleTag : this->Tags)
-		CycleTag->CycleLayout(Direction);
+	for (auto Tag : this->Tags)
+		Tag->CycleLayout(Direction);
 
 	if (MultipleBitsSet(this->ActiveTagMask))
 		this->ActiveTag->CycleLayout(Direction);

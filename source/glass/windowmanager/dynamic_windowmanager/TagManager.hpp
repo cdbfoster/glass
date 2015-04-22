@@ -37,9 +37,9 @@ namespace Glass
 
 		class TagContainer;
 
-		typedef std::set<TagContainer *>::size_type			size_type;
-		typedef std::set<TagContainer *>::iterator			iterator;
-		typedef std::set<TagContainer *>::const_iterator	const_iterator;
+		typedef std::map<RootWindow *, TagContainer *>::size_type			size_type;
+		typedef std::map<RootWindow *, TagContainer *>::iterator			iterator;
+		typedef std::map<RootWindow *, TagContainer *>::const_iterator		const_iterator;
 
 		iterator		begin();
 		const_iterator	begin() const;
@@ -62,7 +62,7 @@ namespace Glass
 		TagContainer *operator[](RootWindow &RootWindow) const;
 
 	private:
-		std::set<TagContainer *> TagContainers;
+		std::map<RootWindow *, TagContainer *> TagContainers;
 
 	public:
 		class TagContainer
@@ -96,6 +96,7 @@ namespace Glass
 
 			iterator	erase(iterator position);
 			iterator	erase(iterator first, iterator last);
+			void		remove(value_type const &val);
 
 			typedef unsigned int TagMask;
 			void	SetActiveTagMask(TagMask ActiveMask);
