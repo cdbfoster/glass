@@ -91,8 +91,11 @@ namespace Glass
 
 			void CreateTag(std::string const &Name);
 
-			void AddClientWindow(ClientWindow &ClientWindow);
+			void AddClientWindow(ClientWindow &ClientWindow, bool Exempt = false);
 			void RemoveClientWindow(ClientWindow &ClientWindow);
+
+			void SetClientWindowExempt(ClientWindow &ClientWindow, bool Exempt);
+			bool GetClientWindowExempt(ClientWindow &ClientWindow);
 
 			iterator	erase(iterator position);
 			iterator	erase(iterator first, iterator last);

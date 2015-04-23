@@ -183,6 +183,76 @@ bool MultipleBitsSet(unsigned int Mask)
 }
 
 
+void TagManager::TagContainer::AddClientWindow(ClientWindow &ClientWindow, bool Exempt)
+{
+	if (this->ClientTagMasks.find(&ClientWindow) != this->ClientTagMasks.end())
+		return;
+
+	this->ClientTagMasks[&ClientWindow] = this->ActiveTagMask;
+
+	auto AddTags = GetTagSet(this->Tags, this->ActiveTagMask);
+
+	for (auto AddTag : AddTags)
+		AddTag->insert(ClientWindow, Exempt);
+
+	if (MultipleBitsSet(this->ActiveTagMask))
+		this->ActiveTag->insert(ClientWindow, Exempt);
+}
+
+
+void TagManager::TagContainer::RemoveClientWindow(ClientWindow &ClientWindow)
+{
+	auto	ClientWindowTagMask = this->ClientTagMasks.find(&ClientWindow);
+	TagMask	RemoveMask = 0x00;
+
+	if (ClientWindowTagMask == this->ClientTagMasks.end())
+		return;
+	else
+	{
+		RemoveMask = ClientWindowTagMask->second;
+		this->ClientTagMasks.erase(ClientWindowTagMask);
+	}
+
+	auto RemoveTags = GetTagSet(this->Tags, RemoveMask);
+
+	for (auto RemoveTag : RemoveTags)
+		RemoveTag->erase(ClientWindow);
+
+	if (MultipleBitsSet(this->ActiveTagMask) && (this->ActiveTagMask & RemoveMask))
+		this->ActiveTag->erase(ClientWindow);
+}
+
+
+void TagManager::TagContainer::SetClientWindowExempt(ClientWindow &ClientWindow, bool Exempt)
+{
+	auto ClientWindowTagMask = this->ClientTagMasks.find(&ClientWindow);
+
+	if (ClientWindowTagMask == this->ClientTagMasks.end())
+		return;
+
+	auto ClientTags = GetTagSet(this->Tags, ClientWindowTagMask->second);
+
+	for (auto Tag : ClientTags)
+		Tag->SetExempt(ClientWindow, Exempt);
+
+	if (MultipleBitsSet(this->ActiveTagMask) && (this->ActiveTagMask & ClientWindowTagMask->second))
+		this->ActiveTag->SetExempt(ClientWindow, Exempt);
+}
+
+
+bool TagManager::TagContainer::GetClientWindowExempt(ClientWindow &ClientWindow)
+{
+	auto ClientWindowTagMask = this->ClientTagMasks.find(&ClientWindow);
+
+	if (ClientWindowTagMask == this->ClientTagMasks.end())
+		return false;
+
+	auto ClientTags = GetTagSet(this->Tags, ClientWindowTagMask->second);
+
+	return (*ClientTags.begin())->IsExempt(ClientWindow);
+}
+
+
 TagManager::TagContainer::iterator TagManager::TagContainer::erase(iterator position)
 {
 	Tag * const		DeleteTag = *position;
