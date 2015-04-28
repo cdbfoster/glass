@@ -20,7 +20,6 @@ set(include
 )
 
 set(source
-	main.cpp
 )
 
 add_subdirectory(glass)
@@ -31,6 +30,10 @@ set(SOURCE .)
 include_directories(${Boost_INCLUDE_DIRS}
 					${SOURCE})
 
-add_executable(glass ${include} ${source})
+add_library(glass-core STATIC ${include} ${source})
+target_link_libraries(glass-core pthread xcb xcb-util xcb-icccm xcb-keysyms X11)
 
-target_link_libraries(glass pthread xcb xcb-util xcb-icccm xcb-keysyms X11)
+add_executable(glass ${include} main.cpp)
+target_link_libraries(glass glass-core)
+
+#add_subdirectory(tests)
