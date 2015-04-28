@@ -56,12 +56,47 @@ namespace Config
 
 
 		{ new SpawnCommand_Event({ "xterm" }),	Input(Input::Type::KEYBOARD,	Input::Value::KEY_T,	Keys::CommandModifier) },
+
+
+		#define TAG_MODIFIER		Keys::CommandModifier
+		#define TAG_TOGGLE_MODIFIER	Input::Modifier::SHIFT
+		#define TAG_CLIENT_MODIFIER	Input::Modifier::CONTROL
+
+		#define TAG_KEY(TagNumber, TagInputType, TagInputValue) \
+		{ new TagDisplay_Event(TagDisplay_Event::Target::ROOT,	 TagDisplay_Event::Mode::SET,	 0x01 << TagNumber), Input(TagInputType, TagInputValue, TAG_MODIFIER) },\
+		{ new TagDisplay_Event(TagDisplay_Event::Target::ROOT,	 TagDisplay_Event::Mode::TOGGLE, 0x01 << TagNumber), Input(TagInputType, TagInputValue, TAG_MODIFIER | TAG_TOGGLE_MODIFIER) },\
+		{ new TagDisplay_Event(TagDisplay_Event::Target::CLIENT, TagDisplay_Event::Mode::SET,	 0x01 << TagNumber), Input(TagInputType, TagInputValue, TAG_MODIFIER | TAG_CLIENT_MODIFIER) },\
+		{ new TagDisplay_Event(TagDisplay_Event::Target::CLIENT, TagDisplay_Event::Mode::TOGGLE, 0x01 << TagNumber), Input(TagInputType, TagInputValue, TAG_MODIFIER | TAG_TOGGLE_MODIFIER | TAG_CLIENT_MODIFIER) },
+
+		TAG_KEY(0, Input::Type::KEYBOARD, Input::Value::KEY_1)
+		TAG_KEY(1, Input::Type::KEYBOARD, Input::Value::KEY_2)
+		TAG_KEY(2, Input::Type::KEYBOARD, Input::Value::KEY_3)
+		TAG_KEY(3, Input::Type::KEYBOARD, Input::Value::KEY_4)
+		TAG_KEY(4, Input::Type::KEYBOARD, Input::Value::KEY_5)
+		TAG_KEY(5, Input::Type::KEYBOARD, Input::Value::KEY_6)
+		TAG_KEY(6, Input::Type::KEYBOARD, Input::Value::KEY_7)
+		TAG_KEY(7, Input::Type::KEYBOARD, Input::Value::KEY_8)
+		TAG_KEY(8, Input::Type::KEYBOARD, Input::Value::KEY_9)
+		TAG_KEY(9, Input::Type::KEYBOARD, Input::Value::KEY_0)
+
+		#undef TAG_KEY
+		#undef TAG_CLIENT_MODIFIER
+		#undef TAG_TOGGLE_MODIFIER
+		#undef TAG_MODIFIER
 	};
 
 
 	// Window layouts
 	std::vector<WindowLayout *(*)(Vector const &, Vector const &)> const WindowLayouts = {
 		Dummy_WindowLayout::Create
+	};
+
+
+	// Tag names
+	std::vector<std::string> const TagNames = {
+		"1",
+		"2",
+		"3"
 	};
 }
 
