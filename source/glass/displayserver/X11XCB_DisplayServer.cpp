@@ -592,6 +592,12 @@ void X11XCB_DisplayServer::DeleteWindow(Window &Window)
 
 		if (*ActiveWindowAccessor == (*WindowData)->ID)
 			*ActiveWindowAccessor = XCB_NONE;
+
+		if (dynamic_cast<ClientWindow *>(&Window))
+		{
+			// XXX Remove from EWMH client list
+			xcb_change_save_set(this->Data->XConnection, XCB_SET_MODE_DELETE, (*WindowData)->ID);
+		}
 	}
 
 	if (!dynamic_cast<AuxiliaryWindow *>(&Window)) // Auxiliary window data gets erased by DeactivateAuxiliaryWindow()

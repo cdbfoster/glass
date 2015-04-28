@@ -437,7 +437,10 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 
 		xcb_configure_window(this->XConnection, ClientWindowID, ConfigureMask, ConfigureValues);
 
+
 		// XXX Add to EWMH client list
+
+		xcb_change_save_set(this->XConnection, XCB_SET_MODE_INSERT, ClientWindowID);
 
 
 		// Create the client structure)
