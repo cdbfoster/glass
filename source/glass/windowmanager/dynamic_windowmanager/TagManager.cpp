@@ -125,7 +125,17 @@ TagManager::TagContainer::size_type			TagManager::TagContainer::size() const		{ 
 
 void TagManager::TagContainer::CreateTag(std::string const &Name)
 {
-	this->Tags.push_back(new Tag(*this, Name));
+	Tag * const NewTag = new Tag(*this, Name);
+
+	if (this->Tags.empty())
+	{
+		this->ActiveTagMask = 0x01;
+		this->ActiveTag = NewTag;
+
+		this->ActiveTag->Activate();
+	}
+
+	this->Tags.push_back(NewTag);
 }
 
 
@@ -270,6 +280,24 @@ TagManager::TagContainer::iterator TagManager::TagContainer::erase(iterator posi
 
 	auto Return = this->Tags.erase(position);
 
+	// If we're deleting the active tag, activate an adjacent tag
+	if (this->ActiveTag == DeleteTag)
+	{
+		std::list<Tag *>::const_iterator NewActiveTag = Return;
+
+		if (NewActiveTag != this->Tags.end())
+		{
+			if (NewActiveTag != this->Tags.begin())
+				--NewActiveTag;
+
+			this->ActiveTag = *NewActiveTag;
+			this->ActiveTagMask = GetTagMask(this->Tags, { this->ActiveTag });
+			this->ActiveTag->Activate();
+		}
+		else
+			this->ActiveTag = nullptr;
+	}
+
 	for (auto Client : *DeleteTag)
 	{
 		TagMask &ClientTagMask = this->ClientTagMasks[Client];
@@ -328,7 +356,7 @@ void TagManager::TagContainer::remove(value_type const &val)
 
 void TagManager::TagContainer::SetActiveTagMask(TagMask ActiveMask)
 {
-	if (this->Tags.empty())
+	if (this->Tags.empty() || this->ActiveTagMask == ActiveMask)
 		return;
 
 	if (MultipleBitsSet(this->ActiveTagMask) && MultipleBitsSet(ActiveMask))
@@ -355,15 +383,7 @@ void TagManager::TagContainer::SetActiveTagMask(TagMask ActiveMask)
 				this->ActiveTag->insert(*Client, AddTag->IsExempt(*Client));
 		}
 	}
-	else if (MultipleBitsSet(this->ActiveTagMask))
-	{
-		this->ActiveTag->Deactivate();
-		delete this->ActiveTag;
-
-		this->ActiveTag = *GetTagSet(this->Tags, ActiveMask).begin();
-		this->ActiveTag->Activate();
-	}
-	else
+	else if (MultipleBitsSet(ActiveMask))
 	{
 		this->ActiveTag->Deactivate();
 		this->ActiveTag = new Tag(*this, "Joint");
@@ -375,6 +395,18 @@ void TagManager::TagContainer::SetActiveTagMask(TagMask ActiveMask)
 			for (auto Client : *AddTag)
 				this->ActiveTag->insert(*Client, AddTag->IsExempt(*Client));
 		}
+
+		this->ActiveTag->Activate();
+	}
+	else
+	{
+		this->ActiveTag->Deactivate();
+
+		if (MultipleBitsSet(this->ActiveTagMask))
+			delete this->ActiveTag;
+
+		this->ActiveTag = *GetTagSet(this->Tags, ActiveMask).begin();
+		this->ActiveTag->Activate();
 	}
 
 	this->ActiveTagMask = ActiveMask;
@@ -591,6 +623,12 @@ std::string const &TagManager::TagContainer::Tag::GetName() const
 }
 
 
+bool TagManager::TagContainer::Tag::IsActive() const
+{
+	return this->Activated;
+}
+
+
 bool TagManager::TagContainer::Tag::IsExempt(ClientWindow &ClientWindow) const
 {
 	return this->ExemptClientWindows.find(&ClientWindow) != this->ExemptClientWindows.end();
@@ -631,7 +669,12 @@ void TagManager::TagContainer::Tag::SetExempt(ClientWindow &ClientWindow, bool E
 void TagManager::TagContainer::Tag::Activate()
 {
 	if (this->Activated)
-		(*this->ActiveWindowLayout)->Refresh();
+	{
+		if ((*this->ActiveWindowLayout)->IsActive())
+			(*this->ActiveWindowLayout)->Refresh();
+		else
+			(*this->ActiveWindowLayout)->Activate();
+	}
 	else
 	{
 		this->Activated = true;

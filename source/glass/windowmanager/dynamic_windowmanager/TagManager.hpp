@@ -159,6 +159,8 @@ namespace Glass
 
 				std::string const &GetName() const;
 
+				bool IsActive() const;
+
 			private:
 				friend class TagContainer;
 
