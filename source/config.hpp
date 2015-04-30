@@ -25,7 +25,16 @@
 #include "glass/core/Event.hpp"
 #include "glass/core/Input.hpp"
 #include "glass/core/WindowLayout.hpp"
+#include "glass/windowdecorator/Default_WindowDecorator.hpp"
 #include "glass/windowlayout/Dummy_WindowLayout.hpp"
+
+namespace Glass
+{
+	class DisplayServer;
+	class WindowDecorator;
+	class WindowManager;
+}
+
 
 namespace Config
 {
@@ -90,6 +99,10 @@ namespace Config
 	std::vector<WindowLayout *(*)(Vector const &, Vector const &)> const WindowLayouts = {
 		Dummy_WindowLayout::Create
 	};
+
+
+	// Window decorator
+	Glass::WindowDecorator * (* const WindowDecorator)(DisplayServer &, WindowManager &) = Default_WindowDecorator::Create;
 
 
 	// Tag names
