@@ -33,7 +33,7 @@ namespace Glass
 	class WindowManager
 	{
 	public:
-		WindowManager(EventQueue &IncomingEventQueue, Glass::WindowDecorator &WindowDecorator);
+		WindowManager(EventQueue &IncomingEventQueue);
 		WindowManager(WindowManager const &Other) = delete;
 
 		virtual ~WindowManager();
@@ -46,9 +46,10 @@ namespace Glass
 		locked_accessor<ClientWindowList>	GetClientWindows();
 
 	protected:
+		friend class WindowDecorator;
 		EventQueue			   &IncomingEventQueue;
-		Glass::WindowDecorator &WindowDecorator;
 
+	protected:
 		RootWindowList			RootWindows;
 		ClientWindowList		ClientWindows;
 

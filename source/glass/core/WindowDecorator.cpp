@@ -18,11 +18,13 @@
 */
 
 #include "glass/core/WindowDecorator.hpp"
+#include "glass/core/WindowManager.hpp"
 
 using namespace Glass;
 
-WindowDecorator::WindowDecorator(Glass::DisplayServer &DisplayServer) :
-	DisplayServer(DisplayServer)
+WindowDecorator::WindowDecorator(Glass::DisplayServer &DisplayServer, Glass::WindowManager &WindowManager) :
+	DisplayServer(DisplayServer),
+	WindowManager(WindowManager)
 {
 
 }
@@ -34,7 +36,13 @@ WindowDecorator::~WindowDecorator()
 }
 
 
-locked_accessor<AuxiliaryWindowList> WindowDecorator::GetAuxiliaryWindows(PrimaryWindow &PrimaryWindow)
+locked_accessor<AuxiliaryWindowList> WindowDecorator::GetAuxiliaryWindows(PrimaryWindow &PrimaryWindow) const
 {
 	return PrimaryWindow.GetAuxiliaryWindows();
+}
+
+
+EventQueue &WindowDecorator::GetEventQueue() const
+{
+	return this->WindowManager.IncomingEventQueue;
 }

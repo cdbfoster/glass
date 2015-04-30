@@ -26,12 +26,13 @@
 namespace Glass
 {
 	class DisplayServer;
+	class EventQueue;
 	class WindowManager;
 
 	class WindowDecorator
 	{
 	public:
-		WindowDecorator(Glass::DisplayServer &DisplayServer);
+		WindowDecorator(Glass::DisplayServer &DisplayServer, Glass::WindowManager &WindowManager);
 		virtual ~WindowDecorator();
 
 		enum Hint { NONE	= 0x00,
@@ -40,7 +41,7 @@ namespace Glass
 					SPECIAL	= 0x04 };
 
 		virtual void DecorateWindow(ClientWindow &ClientWindow, Hint HintMask = Hint::NONE) = 0;
-		virtual void DecorateWindow(RootWindow &RootWindow, WindowManager &WindowManager) = 0;
+		virtual void DecorateWindow(RootWindow &RootWindow) = 0;
 		virtual void StripWindow(PrimaryWindow &PrimaryWindow) = 0;
 
 		virtual Vector GetDecoratedPosition(ClientWindow &ClientWindow) = 0;
@@ -50,9 +51,11 @@ namespace Glass
 		virtual Vector GetDecoratedActiveAreaSize(RootWindow &RootWindow) = 0;
 
 	protected:
-		locked_accessor<AuxiliaryWindowList> GetAuxiliaryWindows(PrimaryWindow &PrimaryWindow);
+		locked_accessor<AuxiliaryWindowList>	GetAuxiliaryWindows(PrimaryWindow &PrimaryWindow) const;
+		EventQueue							   &GetEventQueue() const;
 
 		Glass::DisplayServer &DisplayServer;
+		Glass::WindowManager &WindowManager;
 	};
 }
 

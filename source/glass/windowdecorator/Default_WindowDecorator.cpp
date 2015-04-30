@@ -23,8 +23,14 @@
 
 using namespace Glass;
 
-Default_WindowDecorator::Default_WindowDecorator(Glass::DisplayServer &DisplayServer) :
-	WindowDecorator(DisplayServer)
+WindowDecorator *Default_WindowDecorator::Create(Glass::DisplayServer &DisplayServer, Glass::WindowManager &WindowManager)
+{
+	return new Default_WindowDecorator(DisplayServer, WindowManager);
+}
+
+
+Default_WindowDecorator::Default_WindowDecorator(Glass::DisplayServer &DisplayServer, Glass::WindowManager &WindowManager) :
+	WindowDecorator(DisplayServer, WindowManager)
 {
 
 }
@@ -71,7 +77,7 @@ void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, Hint Hi
 }
 
 
-void Default_WindowDecorator::DecorateWindow(RootWindow &RootWindow, WindowManager &WindowManager)
+void Default_WindowDecorator::DecorateWindow(RootWindow &RootWindow)
 {
 
 }

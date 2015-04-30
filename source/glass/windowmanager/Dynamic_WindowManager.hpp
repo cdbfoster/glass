@@ -26,7 +26,7 @@ namespace Glass
 {
 	class Dynamic_WindowManager : public WindowManager
 	{
-		Dynamic_WindowManager(EventQueue &IncomingEventQueue, Glass::WindowDecorator &WindowDecorator);
+		Dynamic_WindowManager(EventQueue &IncomingEventQueue);
 		~Dynamic_WindowManager();
 
 	private:

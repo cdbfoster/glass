@@ -29,11 +29,13 @@ namespace Glass
 	class Default_WindowDecorator : public WindowDecorator
 	{
 	public:
-		Default_WindowDecorator(Glass::DisplayServer &DisplayServer);
+		static WindowDecorator *Create(Glass::DisplayServer &DisplayServer, Glass::WindowManager &WindowManager);
+
+		Default_WindowDecorator(Glass::DisplayServer &DisplayServer, Glass::WindowManager &WindowManager);
 		~Default_WindowDecorator();
 
 		void DecorateWindow(ClientWindow &ClientWindow, Hint HintMask = Hint::NONE);
-		void DecorateWindow(RootWindow &RootWindow, WindowManager &WindowManager);
+		void DecorateWindow(RootWindow &RootWindow);
 		void StripWindow(PrimaryWindow &PrimaryWindow);
 
 		Vector GetDecoratedPosition(ClientWindow &ClientWindow);

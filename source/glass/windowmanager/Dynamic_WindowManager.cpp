@@ -23,8 +23,8 @@
 
 using namespace Glass;
 
-Dynamic_WindowManager::Dynamic_WindowManager(EventQueue &IncomingEventQueue, Glass::WindowDecorator &WindowDecorator) :
-	WindowManager(IncomingEventQueue, WindowDecorator),
+Dynamic_WindowManager::Dynamic_WindowManager(EventQueue &IncomingEventQueue) :
+	WindowManager(IncomingEventQueue),
 	Data(new Implementation(*this))
 {
 	// Create event handler
