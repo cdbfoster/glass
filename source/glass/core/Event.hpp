@@ -53,7 +53,8 @@ namespace Glass
 						  FLOATING_RAISE,
 						  SWITCH_TABBED,
 						  FOCUS_CYCLE,
-						  SPAWN_COMMAND };
+						  SPAWN_COMMAND,
+						  TAG_DISPLAY };
 
 		virtual ~Event() { }
 
@@ -312,6 +313,31 @@ namespace Glass
 		Event *Copy() const { return new SpawnCommand_Event(this->Command); }
 
 		std::vector<std::string> const Command;
+	};
+
+
+	struct TagDisplay_Event : public UserCommand_Event
+	{
+		enum class Target { ROOT,
+							CLIENT };
+
+		enum class Mode { SET,
+						  TOGGLE };
+
+		typedef unsigned int TagMask;
+
+		TagDisplay_Event(Target EventTarget, Mode EventMode, TagMask EventTagMask) :
+			UserCommand_Event(Event::Type::TAG_DISPLAY),
+			EventTarget(EventTarget),
+			EventMode(EventMode),
+			EventTagMask(EventTagMask)
+		{ }
+
+		Event *Copy() const { return new TagDisplay_Event(this->EventTarget, this->EventMode, this->EventTagMask); }
+
+		Target	EventTarget;
+		Mode	EventMode;
+		TagMask	EventTagMask;
 	};
 }
 
