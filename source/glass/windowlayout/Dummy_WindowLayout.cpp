@@ -29,7 +29,8 @@ WindowLayout *Dummy_WindowLayout::Create(Vector const &Position, Vector const &S
 
 
 Dummy_WindowLayout::Dummy_WindowLayout(Vector const &Position, Vector const &Size) :
-	WindowLayout(Position, Size)
+	WindowLayout(Position, Size),
+	Active(false)
 {
 
 }
@@ -57,8 +58,8 @@ void Dummy_WindowLayout::Activate()
 {
 	if (!this->Active)
 	{
-		this->Refresh();
 		this->Active = true;
+		this->Refresh();
 	}
 }
 
@@ -80,8 +81,11 @@ bool Dummy_WindowLayout::IsActive() const { return this->Active; }
 
 void Dummy_WindowLayout::Refresh()
 {
-	for (auto ClientWindow : this->ClientWindows)
-		ClientWindow->SetVisibility(true);
+	if (this->Active)
+	{
+		for (auto ClientWindow : this->ClientWindows)
+			ClientWindow->SetVisibility(true);
+	}
 }
 
 
