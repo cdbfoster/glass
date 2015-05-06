@@ -259,32 +259,11 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 
 	case XCB_UNMAP_NOTIFY:
-		{
-			xcb_unmap_notify_event_t * const UnmapNotify = (xcb_unmap_notify_event_t *)Event;
-
-			LOG_DEBUG_INFO_NOHEADER << " - Unmap notify on " << UnmapNotify->window << ", " << UnmapNotify->event;
-
-			Window *EventWindow = nullptr;
-
-			{
-				auto WindowDataAccessor = this->Owner.GetWindowData();
-
-				auto WindowData = WindowDataAccessor->find(UnmapNotify->window);
-				if (WindowData != WindowDataAccessor->end())
-					EventWindow = dynamic_cast<ClientWindow *>(&(*WindowData)->Window);
-			}
-
-			if (EventWindow != nullptr)
-				EventWindow->SetVisibility(false);
-		}
-		break;
-
-
 	case XCB_DESTROY_NOTIFY:
 		{
 			xcb_destroy_notify_event_t * const DestroyNotify = (xcb_destroy_notify_event_t *)Event;
 
-			LOG_DEBUG_INFO_NOHEADER << " - Destroy notify on " << DestroyNotify->window;
+			LOG_DEBUG_INFO_NOHEADER << " - Destroy/Unmap notify on " << DestroyNotify->window;
 
 			auto WindowDataAccessor = this->Owner.GetWindowData();
 
