@@ -21,11 +21,11 @@
 #define GLASS_DYNAMIC_WINDOWMANAGER_IMPLEMENTATION
 
 #include "glass/windowmanager/Dynamic_WindowManager.hpp"
+#include "glass/windowmanager/dynamic_windowmanager/ClientData.hpp"
+#include "glass/windowmanager/dynamic_windowmanager/TagManager.hpp"
 
 namespace Glass
 {
-	class TagManager; // Defined in TagManager.hpp
-
 	struct Dynamic_WindowManager::Implementation
 	{
 		Implementation(Dynamic_WindowManager &WindowManager);
@@ -40,7 +40,28 @@ namespace Glass
 
 
 		// Tags
-		TagManager *RootTags;
+		TagManager RootTags;
+
+
+		// Active windows
+		RootWindow   *ActiveRoot;
+		ClientWindow *ActiveClient;
+
+
+		// Client window data
+		ClientDataContainer ClientData;
+
+
+		// Stacking order
+		ClientWindowList RaisedClients;
+		ClientWindowList LoweredClients;
+
+
+		// Methods
+		void ActivateClient(ClientWindow &ClientWindow);
+		void RefreshStackingOrder();
+		void SetClientLowered(ClientWindow &ClientWindow, bool Lowered);
+		void SetClientRaised(ClientWindow &ClientWindow, bool Raised);
 	};
 }
 
