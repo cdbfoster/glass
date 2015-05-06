@@ -177,6 +177,53 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 		break;
 
 
+	case Glass::Event::Type::CLIENT_DESTROY:
+		{
+			ClientDestroy_Event const * const EventCast = static_cast<ClientDestroy_Event const *>(Event);
+
+			if (this->Owner.ClientData.erase(EventCast->ClientWindow))
+			{
+				this->Owner.RootTags[*EventCast->ClientWindow.GetRootWindow()]->RemoveClientWindow(EventCast->ClientWindow);
+
+				{
+					auto ClientWindowsAccessor = EventCast->ClientWindow.GetRootWindow()->GetClientWindows();
+
+					ClientWindowsAccessor->remove(&EventCast->ClientWindow);
+				}
+
+				{
+					auto ClientWindowsAccessor = this->Owner.WindowManager.GetClientWindows();
+
+					ClientWindowsAccessor->remove(&EventCast->ClientWindow);
+					this->Owner.RaisedClients.remove(&EventCast->ClientWindow);
+					this->Owner.LoweredClients.remove(&EventCast->ClientWindow);
+				}
+
+				if (&EventCast->ClientWindow == this->Owner.ActiveClient)
+				{
+					ClientWindow *NextClient = nullptr;
+					{
+						auto ClientWindowsAccessor = this->Owner.WindowManager.GetClientWindows();
+
+						if (!ClientWindowsAccessor->empty())
+							NextClient = ClientWindowsAccessor->front();
+					}
+
+					if (NextClient != nullptr)
+					{
+						this->Owner.ActivateClient(*NextClient);
+					}
+					else
+					{
+						this->Owner.ActiveRoot = nullptr;
+						this->Owner.ActiveClient = nullptr;
+					}
+				}
+			}
+		}
+		break;
+
+
 	case Glass::Event::Type::WINDOW_ENTER:
 		{
 			WindowEnter_Event const * const EventCast = static_cast<WindowEnter_Event const *>(Event);
