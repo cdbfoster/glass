@@ -432,6 +432,10 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 				else
 					xcb_map_window(this->Data->XConnection, ParentID);
 			}
+
+			// Don't generate an error if this doesn't go through
+			uint32_t const NoStructureEvents = WindowDataCast->EventMask & ~XCB_EVENT_MASK_STRUCTURE_NOTIFY;
+			xcb_change_window_attributes_checked(this->Data->XConnection, WindowID, XCB_CW_EVENT_MASK, &NoStructureEvents);
 		}
 
 		// Check the window's map state
@@ -444,6 +448,12 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 				xcb_unmap_window(this->Data->XConnection, WindowID);
 			else
 				xcb_map_window(this->Data->XConnection, WindowID);
+		}
+
+		if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
+		{
+			// Don't generate an error if this doesn't go through
+			xcb_change_window_attributes_checked(this->Data->XConnection, WindowID, XCB_CW_EVENT_MASK, &WindowDataCast->EventMask);
 		}
 
 		free(WindowAttributes);
@@ -859,7 +869,7 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 
 		uint32_t const EventMask = XCB_EVENT_MASK_ENTER_WINDOW |
 								   XCB_EVENT_MASK_PROPERTY_CHANGE |
-								   XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY |
+								   XCB_EVENT_MASK_STRUCTURE_NOTIFY |
 								   XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE |
 								   XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
 
