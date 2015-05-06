@@ -17,11 +17,24 @@
 * Copyright 2014-2015 Chris Foster
 */
 
-#include <iostream>
+#include "glass/core/EventQueue.hpp"
+#include "glass/displayserver/X11XCB_DisplayServer.hpp"
+#include "glass/inputlistener/X11XCB_InputListener.hpp"
+#include "glass/windowmanager/Dynamic_WindowManager.hpp"
 
 int main()
 {
-	std::cout << "Hello World!" << std::endl;
+	Glass::EventQueue EventQueue;
+
+	Glass::DisplayServer *DisplayServer = new Glass::X11XCB_DisplayServer(EventQueue);
+	Glass::InputListener *InputListener = new Glass::X11XCB_InputListener(EventQueue);
+	Glass::WindowManager *WindowManager = new Glass::Dynamic_WindowManager(*DisplayServer, EventQueue);
+
+	WindowManager->Run();
+
+	delete WindowManager;
+	delete InputListener;
+	delete DisplayServer;
 
 	return 0;
 }
