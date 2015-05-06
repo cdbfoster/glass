@@ -21,10 +21,7 @@
 #ifndef GLASS_DYNAMIC_WINDOWMANAGER_EVENTHANDLER
 #define GLASS_DYNAMIC_WINDOWMANAGER_EVENTHANDLER
 
-#include <thread>
-
 #include "glass/windowmanager/dynamic_windowmanager/Implementation.hpp"
-#include "util/interruptible.hpp"
 
 namespace Glass
 {
@@ -34,14 +31,13 @@ namespace Glass
 	{
 	public:
 		EventHandler(Dynamic_WindowManager::Implementation &Owner);
-		~EventHandler();
+
+		void Listen();
 
 	private:
-		void Listen();
 		void Handle(Glass::Event const *Event);
 
 		Dynamic_WindowManager::Implementation &Owner;
-		interruptible<std::thread> Worker;
 	};
 }
 
