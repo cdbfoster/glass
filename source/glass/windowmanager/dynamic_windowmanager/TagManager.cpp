@@ -354,8 +354,24 @@ void TagManager::TagContainer::remove(value_type const &val)
 }
 
 
+TagManager::TagContainer::TagMask SanitizeTagMask(std::list<TagManager::TagContainer::Tag *> const &TagList,
+												  TagManager::TagContainer::TagMask TagMask)
+{
+	unsigned int const TagCount = TagList.size();
+
+	if (TagCount > 32)
+		return TagMask;
+
+	TagManager::TagContainer::TagMask const TagCountMask = 0xFFFFFFFF >> (32 - TagCount);
+	return TagMask & TagCountMask;
+}
+
+
 void TagManager::TagContainer::SetActiveTagMask(TagMask ActiveMask)
 {
+	if (!(ActiveMask = SanitizeTagMask(this->Tags, ActiveMask)))
+		return;
+
 	if (this->Tags.empty() || this->ActiveTagMask == ActiveMask)
 		return;
 
@@ -427,6 +443,9 @@ TagManager::TagContainer::Tag *TagManager::TagContainer::GetActiveTag() const
 
 void TagManager::TagContainer::SetClientWindowTagMask(ClientWindow &ClientWindow, TagMask ClientMask)
 {
+	if (!(ClientMask = SanitizeTagMask(this->Tags, ClientMask)))
+		return;
+
 	TagMask &ClientTagMask = this->ClientTagMasks[&ClientWindow];
 
 	bool Exempt = false;
