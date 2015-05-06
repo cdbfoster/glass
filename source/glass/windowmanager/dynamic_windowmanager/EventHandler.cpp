@@ -89,6 +89,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	case Glass::Event::Type::WINDOW_ENTER:
 		LOG_DEBUG_INFO << "Enter Window event!" << std::endl;
 		break;
+	case Glass::Event::Type::WINDOW_CLOSE:
+		LOG_DEBUG_INFO << "Close Window event!" << std::endl;
+		break;
 	case Glass::Event::Type::TAG_DISPLAY:
 		LOG_DEBUG_INFO << "Tag Display event!" << std::endl;
 		break;
@@ -184,8 +187,21 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			}
 			else if (AuxiliaryWindow * const WindowCast = dynamic_cast<AuxiliaryWindow *>(&EventCast->Window))
 			{
+				if (ClientWindow * const PrimaryCast = dynamic_cast<ClientWindow *>(&WindowCast->GetPrimaryWindow()))
+					this->Owner.ActivateClient(*PrimaryCast);
+
 				WindowCast->Focus();
 			}
+		}
+		break;
+
+
+	case Glass::Event::Type::WINDOW_CLOSE:
+		{
+			WindowClose_Event const * const EventCast = static_cast<WindowClose_Event const *>(Event);
+
+			if (this->Owner.ActiveClient != nullptr)
+				this->Owner.ActiveClient->Close();
 		}
 		break;
 
