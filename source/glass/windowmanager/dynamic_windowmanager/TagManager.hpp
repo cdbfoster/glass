@@ -23,6 +23,7 @@
 #include <list>
 #include <map>
 #include <set>
+#include <vector>
 
 #include "glass/core/Window.hpp"
 
