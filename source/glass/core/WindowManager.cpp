@@ -21,8 +21,9 @@
 
 using namespace Glass;
 
-WindowManager::WindowManager(EventQueue &IncomingEventQueue) :
-	IncomingEventQueue(IncomingEventQueue)
+WindowManager::WindowManager(Glass::DisplayServer &DisplayServer, EventQueue &IncomingEventQueue) :
+	IncomingEventQueue(IncomingEventQueue),
+	DisplayServer(DisplayServer)
 {
 
 }

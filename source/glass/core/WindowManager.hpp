@@ -27,19 +27,22 @@
 
 namespace Glass
 {
+	class DisplayServer;
 	class EventQueue;
 	class WindowDecorator;
 
 	class WindowManager
 	{
 	public:
-		WindowManager(EventQueue &IncomingEventQueue);
+		WindowManager(Glass::DisplayServer &DisplayServer, EventQueue &IncomingEventQueue);
 		WindowManager(WindowManager const &Other) = delete;
 
 		virtual ~WindowManager();
 
 		locked_accessor<RootWindowList const>	GetRootWindows() const;
 		locked_accessor<ClientWindowList const>	GetClientWindows() const;
+
+		virtual void Run() = 0;
 
 	protected: // For internal, locked access
 		locked_accessor<RootWindowList>		GetRootWindows();
@@ -50,6 +53,8 @@ namespace Glass
 		EventQueue			   &IncomingEventQueue;
 
 	protected:
+		Glass::DisplayServer   &DisplayServer;
+
 		RootWindowList			RootWindows;
 		ClientWindowList		ClientWindows;
 
