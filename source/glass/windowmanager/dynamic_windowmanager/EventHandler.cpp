@@ -219,6 +219,8 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 						this->Owner.ActiveClient = nullptr;
 					}
 				}
+
+				delete &EventCast->ClientWindow;
 			}
 		}
 		break;
