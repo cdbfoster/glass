@@ -34,7 +34,6 @@
 #include "glass/displayserver/x11xcb_displayserver/EventHandler.hpp"
 #include "glass/displayserver/x11xcb_displayserver/GeometryChange.hpp"
 #include "glass/displayserver/x11xcb_displayserver/Implementation.hpp"
-#include "glass/window/Frame_AuxiliaryWindow.hpp"
 #include "util/scoped_free.hpp"
 
 using namespace Glass;
@@ -307,12 +306,12 @@ void X11XCB_DisplayServer::Sync()
 				if (WindowDataCast->ParentID != XCB_NONE)
 				{
 					// Get the frame
-					Frame_AuxiliaryWindow const *Frame = nullptr;
+					FrameWindow const *Frame = nullptr;
 					auto AuxiliaryWindowsAccessor = WindowCast->GetAuxiliaryWindows();
 
 					for (auto &AuxiliaryWindow : *AuxiliaryWindowsAccessor)
 					{
-						if ((Frame = dynamic_cast<Frame_AuxiliaryWindow *>(AuxiliaryWindow)))
+						if ((Frame = dynamic_cast<FrameWindow *>(AuxiliaryWindow)))
 							break;
 					}
 
@@ -363,7 +362,7 @@ void X11XCB_DisplayServer::SetWindowPosition(Window &Window, Vector const &Posit
 	{
 		this->Data->SetWindowPosition((*WindowData)->ID, Window, Position);
 
-		if (Frame_AuxiliaryWindow const * const WindowCast = dynamic_cast<Frame_AuxiliaryWindow const *>(&Window))
+		if (FrameWindow const * const WindowCast = dynamic_cast<FrameWindow const *>(&Window))
 		{
 			Glass::PrimaryWindow * const PrimaryWindow = &WindowCast->GetPrimaryWindow();
 
@@ -396,7 +395,7 @@ void X11XCB_DisplayServer::SetWindowSize(Window &Window, Vector const &Size)
 	{
 		this->Data->SetWindowSize((*WindowData)->ID, Window, Size);
 
-		if (Frame_AuxiliaryWindow const * const WindowCast = dynamic_cast<Frame_AuxiliaryWindow const *>(&Window))
+		if (FrameWindow const * const WindowCast = dynamic_cast<FrameWindow const *>(&Window))
 		{
 			Glass::PrimaryWindow * const PrimaryWindow = &WindowCast->GetPrimaryWindow();
 
@@ -606,12 +605,14 @@ void X11XCB_DisplayServer::DeleteWindow(Window &Window)
 		if (dynamic_cast<ClientWindow *>(&Window))
 		{
 			// XXX Remove from EWMH client list
-			xcb_change_save_set(this->Data->XConnection, XCB_SET_MODE_DELETE, (*WindowData)->ID);
+
+			// Don't generate an error if the window is already gone
+			xcb_change_save_set_checked(this->Data->XConnection, XCB_SET_MODE_DELETE, (*WindowData)->ID);
 		}
 	}
 
-	if (!dynamic_cast<AuxiliaryWindow *>(&Window)) // Auxiliary window data gets erased by DeactivateAuxiliaryWindow()
-		WindowDataAccessor->erase(&Window);
+	//if (!dynamic_cast<AuxiliaryWindow *>(&Window)) // Auxiliary window data gets erased by DeactivateAuxiliaryWindow()
+	WindowDataAccessor->erase(&Window);
 }
 
 
@@ -802,9 +803,9 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 	if (WindowData == WindowDataAccessor->end())
 	{
 		// Get the primary window data
-		xcb_window_t			PrimaryWindowID =	XCB_NONE;
+		xcb_window_t			PrimaryWindowID = XCB_NONE;
 		Glass::WindowData	   *PrimaryWindowData =	nullptr;
-		Glass::PrimaryWindow   &PrimaryWindow =		AuxiliaryWindow.GetPrimaryWindow();
+		Glass::PrimaryWindow   &PrimaryWindow = AuxiliaryWindow.GetPrimaryWindow();
 		{
 			auto WindowData = WindowDataAccessor->find(&PrimaryWindow);
 			if (WindowData != WindowDataAccessor->end())
@@ -822,7 +823,6 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 
 		// Get the root window data
 		xcb_window_t	RootWindowID =		XCB_NONE;
-		RootWindowData *RootWindowData =	nullptr;
 		{
 			Window *RootWindow = nullptr;
 
@@ -837,7 +837,6 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 				if (WindowData != WindowDataAccessor->end())
 				{
 					RootWindowID = (*WindowData)->ID;
-					RootWindowData = static_cast<Glass::RootWindowData *>(*WindowData);
 				}
 				else
 				{
@@ -854,7 +853,7 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 
 
 		// Sanity check
-		if (dynamic_cast<Frame_AuxiliaryWindow const *>(&AuxiliaryWindow) && !dynamic_cast<Glass::ClientWindow *>(&PrimaryWindow))
+		if (dynamic_cast<FrameWindow const *>(&AuxiliaryWindow) && !dynamic_cast<Glass::ClientWindow *>(&PrimaryWindow))
 		{
 			LOG_DEBUG_ERROR << "A frame can only be added to a client window!  Cannot activate auxiliary window." << std::endl;
 			return;
@@ -888,12 +887,12 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 		xcb_grab_server(this->Data->XConnection);
 
 		uint32_t const NoEvent = 0;
-		xcb_change_window_attributes(this->Data->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &NoEvent);
+		xcb_change_window_attributes(this->Data->XConnection, PrimaryWindowID, XCB_CW_EVENT_MASK, &NoEvent);
 		xcb_change_window_attributes(this->Data->XConnection, AuxiliaryWindowID, XCB_CW_EVENT_MASK, &NoEvent);
 
 
 		// Apply the auxiliary window
-		if (Frame_AuxiliaryWindow const * const WindowCast = dynamic_cast<Frame_AuxiliaryWindow const *>(&AuxiliaryWindow))
+		if (FrameWindow const * const WindowCast = dynamic_cast<FrameWindow const *>(&AuxiliaryWindow))
 		{
 			Vector const Position = WindowCast->GetULOffset() * -1;
 			xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, AuxiliaryWindowID, Position.x, Position.y);
@@ -907,13 +906,13 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 
 		// Enable events
 		xcb_change_window_attributes(this->Data->XConnection, AuxiliaryWindowID, XCB_CW_EVENT_MASK, &EventMask);
-		xcb_change_window_attributes(this->Data->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &RootWindowData->EventMask);
+		xcb_change_window_attributes(this->Data->XConnection, PrimaryWindowID, XCB_CW_EVENT_MASK, &PrimaryWindowData->EventMask);
 
 		xcb_ungrab_server(this->Data->XConnection);
 
 
 		// Store window data
-		WindowDataAccessor->push_back(new AuxiliaryWindowData(AuxiliaryWindow, AuxiliaryWindowID, EventMask, PrimaryWindowID, RootWindowID));
+		WindowDataAccessor->push_back(new AuxiliaryWindowData(AuxiliaryWindow, AuxiliaryWindowID, EventMask, PrimaryWindowData, RootWindowID));
 	}
 	else
 	{
@@ -932,84 +931,54 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 		Glass::AuxiliaryWindowData * const AuxiliaryWindowData = static_cast<Glass::AuxiliaryWindowData *>(*WindowData);
 
 		// Get the primary window data
-		xcb_window_t const		PrimaryWindowID = AuxiliaryWindowData->PrimaryID;
-		Glass::WindowData	   *PrimaryWindowData = nullptr;
-		Glass::PrimaryWindow   &PrimaryWindow =	AuxiliaryWindow.GetPrimaryWindow();
-		{
-			auto WindowData = WindowDataAccessor->find(PrimaryWindowID);
-			if (WindowData != WindowDataAccessor->end())
-			{
-				PrimaryWindowData = *WindowData;
-			}
-			else
-			{
-				LOG_DEBUG_ERROR << "Could not find primary window data.  Cannot deactivate auxiliary window." << std::endl;
-				return;
-			}
-		}
+		Glass::WindowData * const PrimaryWindowData = AuxiliaryWindowData->PrimaryWindowData;
+		xcb_window_t const		  PrimaryWindowID = PrimaryWindowData->ID;
+		Glass::PrimaryWindow	 &PrimaryWindow = AuxiliaryWindow.GetPrimaryWindow();
 
 
 		// Get the root window data
-		xcb_window_t	RootWindowID =		XCB_NONE;
-		RootWindowData *RootWindowData =	nullptr;
-		{
-			Window *RootWindow = nullptr;
-
-			if (ClientWindow const * const WindowCast = dynamic_cast<ClientWindow const *>(&PrimaryWindow))
-				RootWindow = WindowCast->GetRootWindow();
-			else
-				RootWindow = &PrimaryWindow;
-
-			if (RootWindow != nullptr)
-			{
-				auto WindowData = WindowDataAccessor->find(RootWindow);
-				if (WindowData != WindowDataAccessor->end())
-				{
-					RootWindowID = (*WindowData)->ID;
-					RootWindowData = static_cast<Glass::RootWindowData *>(*WindowData);
-				}
-				else
-				{
-					LOG_DEBUG_ERROR << "Could not find root window data!  Cannot deactivate auxiliary window." << std::endl;
-					return;
-				}
-			}
-			else
-			{
-				LOG_DEBUG_ERROR << "Could not find the root window!  Cannot deactivate auxiliary window." << std::endl;
-				return;
-			}
-		}
+		xcb_window_t const RootWindowID = AuxiliaryWindowData->RootID;
 
 
 		// Disable events
 		xcb_grab_server(this->Data->XConnection);
 
 		uint32_t const NoEvent = 0;
-		xcb_change_window_attributes(this->Data->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &NoEvent);
+
+		if (ClientWindowData * const PrimaryWindowDataCast = dynamic_cast<ClientWindowData *>(PrimaryWindowData))
+		{
+			if (!PrimaryWindowDataCast->Destroyed)
+				xcb_change_window_attributes(this->Data->XConnection, PrimaryWindowID, XCB_CW_EVENT_MASK, &NoEvent);
+		}
+
 		xcb_change_window_attributes(this->Data->XConnection, AuxiliaryWindowData->ID, XCB_CW_EVENT_MASK, &NoEvent);
 
 
 		// Destroy the auxiliary window
-		if (dynamic_cast<Frame_AuxiliaryWindow *>(&AuxiliaryWindow))
+		if (dynamic_cast<FrameWindow *>(&AuxiliaryWindow))
 		{
-			Vector const Position = PrimaryWindow.GetPosition();
-			xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, RootWindowID, Position.x, Position.y);
+			ClientWindowData * const PrimaryWindowDataCast = static_cast<ClientWindowData *>(PrimaryWindowData); // Only client windows have frames
 
-			static_cast<ClientWindowData *>(PrimaryWindowData)->ParentID = XCB_NONE; // Only client windows have frames
+			if (!PrimaryWindowDataCast->Destroyed)
+			{
+				Vector const Position = PrimaryWindow.GetPosition();
+				xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, RootWindowID, Position.x, Position.y);
+			}
+
+			PrimaryWindowDataCast->ParentID = XCB_NONE;
 		}
 
 		xcb_destroy_window(this->Data->XConnection, AuxiliaryWindowData->ID);
 
 
-		// Enable root events
-		xcb_change_window_attributes(this->Data->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &RootWindowData->EventMask);
+		// Enable events
+		if (ClientWindowData * const PrimaryWindowDataCast = dynamic_cast<ClientWindowData *>(PrimaryWindowData))
+		{
+			if (!PrimaryWindowDataCast->Destroyed)
+				xcb_change_window_attributes(this->Data->XConnection, PrimaryWindowID, XCB_CW_EVENT_MASK, &PrimaryWindowData->EventMask);
+		}
 
 		xcb_ungrab_server(this->Data->XConnection);
-
-
-		// Erase window data
-		WindowDataAccessor->erase(&AuxiliaryWindow);
 	}
 	else
 	{

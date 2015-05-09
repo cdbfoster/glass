@@ -57,14 +57,15 @@ namespace Glass
 
 		xcb_window_t ParentID;
 		xcb_window_t RootID;
+		bool Destroyed;
 	};
 
 
 	struct AuxiliaryWindowData : public WindowData
 	{
-		AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, uint32_t EventMask, xcb_window_t PrimaryID, xcb_window_t RootID);
+		AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, uint32_t EventMask, WindowData *PrimaryWindowData, xcb_window_t RootID);
 
-		xcb_window_t const PrimaryID;
+		WindowData * const PrimaryWindowData;
 		xcb_window_t RootID;
 	};
 

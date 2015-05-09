@@ -268,9 +268,17 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 			auto WindowDataAccessor = this->Owner.GetWindowData();
 
 			auto WindowData = WindowDataAccessor->find(DestroyNotify->window);
-			if (WindowData != WindowDataAccessor->end() && dynamic_cast<ClientWindowData const *>(*WindowData))
+			if (WindowData != WindowDataAccessor->end())
 			{
-				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientDestroy_Event(static_cast<ClientWindow &>((*WindowData)->Window))));
+				if (ClientWindowData * const WindowDataCast = dynamic_cast<ClientWindowData *>(*WindowData))
+				{
+					if (!WindowDataCast->Destroyed)
+					{
+						this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientDestroy_Event(static_cast<ClientWindow &>(WindowDataCast->Window))));
+
+						WindowDataCast->Destroyed = true;
+					}
+				}
 			}
 		}
 		break;
@@ -287,6 +295,15 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 			auto WindowData = WindowDataAccessor->find(EnterNotify->event);
 			if (WindowData != WindowDataAccessor->end())
 			{
+				if (AuxiliaryWindowData * const WindowDataCast = dynamic_cast<AuxiliaryWindowData *>(*WindowData))
+				{
+					if (ClientWindowData * const PrimaryWindowDataCast = dynamic_cast<ClientWindowData *>(WindowDataCast->PrimaryWindowData))
+					{
+						if (PrimaryWindowDataCast->Destroyed)
+							break;
+					}
+				}
+
 				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new WindowEnter_Event((*WindowData)->Window,
 																							  Vector(EnterNotify->root_x,
 																									 EnterNotify->root_y))));

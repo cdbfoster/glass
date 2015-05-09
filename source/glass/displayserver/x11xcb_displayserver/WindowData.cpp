@@ -55,9 +55,9 @@ ClientWindowData::ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID,
 }
 
 
-AuxiliaryWindowData::AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, uint32_t EventMask, xcb_window_t PrimaryID, xcb_window_t RootID) :
+AuxiliaryWindowData::AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, uint32_t EventMask, WindowData *PrimaryWindowData, xcb_window_t RootID) :
 	WindowData(Window, ID, EventMask),
-	PrimaryID(PrimaryID),
+	PrimaryWindowData(PrimaryWindowData),
 	RootID(RootID)
 {
 
