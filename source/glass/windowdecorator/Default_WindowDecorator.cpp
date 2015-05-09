@@ -18,7 +18,6 @@
 */
 
 #include "glass/core/DisplayServer.hpp"
-#include "glass/window/Frame_AuxiliaryWindow.hpp"
 #include "glass/windowdecorator/Default_WindowDecorator.hpp"
 
 using namespace Glass;
@@ -44,35 +43,35 @@ Default_WindowDecorator::~Default_WindowDecorator()
 
 void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, Hint HintMask)
 {
-	Frame_AuxiliaryWindow  *FrameWindow = nullptr;
-	Vector const			FrameThickness = (HintMask & Hint::MINIMAL ? Vector(3, 3) : Vector(4, 4));
+	FrameWindow *Frame = nullptr;
+	Vector const FrameThickness = (HintMask & Hint::MINIMAL ? Vector(3, 3) : Vector(4, 4));
 
 	// Find the frame if it already exists
 	auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows(ClientWindow);
 
 	for (auto AuxiliaryWindow : *AuxiliaryWindowsAccessor)
 	{
-		if ((FrameWindow = dynamic_cast<Frame_AuxiliaryWindow *>(AuxiliaryWindow)))
+		if ((Frame = dynamic_cast<FrameWindow *>(AuxiliaryWindow)))
 			break;
 	}
 
 
-	if (FrameWindow == nullptr)
+	if (Frame == nullptr)
 	{
-		FrameWindow = new Frame_AuxiliaryWindow(ClientWindow, "Frame", this->DisplayServer, FrameThickness * -1, FrameThickness, true);
+		Frame = new FrameWindow(ClientWindow, "Frame", this->DisplayServer, FrameThickness * -1, FrameThickness, true);
 
-		AuxiliaryWindowsAccessor->push_back(FrameWindow);
+		AuxiliaryWindowsAccessor->push_back(Frame);
 
 		{
 			auto AuxiliaryWindowsAccessor = this->DisplayServer.GetAuxiliaryWindows();
 
-			AuxiliaryWindowsAccessor->push_back(FrameWindow);
+			AuxiliaryWindowsAccessor->push_back(Frame);
 		}
 	}
 	else
 	{
-		FrameWindow->SetULOffset(FrameThickness * -1);
-		FrameWindow->SetLROffset(FrameThickness);
+		Frame->SetULOffset(FrameThickness * -1);
+		Frame->SetLROffset(FrameThickness);
 	}
 }
 
@@ -93,7 +92,7 @@ void Default_WindowDecorator::StripWindow(PrimaryWindow &PrimaryWindow)
 				  AuxiliaryWindow != AuxiliaryWindowsAccessor->end();
 				  ++AuxiliaryWindow)
 		{
-			if (dynamic_cast<Frame_AuxiliaryWindow *>(*AuxiliaryWindow))
+			if (dynamic_cast<FrameWindow *>(*AuxiliaryWindow))
 			{
 				{
 					auto AuxiliaryWindowsAccessor = this->DisplayServer.GetAuxiliaryWindows();
