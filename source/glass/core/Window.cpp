@@ -99,32 +99,6 @@ bool Window::ContainsPoint(Vector const &Point) const
 }
 
 
-AuxiliaryWindow::AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
-								 Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible) :
-	Window(DisplayServer, Position, Size, Visible),
-	PrimaryWindow(PrimaryWindow),
-	Name(Name)
-{
-
-}
-
-
-AuxiliaryWindow::~AuxiliaryWindow()
-{
-	this->DisplayServer.DeleteWindow(*this);
-}
-
-
-PrimaryWindow		   &AuxiliaryWindow::GetPrimaryWindow() const	{ return this->PrimaryWindow; }
-std::string				AuxiliaryWindow::GetName() const			{ return this->Name; }
-
-
-void AuxiliaryWindow::SetName(std::string const &Name)
-{
-	this->Name = Name;
-}
-
-
 PrimaryWindow::PrimaryWindow(Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible) :
 	Window(DisplayServer, Position, Size, Visible)
 {
@@ -501,4 +475,105 @@ void RootWindow::ClientWindowList::remove(value_type const &val)
 	this->Owner.RemoveClientWindow(*val);
 
 	this->ClientWindows.remove(val);
+}
+
+
+AuxiliaryWindow::AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
+								 Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible) :
+	Window(DisplayServer, Position, Size, Visible),
+	PrimaryWindow(PrimaryWindow),
+	Name(Name)
+{
+
+}
+
+
+AuxiliaryWindow::~AuxiliaryWindow()
+{
+
+}
+
+
+PrimaryWindow		   &AuxiliaryWindow::GetPrimaryWindow() const	{ return this->PrimaryWindow; }
+std::string				AuxiliaryWindow::GetName() const			{ return this->Name; }
+
+
+void AuxiliaryWindow::SetName(std::string const &Name)
+{
+	this->Name = Name;
+}
+
+
+FrameWindow::FrameWindow(Glass::ClientWindow &ClientWindow, std::string const &Name,
+						 Glass::DisplayServer &DisplayServer, Vector const &ULOffset, Vector const &LROffset, bool Visible) :
+	AuxiliaryWindow(ClientWindow, Name, DisplayServer,
+					ClientWindow.GetPosition() + ULOffset, ClientWindow.GetSize() - ULOffset + LROffset,
+					Visible),
+	ULOffset(ULOffset),
+	LROffset(LROffset),
+	CurrentULOffset(ULOffset),
+	CurrentLROffset(LROffset)
+{
+
+}
+
+
+FrameWindow::~FrameWindow()
+{
+	this->DisplayServer.DeleteWindow(*this);
+}
+
+
+Vector FrameWindow::GetULOffset() const { return this->CurrentULOffset; }
+Vector FrameWindow::GetLROffset() const { return this->CurrentLROffset; }
+
+
+void FrameWindow::SetULOffset(Vector const &ULOffset)
+{
+	this->ULOffset = ULOffset;
+
+	this->Update();
+}
+
+
+void FrameWindow::SetLROffset(Vector const &LROffset)
+{
+	this->LROffset = LROffset;
+
+	this->Update();
+}
+
+
+void FrameWindow::HandleEvent(Event const &Event)
+{
+
+}
+
+
+void FrameWindow::Update()
+{
+	// Must be a client window
+	Glass::ClientWindow &ClientWindow = static_cast<Glass::ClientWindow &>(this->GetPrimaryWindow());
+
+	if (ClientWindow.GetFullscreen() == true)
+	{
+		this->CurrentULOffset = Vector(0, 0);
+		this->CurrentLROffset = Vector(0, 0);
+
+		if (Glass::RootWindow const * const ClientRoot = ClientWindow.GetRootWindow())
+		{
+			AuxiliaryWindow::SetPosition(ClientRoot->GetPosition());
+			AuxiliaryWindow::SetSize(ClientRoot->GetSize());
+		}
+		else
+			LOG_DEBUG_ERROR << "Client doesn't have a root!  Cannot update frame." << std::endl;
+	}
+	else
+	{
+		this->CurrentULOffset = this->ULOffset;
+		this->CurrentLROffset = this->LROffset;
+
+		AuxiliaryWindow::SetPosition(ClientWindow.GetPosition() + this->CurrentULOffset);
+		AuxiliaryWindow::SetSize(ClientWindow.GetSize() - this->CurrentULOffset + this->CurrentLROffset);
+	}
 }

@@ -68,32 +68,8 @@ namespace Glass
 	typedef std::list<Window *> WindowList;
 
 
-	class PrimaryWindow;
-
-	class AuxiliaryWindow : public Window
-	{
-	public:
-		AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
-						Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible);
-		AuxiliaryWindow(AuxiliaryWindow const &Other) = delete;
-
-		~AuxiliaryWindow();
-
-		Glass::PrimaryWindow   &GetPrimaryWindow() const;
-		std::string				GetName() const;
-
-		void SetName(std::string const &Name);
-
-		virtual void HandleEvent(Event const &Event) = 0;
-		virtual void Update() = 0;
-
-	protected:
-		Glass::PrimaryWindow   &PrimaryWindow;
-		std::string				Name;
-	};
-
+	class AuxiliaryWindow;
 	typedef std::list<AuxiliaryWindow *> AuxiliaryWindowList;
-
 
 	class PrimaryWindow : public Window
 	{
@@ -268,6 +244,55 @@ namespace Glass
 	};
 
 	typedef std::list<RootWindow *> RootWindowList;
+
+
+	class AuxiliaryWindow : public Window
+	{
+	public:
+		AuxiliaryWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
+						Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible);
+		AuxiliaryWindow(AuxiliaryWindow const &Other) = delete;
+
+		~AuxiliaryWindow();
+
+		Glass::PrimaryWindow   &GetPrimaryWindow() const;
+		std::string				GetName() const;
+
+		void SetName(std::string const &Name);
+
+		virtual void HandleEvent(Event const &Event) = 0;
+		virtual void Update() = 0;
+
+	protected:
+		Glass::PrimaryWindow   &PrimaryWindow;
+		std::string				Name;
+	};
+
+
+	class FrameWindow : public AuxiliaryWindow
+	{
+	public:
+		FrameWindow(Glass::ClientWindow &ClientWindow, std::string const &Name,
+					Glass::DisplayServer &DisplayServer, Vector const &ULOffset, Vector const &LROffset, bool Visible);
+
+		~FrameWindow();
+
+		Vector GetULOffset() const;
+		Vector GetLROffset() const;
+
+		void SetULOffset(Vector const &ULOffset);
+		void SetLROffset(Vector const &LROffset);
+
+		void HandleEvent(Event const &Event);
+		void Update();
+
+	private:
+		Vector ULOffset;
+		Vector LROffset;
+
+		Vector CurrentULOffset;
+		Vector CurrentLROffset;
+	};
 }
 
 #endif

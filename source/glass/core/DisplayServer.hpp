@@ -62,6 +62,7 @@ namespace Glass
 	protected: // Window manipulation interface -- not to be used directly, use the Window interfaces
 		friend class AuxiliaryWindow;
 		friend class ClientWindow;
+		friend class FrameWindow;
 		friend class PrimaryWindow;
 		friend class RootWindow;
 		friend class Window;
