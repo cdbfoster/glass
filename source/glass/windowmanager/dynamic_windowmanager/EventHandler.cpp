@@ -112,6 +112,7 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	static ClientWindow *ModalResize = nullptr;
 	static Vector ModalStartPosition;
 	static Vector ModalOldPosition;
+	static Vector ModalResizeMask;
 
 	switch (Event->GetType())
 	{
@@ -301,6 +302,61 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 		break;
 
 
+	case Glass::Event::Type::WINDOW_RESIZE_MODAL:
+		{
+			if (ModalMove)
+				break;
+
+			WindowResizeModal_Event const * const EventCast = static_cast<WindowResizeModal_Event const *>(Event);
+
+			if (EventCast->EventMode == WindowModal_Event::Mode::BEGIN && !ModalResize)
+			{
+				ModalResize = this->Owner.ActiveClient;
+				ModalOldPosition = ModalStartPosition;
+
+				if (!this->Owner.ClientData[*ModalResize]->Floating)
+				{
+					ModalResize->Raise();
+					this->Owner.RefreshStackingOrder();
+				}
+
+				Vector const WindowStartPosition = ModalResize->GetPosition();
+				Vector const WindowStartSize = ModalResize->GetSize();
+
+				// The active border width is 30% of the smallest window dimension or 150 pixels; whichever is smaller.
+				short ActiveBorderWidth = (WindowStartSize.x < WindowStartSize.y ? WindowStartSize.x : WindowStartSize.y) * 0.3f;
+
+				if (ActiveBorderWidth > 150)
+					ActiveBorderWidth = 150;
+
+				Vector const ActiveBorder(ActiveBorderWidth, ActiveBorderWidth);
+
+				Vector const InnerAreaULCorner = WindowStartPosition + ActiveBorder;
+				Vector const InnerAreaLRCorner = WindowStartPosition + WindowStartSize - ActiveBorder;
+
+				/*
+				  Based on where in the window the user clicked to start the resize, ResizeMask will be the following:
+					  -1, -1 | 0, -1 | 1, -1
+					  ----------------------
+					  -1, 0  | 0, 0  | 1, 0
+					  ----------------------
+					  -1, 1  | 0, 1  | 1, 1
+				*/
+
+				ModalResizeMask = Vector((ModalStartPosition.x < InnerAreaULCorner.x || ModalStartPosition.x > InnerAreaLRCorner.x) ?
+										 (ModalStartPosition.x < InnerAreaULCorner.x ? -1 : 1) : 0,
+										 (ModalStartPosition.y < InnerAreaULCorner.y || ModalStartPosition.y > InnerAreaLRCorner.y) ?
+										 (ModalStartPosition.y < InnerAreaULCorner.y ? -1 : 1) : 0);
+
+				if (ModalResizeMask.IsZero())
+					ModalResize = nullptr;
+			}
+			else if (EventCast->EventMode == WindowModal_Event::Mode::END && ModalResize)
+				ModalResize = nullptr;
+		}
+		break;
+
+
 	case Glass::Event::Type::POINTER_MOVE:
 		{
 			PointerMove_Event const * const EventCast = static_cast<PointerMove_Event const *>(Event);
@@ -321,6 +377,26 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 						this->Owner.RootTags[*ModalMove->GetRootWindow()]->GetWindowLayout().MoveClientWindow(*ModalMove, ModalOldPosition, PositionOffset);
 
 					ModalMove->SetPosition(OldPosition + PositionOffset);
+
+					ModalOldPosition = EventCast->Position;
+				}
+			}
+			else if (ModalResize)
+			{
+				Vector const Offset = (EventCast->Position - ModalOldPosition) * ModalResizeMask;
+
+				if (!Offset.IsZero())
+				{
+					if (!this->Owner.ClientData[*ModalResize]->Floating)
+						this->Owner.RootTags[*ModalResize->GetRootWindow()]->GetWindowLayout().ResizeClientWindow(*ModalResize, ModalResizeMask, Offset);
+					else
+					{
+						Vector const PositionOffset(ModalResizeMask.x < 0 ? -Offset.x : 0,
+													ModalResizeMask.y < 0 ? -Offset.y : 0);
+
+						ModalResize->SetPosition(ModalResize->GetPosition() + PositionOffset);
+						ModalResize->SetSize(ModalResize->GetSize() + Offset);
+					}
 
 					ModalOldPosition = EventCast->Position;
 				}
