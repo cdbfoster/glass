@@ -505,7 +505,7 @@ void X11XCB_DisplayServer::FocusWindow(Window const &Window)
 		{
 			if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
 			{
-				if (!WindowDataCast->NeverFocus)
+				if (WindowDataCast->NeverFocus)
 					WindowID = WindowDataCast->RootID;
 
 				if (WindowSupportsProtocol(this->Data->XConnection, WindowDataCast->ID, Atoms::WM_TAKE_FOCUS))
@@ -525,7 +525,7 @@ void X11XCB_DisplayServer::FocusWindow(Window const &Window)
 				}
 			}
 
-			xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_PARENT, WindowID, XCB_CURRENT_TIME);
+			xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_POINTER_ROOT, WindowID, XCB_CURRENT_TIME);
 
 			// XXX Set EWMH active window and add to the EWMH focus stack
 		}
