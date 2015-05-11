@@ -92,15 +92,26 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	case Glass::Event::Type::WINDOW_CLOSE:
 		LOG_DEBUG_INFO << "Close Window event!" << std::endl;
 		break;
+	case Glass::Event::Type::WINDOW_MOVE_MODAL:
+		LOG_DEBUG_INFO << "Modal Window Move event!" << std::endl;
+		break;
+	case Glass::Event::Type::WINDOW_RESIZE_MODAL:
+		LOG_DEBUG_INFO << "Modal Window Resize event!" << std::endl;
+		break;
 	case Glass::Event::Type::TAG_DISPLAY:
 		LOG_DEBUG_INFO << "Tag Display event!" << std::endl;
 		break;
 	case Glass::Event::Type::POINTER_MOVE:
+		//LOG_DEBUG_INFO << "Pointer move event!" << std::endl;
 		break;
 	default:
 		LOG_DEBUG_INFO << "Some other type of event received!" << std::endl;
 	}
 
+	static ClientWindow *ModalMove = nullptr;
+	static ClientWindow *ModalResize = nullptr;
+	static Vector ModalStartPosition;
+	static Vector ModalOldPosition;
 
 	switch (Event->GetType())
 	{
@@ -220,6 +231,12 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 					}
 				}
 
+				if (ModalMove == &EventCast->ClientWindow)
+					ModalMove = nullptr;
+
+				if (ModalResize == &EventCast->ClientWindow)
+					ModalResize = nullptr;
+
 				delete &EventCast->ClientWindow;
 			}
 		}
@@ -251,6 +268,63 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 			if (this->Owner.ActiveClient != nullptr)
 				this->Owner.ActiveClient->Close();
+		}
+		break;
+
+
+	case Glass::Event::Type::WINDOW_MOVE_MODAL:
+		{
+			if (ModalResize)
+				break;
+
+			WindowMoveModal_Event const * const EventCast = static_cast<WindowMoveModal_Event const *>(Event);
+
+			if (EventCast->EventMode == WindowModal_Event::Mode::BEGIN && !ModalMove)
+			{
+				ModalMove = this->Owner.ActiveClient;
+				ModalOldPosition = ModalStartPosition;
+
+				if (!this->Owner.ClientData[*ModalMove]->Floating)
+				{
+					ModalMove->Raise();
+					this->Owner.RefreshStackingOrder();
+				}
+			}
+			else if (EventCast->EventMode == WindowModal_Event::Mode::END && ModalMove)
+			{
+				if (!this->Owner.ClientData[*ModalMove]->Floating)
+					this->Owner.RootTags[*ModalMove->GetRootWindow()]->GetWindowLayout().Refresh();
+
+				ModalMove = nullptr;
+			}
+		}
+		break;
+
+
+	case Glass::Event::Type::POINTER_MOVE:
+		{
+			PointerMove_Event const * const EventCast = static_cast<PointerMove_Event const *>(Event);
+
+			if (!ModalMove && !ModalResize)
+			{
+				ModalStartPosition = EventCast->Position;
+			}
+			else if (ModalMove)
+			{
+				Vector const PositionOffset = EventCast->Position - ModalOldPosition;
+
+				if (!PositionOffset.IsZero())
+				{
+					Vector const OldPosition = ModalMove->GetPosition();
+
+					if (!this->Owner.ClientData[*ModalMove]->Floating)
+						this->Owner.RootTags[*ModalMove->GetRootWindow()]->GetWindowLayout().MoveClientWindow(*ModalMove, ModalOldPosition, PositionOffset);
+
+					ModalMove->SetPosition(OldPosition + PositionOffset);
+
+					ModalOldPosition = EventCast->Position;
+				}
+			}
 		}
 		break;
 
