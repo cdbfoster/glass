@@ -79,6 +79,7 @@ namespace Glass
 						   KEY_TAB,
 						   KEY_CAPSLOCK,
 						   KEY_RETURN,
+						   KEY_NUMLOCK,
 						   KEY_LEFT,
 						   KEY_RIGHT,
 						   KEY_UP,
