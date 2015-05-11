@@ -93,6 +93,7 @@ void InputTranslator::Initialize(xcb_connection_t *XConnection)
 			{ Input::Value::KEY_TAB,		"Tab" },
 			{ Input::Value::KEY_CAPSLOCK,	"Caps_Lock" },
 			{ Input::Value::KEY_RETURN,		"Return" },
+			{ Input::Value::KEY_NUMLOCK,	"Num_Lock" },
 			{ Input::Value::KEY_LEFT,		"Left" },
 			{ Input::Value::KEY_RIGHT,		"Right" },
 			{ Input::Value::KEY_UP,			"Up" },
@@ -126,11 +127,12 @@ Input InputTranslator::ToGlass(xcb_generic_event_t const *InputEvent)
 {
 	unsigned char const ResponseType = XCB_EVENT_RESPONSE_TYPE(InputEvent);
 
-	Input::Type const	InputType = (ResponseType == XCB_KEY_PRESS ? Input::Type::KEYBOARD : Input::Type::MOUSE);
+	Input::Type const	InputType = ((ResponseType == XCB_KEY_PRESS ||
+									  ResponseType == XCB_KEY_RELEASE) ? Input::Type::KEYBOARD : Input::Type::MOUSE);
 	Input::Value		InputValue;
 	unsigned char		InputModifierMask;
-	Input::State const	InputState = (ResponseType == XCB_KEY_PRESS ||
-									  ResponseType == XCB_BUTTON_PRESS ? Input::State::PRESSED : Input::State::RELEASED);
+	Input::State const	InputState = ((ResponseType == XCB_KEY_PRESS ||
+									   ResponseType == XCB_BUTTON_PRESS) ? Input::State::PRESSED : Input::State::RELEASED);
 
 	// Get InputValue
 	switch (ResponseType)
