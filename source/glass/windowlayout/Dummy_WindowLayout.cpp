@@ -50,6 +50,10 @@ void Dummy_WindowLayout::MoveClientWindow(ClientWindow &ClientWindow, Vector con
 
 void Dummy_WindowLayout::ResizeClientWindow(ClientWindow &ClientWindow, Vector const &ResizeMask, Vector const &SizeOffset)
 {
+	Vector const PositionOffset(ResizeMask.x < 0 ? -SizeOffset.x : 0,
+								ResizeMask.y < 0 ? -SizeOffset.y : 0);
+
+	ClientWindow.SetPosition(ClientWindow.GetPosition() + PositionOffset);
 	ClientWindow.SetSize(ClientWindow.GetSize() + SizeOffset);
 }
 
