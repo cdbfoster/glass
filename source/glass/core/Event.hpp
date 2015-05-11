@@ -225,23 +225,37 @@ namespace Glass
 	};
 
 
-	struct WindowMoveModal_Event : public UserCommand_Event
+	struct WindowModal_Event : public UserCommand_Event
 	{
-		WindowMoveModal_Event() :
-			UserCommand_Event(Event::Type::WINDOW_MOVE_MODAL)
+		enum class Mode { BEGIN,
+						  END };
+
+		WindowModal_Event(Event::Type Type, Mode EventMode) :
+			UserCommand_Event(Type),
+			EventMode(EventMode)
 		{ }
 
-		Event *Copy() const { return new WindowMoveModal_Event; }
+		Mode const EventMode;
 	};
 
 
-	struct WindowResizeModal_Event : public UserCommand_Event
+	struct WindowMoveModal_Event : public WindowModal_Event
 	{
-		WindowResizeModal_Event() :
-			UserCommand_Event(Event::Type::WINDOW_RESIZE_MODAL)
+		WindowMoveModal_Event(WindowModal_Event::Mode Mode) :
+			WindowModal_Event(Event::Type::WINDOW_MOVE_MODAL, Mode)
 		{ }
 
-		Event *Copy() const { return new WindowResizeModal_Event; }
+		Event *Copy() const { return new WindowMoveModal_Event(this->EventMode); }
+	};
+
+
+	struct WindowResizeModal_Event : public WindowModal_Event
+	{
+		WindowResizeModal_Event(WindowModal_Event::Mode Mode) :
+			WindowModal_Event(Event::Type::WINDOW_RESIZE_MODAL, Mode)
+		{ }
+
+		Event *Copy() const { return new WindowResizeModal_Event(this->EventMode); }
 	};
 
 
@@ -335,9 +349,9 @@ namespace Glass
 
 		Event *Copy() const { return new TagDisplay_Event(this->EventTarget, this->EventMode, this->EventTagMask); }
 
-		Target	EventTarget;
-		Mode	EventMode;
-		TagMask	EventTagMask;
+		Target const  EventTarget;
+		Mode const	  EventMode;
+		TagMask const EventTagMask;
 	};
 }
 

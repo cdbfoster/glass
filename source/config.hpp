@@ -48,8 +48,17 @@ namespace Config
 	}
 
 	std::vector<std::pair<Event const *, Input>> const InputBindings = {
-		{ new WindowMoveModal_Event,	Input(Input::Type::MOUSE,		Input::Value::BUTTON_1,	Keys::CommandModifier) },
-		{ new WindowResizeModal_Event,	Input(Input::Type::MOUSE,		Input::Value::BUTTON_3,	Keys::CommandModifier) },
+
+		#define MODAL_KEY(EventType, InputType, InputValue, InputModifier) \
+		{ new EventType(WindowModal_Event::Mode::BEGIN), Input(InputType, InputValue, InputModifier, Input::State::PRESSED) },\
+		{ new EventType(WindowModal_Event::Mode::END),	 Input(InputType, InputValue, InputModifier, Input::State::RELEASED) }
+
+		MODAL_KEY(WindowMoveModal_Event, Input::Type::MOUSE, Input::Value::BUTTON_1, Keys::CommandModifier),
+		MODAL_KEY(WindowResizeModal_Event, Input::Type::MOUSE, Input::Value::BUTTON_3, Keys::CommandModifier),
+
+		#undef MODAL_KEY
+
+
 		{ new WindowClose_Event,		Input(Input::Type::KEYBOARD,	Input::Value::KEY_Q,	Keys::CommandModifier) },
 
 
@@ -71,21 +80,21 @@ namespace Config
 		#define TAG_TOGGLE_MODIFIER	Input::Modifier::SHIFT
 		#define TAG_CLIENT_MODIFIER	Input::Modifier::CONTROL
 
-		#define TAG_KEY(TagNumber, TagInputType, TagInputValue) \
-		{ new TagDisplay_Event(TagDisplay_Event::Target::ROOT,	 TagDisplay_Event::Mode::SET,	 0x01 << TagNumber), Input(TagInputType, TagInputValue, TAG_MODIFIER) },\
-		{ new TagDisplay_Event(TagDisplay_Event::Target::ROOT,	 TagDisplay_Event::Mode::TOGGLE, 0x01 << TagNumber), Input(TagInputType, TagInputValue, TAG_MODIFIER | TAG_TOGGLE_MODIFIER) },\
-		{ new TagDisplay_Event(TagDisplay_Event::Target::CLIENT, TagDisplay_Event::Mode::SET,	 0x01 << TagNumber), Input(TagInputType, TagInputValue, TAG_MODIFIER | TAG_CLIENT_MODIFIER) },\
-		{ new TagDisplay_Event(TagDisplay_Event::Target::CLIENT, TagDisplay_Event::Mode::TOGGLE, 0x01 << TagNumber), Input(TagInputType, TagInputValue, TAG_MODIFIER | TAG_TOGGLE_MODIFIER | TAG_CLIENT_MODIFIER) },
+		#define TAG_KEY(TagNumber, InputType, InputValue) \
+		{ new TagDisplay_Event(TagDisplay_Event::Target::ROOT,	 TagDisplay_Event::Mode::SET,	 0x01 << TagNumber), Input(InputType, InputValue, TAG_MODIFIER) },\
+		{ new TagDisplay_Event(TagDisplay_Event::Target::ROOT,	 TagDisplay_Event::Mode::TOGGLE, 0x01 << TagNumber), Input(InputType, InputValue, TAG_MODIFIER | TAG_TOGGLE_MODIFIER) },\
+		{ new TagDisplay_Event(TagDisplay_Event::Target::CLIENT, TagDisplay_Event::Mode::SET,	 0x01 << TagNumber), Input(InputType, InputValue, TAG_MODIFIER | TAG_CLIENT_MODIFIER) },\
+		{ new TagDisplay_Event(TagDisplay_Event::Target::CLIENT, TagDisplay_Event::Mode::TOGGLE, 0x01 << TagNumber), Input(InputType, InputValue, TAG_MODIFIER | TAG_TOGGLE_MODIFIER | TAG_CLIENT_MODIFIER) }
 
-		TAG_KEY(0, Input::Type::KEYBOARD, Input::Value::KEY_1)
-		TAG_KEY(1, Input::Type::KEYBOARD, Input::Value::KEY_2)
-		TAG_KEY(2, Input::Type::KEYBOARD, Input::Value::KEY_3)
-		TAG_KEY(3, Input::Type::KEYBOARD, Input::Value::KEY_4)
-		TAG_KEY(4, Input::Type::KEYBOARD, Input::Value::KEY_5)
-		TAG_KEY(5, Input::Type::KEYBOARD, Input::Value::KEY_6)
-		TAG_KEY(6, Input::Type::KEYBOARD, Input::Value::KEY_7)
-		TAG_KEY(7, Input::Type::KEYBOARD, Input::Value::KEY_8)
-		TAG_KEY(8, Input::Type::KEYBOARD, Input::Value::KEY_9)
+		TAG_KEY(0, Input::Type::KEYBOARD, Input::Value::KEY_1),
+		TAG_KEY(1, Input::Type::KEYBOARD, Input::Value::KEY_2),
+		TAG_KEY(2, Input::Type::KEYBOARD, Input::Value::KEY_3),
+		TAG_KEY(3, Input::Type::KEYBOARD, Input::Value::KEY_4),
+		TAG_KEY(4, Input::Type::KEYBOARD, Input::Value::KEY_5),
+		TAG_KEY(5, Input::Type::KEYBOARD, Input::Value::KEY_6),
+		TAG_KEY(6, Input::Type::KEYBOARD, Input::Value::KEY_7),
+		TAG_KEY(7, Input::Type::KEYBOARD, Input::Value::KEY_8),
+		TAG_KEY(8, Input::Type::KEYBOARD, Input::Value::KEY_9),
 		TAG_KEY(9, Input::Type::KEYBOARD, Input::Value::KEY_0)
 
 		#undef TAG_KEY
