@@ -74,16 +74,15 @@ void X11XCB_InputListener::Listen()
 		XInput Condition = InputTranslator::ToX(Binding.second);
 
 		if (Condition.Type == Input::Type::KEYBOARD)
-			xcb_grab_key(XConnection, true, RootWindow, Condition.ModifierState, Condition.Value.KeyCode, XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_SYNC);
+			xcb_grab_key(XConnection, true, RootWindow, Condition.ModifierState, Condition.Value.KeyCode, XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
 		else
 			xcb_grab_button(XConnection, true, RootWindow, XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION,
-							XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_NONE, XCB_NONE, Condition.Value.Button, Condition.ModifierState);
+							XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_SYNC, XCB_NONE, XCB_NONE, Condition.Value.Button, Condition.ModifierState);
 
 		BindingMap.insert(std::make_pair(Binding.second, Binding.first));
 	}
 
 	xcb_flush(XConnection);
-
 
 	// Wait for events
 	try
@@ -96,22 +95,10 @@ void X11XCB_InputListener::Listen()
 			{
 			case XCB_BUTTON_PRESS:
 			case XCB_BUTTON_RELEASE:
-				xcb_allow_events(XConnection, XCB_ALLOW_SYNC_POINTER, XCB_CURRENT_TIME);
-				break;
-			case XCB_KEY_PRESS:
-			case XCB_KEY_RELEASE:
-				xcb_allow_events(XConnection, XCB_ALLOW_SYNC_KEYBOARD, XCB_CURRENT_TIME);
-				break;
-			}
-
-			switch (XCB_EVENT_RESPONSE_TYPE(Event))
-			{
-			case XCB_BUTTON_PRESS:
-			case XCB_BUTTON_RELEASE:
 			case XCB_KEY_PRESS:
 			case XCB_KEY_RELEASE:
 				{
-					Input TranslatedInput = InputTranslator::ToGlass(*Event);
+					Input const TranslatedInput = InputTranslator::ToGlass(*Event);
 
 					if (TranslatedInput.IsValid())
 					{
@@ -120,6 +107,22 @@ void X11XCB_InputListener::Listen()
 							this->OutgoingEventQueue.AddEvent(*FindValue->second->Copy());
 					}
 				}
+				break;
+
+			case XCB_MOTION_NOTIFY:
+				{
+					xcb_motion_notify_event_t * const MotionNotify = (xcb_motion_notify_event_t *)*Event;
+
+					this->OutgoingEventQueue.AddEvent(*(new PointerMove_Event(Vector(MotionNotify->root_x,
+																					 MotionNotify->root_y))));
+				}
+				break;
+			}
+
+			switch (XCB_EVENT_RESPONSE_TYPE(Event))
+			{
+			case XCB_BUTTON_RELEASE:
+				xcb_allow_events(XConnection, XCB_ALLOW_SYNC_KEYBOARD, XCB_CURRENT_TIME);
 				break;
 			}
 
