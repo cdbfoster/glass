@@ -36,6 +36,12 @@ WindowDecorator::~WindowDecorator()
 }
 
 
+locked_accessor<DisplayServer::AuxiliaryWindowList> WindowDecorator::GetAuxiliaryWindows() const
+{
+	return this->DisplayServer.GetAuxiliaryWindows();
+}
+
+
 locked_accessor<AuxiliaryWindowList> WindowDecorator::GetAuxiliaryWindows(PrimaryWindow &PrimaryWindow) const
 {
 	return PrimaryWindow.GetAuxiliaryWindows();

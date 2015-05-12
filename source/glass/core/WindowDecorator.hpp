@@ -20,12 +20,12 @@
 #ifndef GLASS_CORE_WINDOWDECORATOR
 #define GLASS_CORE_WINDOWDECORATOR
 
+#include "glass/core/DisplayServer.hpp"
 #include "glass/core/Vector.hpp"
 #include "glass/core/Window.hpp"
 
 namespace Glass
 {
-	class DisplayServer;
 	class EventQueue;
 	class WindowManager;
 
@@ -51,8 +51,11 @@ namespace Glass
 		virtual Vector GetDecoratedActiveAreaSize(RootWindow &RootWindow) = 0;
 
 	protected:
-		locked_accessor<AuxiliaryWindowList>	GetAuxiliaryWindows(PrimaryWindow &PrimaryWindow) const;
-		EventQueue							   &GetEventQueue() const;
+		// Internal, locked access to the display server's and a primary window's auxiliary windows, respectively
+		locked_accessor<Glass::DisplayServer::AuxiliaryWindowList> GetAuxiliaryWindows() const;
+		locked_accessor<AuxiliaryWindowList>					   GetAuxiliaryWindows(PrimaryWindow &PrimaryWindow) const;
+
+		EventQueue &GetEventQueue() const;
 
 		Glass::DisplayServer &DisplayServer;
 		Glass::WindowManager &WindowManager;

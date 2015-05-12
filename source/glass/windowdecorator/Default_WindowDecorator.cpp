@@ -63,7 +63,7 @@ void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, Hint Hi
 		AuxiliaryWindowsAccessor->push_back(Frame);
 
 		{
-			auto AuxiliaryWindowsAccessor = this->DisplayServer.GetAuxiliaryWindows();
+			auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
 
 			AuxiliaryWindowsAccessor->push_back(Frame);
 		}
@@ -95,7 +95,7 @@ void Default_WindowDecorator::StripWindow(PrimaryWindow &PrimaryWindow)
 			if (dynamic_cast<FrameWindow *>(*AuxiliaryWindow))
 			{
 				{
-					auto AuxiliaryWindowsAccessor = this->DisplayServer.GetAuxiliaryWindows();
+					auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
 
 					AuxiliaryWindowsAccessor->remove(*AuxiliaryWindow);
 				}

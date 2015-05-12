@@ -53,9 +53,8 @@ namespace Glass
 		locked_accessor<RootWindowList>		GetRootWindows();
 		locked_accessor<ClientWindowList>	GetClientWindows();
 
-	public:
-	//protected: // WindowDecorator is allowed to make changes to the server's auxiliary window list
-	//	friend class WindowDecorator;
+	protected: // WindowDecorator is allowed to make changes to the server's auxiliary window list
+		friend class WindowDecorator;
 
 		locked_accessor<AuxiliaryWindowList> GetAuxiliaryWindows();
 
