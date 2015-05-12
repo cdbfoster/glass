@@ -40,7 +40,7 @@ namespace Glass
 					MINIMAL	= 0x02,
 					SPECIAL	= 0x04 };
 
-		virtual void DecorateWindow(ClientWindow &ClientWindow, Hint HintMask = Hint::NONE) = 0;
+		virtual void DecorateWindow(ClientWindow &ClientWindow, unsigned char HintMask = Hint::NONE) = 0;
 		virtual void DecorateWindow(RootWindow &RootWindow) = 0;
 		virtual void StripWindow(PrimaryWindow &PrimaryWindow) = 0;
 

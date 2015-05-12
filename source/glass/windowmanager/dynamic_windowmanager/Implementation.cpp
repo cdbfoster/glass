@@ -77,7 +77,27 @@ void Dynamic_WindowManager::Implementation::ActivateClient(ClientWindow &ClientW
 	if (ClientWindow.GetUrgent() == true)
 		ClientWindow.SetUrgent(false);
 
+	if (this->WindowDecorator != nullptr)
+		this->WindowDecorator->DecorateWindow(ClientWindow, this->GetDecorationHint(ClientWindow));
+
 	ClientWindow.Focus();
+}
+
+
+unsigned char Dynamic_WindowManager::Implementation::GetDecorationHint(ClientWindow &ClientWindow) const
+{
+	unsigned char Hint = Glass::WindowDecorator::Hint::NONE;
+
+	if (!this->ClientData[ClientWindow]->Floating)
+		Hint |= Glass::WindowDecorator::Hint::MINIMAL;
+
+	if (ClientWindow.GetUrgent())
+		Hint |= Glass::WindowDecorator::Hint::SPECIAL;
+
+	if (&ClientWindow == this->ActiveClient)
+		Hint |= Glass::WindowDecorator::Hint::ACTIVE;
+
+	return Hint;
 }
 
 

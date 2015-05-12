@@ -181,6 +181,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 			this->Owner.RootTags[*EventCast->ClientWindow.GetRootWindow()]->AddClientWindow(EventCast->ClientWindow, Floating);
 
+			if (this->Owner.WindowDecorator != nullptr)
+				this->Owner.WindowDecorator->DecorateWindow(EventCast->ClientWindow, this->Owner.GetDecorationHint(EventCast->ClientWindow));
+
 			// Activate the new client only if the current active client isn't fullscreen
 			if ((this->Owner.ActiveClient != nullptr && this->Owner.ActiveClient->GetFullscreen() == false) ||
 				 this->Owner.ActiveClient == nullptr)

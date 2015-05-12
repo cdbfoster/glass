@@ -20,6 +20,7 @@
 #ifndef GLASS_DYNAMIC_WINDOWMANAGER_IMPLEMENTATION
 #define GLASS_DYNAMIC_WINDOWMANAGER_IMPLEMENTATION
 
+#include "glass/core/WindowDecorator.hpp"
 #include "glass/windowmanager/Dynamic_WindowManager.hpp"
 #include "glass/windowmanager/dynamic_windowmanager/ClientData.hpp"
 #include "glass/windowmanager/dynamic_windowmanager/TagManager.hpp"
@@ -37,6 +38,10 @@ namespace Glass
 		// Event handling
 		class EventHandler; // Defined in EventHandler.hpp
 		EventHandler *Handler;
+
+
+		// Window decoration
+		Glass::WindowDecorator *WindowDecorator;
 
 
 		// Tags
@@ -58,10 +63,11 @@ namespace Glass
 
 
 		// Methods
-		void ActivateClient(ClientWindow &ClientWindow);
-		void RefreshStackingOrder();
-		void SetClientLowered(ClientWindow &ClientWindow, bool Lowered);
-		void SetClientRaised(ClientWindow &ClientWindow, bool Raised);
+		void		  ActivateClient(ClientWindow &ClientWindow);
+		unsigned char GetDecorationHint(ClientWindow &ClientWindow) const;
+		void		  RefreshStackingOrder();
+		void		  SetClientLowered(ClientWindow &ClientWindow, bool Lowered);
+		void		  SetClientRaised(ClientWindow &ClientWindow, bool Raised);
 	};
 }
 

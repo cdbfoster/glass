@@ -34,7 +34,7 @@ namespace Glass
 		Default_WindowDecorator(Glass::DisplayServer &DisplayServer, Glass::WindowManager &WindowManager);
 		~Default_WindowDecorator();
 
-		void DecorateWindow(ClientWindow &ClientWindow, Hint HintMask = Hint::NONE);
+		void DecorateWindow(ClientWindow &ClientWindow, unsigned char HintMask = Hint::NONE);
 		void DecorateWindow(RootWindow &RootWindow);
 		void StripWindow(PrimaryWindow &PrimaryWindow);
 

@@ -17,6 +17,7 @@
 * Copyright 2014-2015 Chris Foster
 */
 
+#include "config.hpp"
 #include "glass/windowmanager/Dynamic_WindowManager.hpp"
 #include "glass/windowmanager/dynamic_windowmanager/EventHandler.hpp"
 #include "glass/windowmanager/dynamic_windowmanager/Implementation.hpp"
@@ -29,6 +30,12 @@ Dynamic_WindowManager::Dynamic_WindowManager(Glass::DisplayServer &DisplayServer
 {
 	// Create event handler
 	this->Data->Handler = new Implementation::EventHandler(*this->Data);
+
+	// Create the window decorator
+	if (Config::WindowDecorator != nullptr)
+		this->Data->WindowDecorator = Config::WindowDecorator(DisplayServer, *this);
+	else
+		this->Data->WindowDecorator = nullptr;
 }
 
 
@@ -36,6 +43,10 @@ Dynamic_WindowManager::~Dynamic_WindowManager()
 {
 	// Destroy event handler
 	delete this->Data->Handler;
+
+	// Destroy the window decorator
+	if (this->Data->WindowDecorator != nullptr)
+		delete this->Data->WindowDecorator;
 }
 
 
