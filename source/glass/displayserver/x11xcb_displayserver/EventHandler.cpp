@@ -98,8 +98,13 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 														  ((xcb_map_notify_event_t *)Event)->event;
 		break;
 	case XCB_CONFIGURE_NOTIFY:
-		LOG_DEBUG_INFO_NOHEADER << " - Configure on " << ((xcb_configure_notify_event_t *)Event)->window << ", " <<
-														 ((xcb_configure_notify_event_t *)Event)->event;
+		LOG_DEBUG_INFO_NOHEADER << " - Configure on " << ((xcb_configure_notify_event_t *)Event)->window << ", (";
+		{
+			xcb_configure_notify_event_t * const ConfigureNotify = (xcb_configure_notify_event_t *)Event;
+
+			LOG_DEBUG_INFO_NOHEADER << ConfigureNotify->x << ", " << ConfigureNotify->y << "), (" <<
+									   ConfigureNotify->width << ", " << ConfigureNotify->height << ")";
+		}
 		break;
 	case XCB_PROPERTY_NOTIFY:
 		LOG_DEBUG_INFO_NOHEADER << " - Property notify on " << ((xcb_property_notify_event_t *)Event)->window;
