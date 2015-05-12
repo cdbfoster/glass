@@ -17,6 +17,9 @@
 * Copyright 2014-2015 Chris Foster
 */
 
+#include <array>
+#include <unistd.h>
+
 #include "config.hpp"
 #include "glass/core/DisplayServer.hpp"
 #include "glass/core/Event.hpp"
@@ -98,12 +101,14 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	case Glass::Event::Type::WINDOW_RESIZE_MODAL:
 		LOG_DEBUG_INFO << "Modal Window Resize event!" << std::endl;
 		break;
-	case Glass::Event::Type::TAG_DISPLAY:
-		LOG_DEBUG_INFO << "Tag Display event!" << std::endl;
-		break;
 	case Glass::Event::Type::POINTER_MOVE:
 		//LOG_DEBUG_INFO << "Pointer move event!" << std::endl;
 		break;
+	case Glass::Event::Type::TAG_DISPLAY:
+		LOG_DEBUG_INFO << "Tag Display event!" << std::endl;
+		break;
+	case Glass::Event::Type::SPAWN_COMMAND:
+		LOG_DEBUG_INFO << "Spawn Command event!" << std::endl;
 	default:
 		LOG_DEBUG_INFO << "Some other type of event received!" << std::endl;
 	}
@@ -436,6 +441,37 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 				LOG_DEBUG_INFO << "New Client Mask: " << NewMask << std::endl;
 
 				TagContainer->SetClientWindowTagMask(*this->Owner.ActiveClient, NewMask);
+			}
+		}
+		break;
+
+
+	case Glass::Event::Type::SPAWN_COMMAND:
+		{
+			SpawnCommand_Event const * const EventCast = static_cast<SpawnCommand_Event const *>(Event);
+
+			if (fork() == 0)
+			{
+				setsid();
+
+				char *Command[EventCast->Command.size() + 1];
+				int Index = 0;
+				for (auto const &Argument : EventCast->Command)
+					Command[Index++] = const_cast<char *>(Argument.c_str());
+				Command[Index] = nullptr;
+
+				// Replace the process image with that of the command we want to spawn
+				execvp(Command[0], Command);
+
+				// If we get here, something went wrong
+				LOG_ERROR << "Unable to spawn command '" << EventCast->Command[0];
+
+				for (int Index = 1; Index < EventCast->Command.size(); Index++)
+					LOG_ERROR_NOHEADER << " " << EventCast->Command[Index];
+
+				LOG_ERROR_NOHEADER << "'!" << std::endl;
+
+				exit(EXIT_SUCCESS);
 			}
 		}
 		break;
