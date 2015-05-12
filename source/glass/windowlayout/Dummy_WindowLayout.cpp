@@ -53,8 +53,8 @@ void Dummy_WindowLayout::ResizeClientWindow(ClientWindow &ClientWindow, Vector c
 	Vector const PositionOffset(ResizeMask.x < 0 ? -SizeOffset.x : 0,
 								ResizeMask.y < 0 ? -SizeOffset.y : 0);
 
-	ClientWindow.SetPosition(ClientWindow.GetPosition() + PositionOffset);
-	ClientWindow.SetSize(ClientWindow.GetSize() + SizeOffset);
+	ClientWindow.SetGeometry(ClientWindow.GetPosition() + PositionOffset,
+							 ClientWindow.GetSize() + SizeOffset);
 }
 
 

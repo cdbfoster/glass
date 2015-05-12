@@ -83,8 +83,7 @@ namespace Glass
 		ClientWindowList	CreateClientWindows(WindowIDList const &WindowIDs);
 
 		// Window manipulation
-		void SetWindowPosition(xcb_window_t WindowID, Window &Window, Vector const &Position);
-		void SetWindowSize(xcb_window_t WindowID, Window &Window, Vector const &Size);
+		void SetWindowGeometry(xcb_window_t WindowID, Window &Window, Vector const &Position, Vector const &Size);
 		void RaiseWindow(xcb_connection_t *XConnection, xcb_window_t WindowID);
 		void LowerWindow(xcb_connection_t *XConnection, xcb_window_t WindowID);
 	};

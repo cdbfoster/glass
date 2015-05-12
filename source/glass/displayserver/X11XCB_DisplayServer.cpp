@@ -345,9 +345,9 @@ Vector X11XCB_DisplayServer::GetMousePosition()
 }
 
 
-void X11XCB_DisplayServer::SetWindowPosition(Window &Window, Vector const &Position)
+void X11XCB_DisplayServer::SetWindowGeometry(Window &Window, Vector const &Position, Vector const &Size)
 {
-	// If the window is a client that is fullscreen, effect no actual change.  The new position has already been recorded.
+	// If the window is a client that is fullscreen, effect no actual change.  The new dimensions have already been recorded.
 	{
 		ClientWindow * const WindowCast = dynamic_cast<ClientWindow *>(&Window);
 
@@ -360,7 +360,7 @@ void X11XCB_DisplayServer::SetWindowPosition(Window &Window, Vector const &Posit
 	auto WindowData = WindowDataAccessor->find(&Window);
 	if (WindowData != WindowDataAccessor->end())
 	{
-		this->Data->SetWindowPosition((*WindowData)->ID, Window, Position);
+		this->Data->SetWindowGeometry((*WindowData)->ID, Window, Position, Size);
 
 		if (FrameWindow const * const WindowCast = dynamic_cast<FrameWindow const *>(&Window))
 		{
@@ -369,45 +369,13 @@ void X11XCB_DisplayServer::SetWindowPosition(Window &Window, Vector const &Posit
 			auto WindowData = WindowDataAccessor->find(PrimaryWindow);
 			if (WindowData != WindowDataAccessor->end())
 			{
-				this->Data->SetWindowPosition((*WindowData)->ID, *PrimaryWindow, PrimaryWindow->GetPosition());
+				this->Data->SetWindowGeometry((*WindowData)->ID, *PrimaryWindow, PrimaryWindow->GetPosition(),
+																				 PrimaryWindow->GetSize());
 			}
 		}
 	}
 	else
-		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set window position." << std::endl;
-}
-
-
-void X11XCB_DisplayServer::SetWindowSize(Window &Window, Vector const &Size)
-{
-	// If the window is a client that is fullscreen, effect no actual change.  The new size has already been recorded.
-	{
-		ClientWindow * const WindowCast = dynamic_cast<ClientWindow *>(&Window);
-
-		if (WindowCast != nullptr && WindowCast->GetFullscreen() == true)
-			return;
-	}
-
-	auto WindowDataAccessor = this->Data->GetWindowData();
-
-	auto WindowData = WindowDataAccessor->find(&Window);
-	if (WindowData != WindowDataAccessor->end())
-	{
-		this->Data->SetWindowSize((*WindowData)->ID, Window, Size);
-
-		if (FrameWindow const * const WindowCast = dynamic_cast<FrameWindow const *>(&Window))
-		{
-			Glass::PrimaryWindow * const PrimaryWindow = &WindowCast->GetPrimaryWindow();
-
-			auto WindowData = WindowDataAccessor->find(PrimaryWindow);
-			if (WindowData != WindowDataAccessor->end())
-			{
-				this->Data->SetWindowSize((*WindowData)->ID, *PrimaryWindow, PrimaryWindow->GetSize());
-			}
-		}
-	}
-	else
-		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set window size." << std::endl;
+		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set window geometry." << std::endl;
 }
 
 
@@ -692,8 +660,8 @@ void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow,
 
 			if (RootWindow const * const ClientRoot = ClientWindow.GetRootWindow())
 			{
-				this->Data->SetWindowPosition(WindowID, ClientWindow, ClientRoot->GetPosition());
-				this->Data->SetWindowSize(WindowID, ClientWindow, ClientRoot->GetSize());
+				this->Data->SetWindowGeometry(WindowID, ClientWindow, ClientRoot->GetPosition(),
+																	  ClientRoot->GetSize());
 			}
 			else
 				LOG_DEBUG_ERROR << "Client doesn't have a root!  Cannot set fullscreen size." << std::endl;
@@ -708,8 +676,8 @@ void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow,
 			ClientWindowData->_NET_WM_STATE.erase(Atoms::_NET_WM_STATE_FULLSCREEN);
 			Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
 
-			this->Data->SetWindowPosition(WindowID, ClientWindow, ClientWindow.GetPosition());
-			this->Data->SetWindowSize(WindowID, ClientWindow, ClientWindow.GetSize());
+			this->Data->SetWindowGeometry(WindowID, ClientWindow, ClientWindow.GetPosition(),
+																  ClientWindow.GetSize());
 		}
 	}
 	else

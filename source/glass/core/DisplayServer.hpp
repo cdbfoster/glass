@@ -47,7 +47,7 @@ namespace Glass
 
 		virtual void	Sync() = 0;
 
-		virtual Vector	GetMousePosition() = 0;
+		virtual Vector	GetMousePosition() = 0; // XXX Get rid of this if it's unnecessary
 
 	protected: // For internal, locked access
 		locked_accessor<RootWindowList>		GetRootWindows();
@@ -67,8 +67,7 @@ namespace Glass
 		friend class RootWindow;
 		friend class Window;
 
-		virtual void SetWindowPosition(Window &Window, Vector const &Position) = 0;
-		virtual void SetWindowSize(Window &Window, Vector const &Size) = 0;
+		virtual void SetWindowGeometry(Window &Window, Vector const &Position, Vector const &Size) = 0;
 		virtual void SetWindowVisibility(Window &Window, bool Visible) = 0;
 
 		virtual void FocusWindow(Window const &Window) = 0;

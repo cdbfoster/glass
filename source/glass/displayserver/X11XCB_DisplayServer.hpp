@@ -36,8 +36,9 @@ namespace Glass
 		Vector	GetMousePosition();
 
 	protected:
-		void SetWindowPosition(Window &Window, Vector const &Position);
-		void SetWindowSize(Window &Window, Vector const &Size);
+		// XXX Make it safe to call these on windows that have not been deleted but that no longer exist on the server
+
+		void SetWindowGeometry(Window &Window, Vector const &Position, Vector const &Size);
 		void SetWindowVisibility(Window &Window, bool Visible);
 
 		void FocusWindow(Window const &Window);

@@ -47,6 +47,8 @@ namespace Glass
 
 		virtual void SetPosition(Vector const &Position);
 		virtual void SetSize(Vector const &Size);
+		virtual void SetGeometry(Vector const &Position, Vector const &Size);
+
 		virtual void SetVisibility(bool Visible);
 
 		virtual void Focus();
@@ -83,6 +85,7 @@ namespace Glass
 
 		void SetPosition(Vector const &Position);
 		void SetSize(Vector const &Size);
+		void SetGeometry(Vector const &Position, Vector const &Size);
 
 		void Focus();
 
@@ -194,6 +197,7 @@ namespace Glass
 		// These operations are not allowed on root windows
 		void SetPosition(Vector const &Position);
 		void SetSize(Vector const &Size);
+		void SetGeometry(Vector const &Position, Vector const &Size);
 		void SetVisibility(bool Visible);
 		void Raise();
 		void Lower();

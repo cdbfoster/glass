@@ -55,7 +55,7 @@ bool Window::GetVisibility() const
 
 void Window::SetPosition(Vector const &Position)
 {
-	this->DisplayServer.SetWindowPosition(*this, Position);
+	this->DisplayServer.SetWindowGeometry(*this, Position, this->Size);
 
 	this->Position = Position;
 }
@@ -63,8 +63,17 @@ void Window::SetPosition(Vector const &Position)
 
 void Window::SetSize(Vector const &Size)
 {
-	this->DisplayServer.SetWindowSize(*this, Size);
+	this->DisplayServer.SetWindowGeometry(*this, this->Position, Size);
 
+	this->Size = Size;
+}
+
+
+void Window::SetGeometry(Vector const &Position, Vector const &Size)
+{
+	this->DisplayServer.SetWindowGeometry(*this, Position, Size);
+
+	this->Position = Position;
 	this->Size = Size;
 }
 
@@ -129,6 +138,14 @@ void PrimaryWindow::SetPosition(Vector const &Position)
 void PrimaryWindow::SetSize(Vector const &Size)
 {
 	Window::SetSize(Size);
+
+	this->UpdateAuxiliaryWindows();
+}
+
+
+void PrimaryWindow::SetGeometry(Vector const &Position, Vector const &Size)
+{
+	Window::SetGeometry(Position, Size);
 
 	this->UpdateAuxiliaryWindows();
 }
@@ -387,11 +404,12 @@ void RootWindow::SetActiveClientWindow(ClientWindow &ClientWindow)
 
 
 // These operations are not allowed on root windows
-void RootWindow::SetPosition(Vector const &Position)	{ LOG_DEBUG_WARNING << "Attempting to set the position of a root window." << std::endl; }
-void RootWindow::SetSize(Vector const &Size)			{ LOG_DEBUG_WARNING << "Attempting to set the size of a root window." << std::endl; }
-void RootWindow::SetVisibility(bool Visible)			{ LOG_DEBUG_WARNING << "Attempting to set the visibility of a root window." << std::endl; }
-void RootWindow::Raise()								{ LOG_DEBUG_WARNING << "Attempting to raise a root window." << std::endl; }
-void RootWindow::Lower()								{ LOG_DEBUG_WARNING << "Attempting to lower a root window." << std::endl; }
+void RootWindow::SetPosition(Vector const &Position)						{ LOG_DEBUG_WARNING << "Attempting to set the position of a root window." << std::endl; }
+void RootWindow::SetSize(Vector const &Size)								{ LOG_DEBUG_WARNING << "Attempting to set the size of a root window." << std::endl; }
+void RootWindow::SetGeometry(Vector const &Position, Vector const &Size)	{ LOG_DEBUG_WARNING << "Attempting to set the geometry of a root window." << std::endl; }
+void RootWindow::SetVisibility(bool Visible)								{ LOG_DEBUG_WARNING << "Attempting to set the visibility of a root window." << std::endl; }
+void RootWindow::Raise()													{ LOG_DEBUG_WARNING << "Attempting to raise a root window." << std::endl; }
+void RootWindow::Lower()													{ LOG_DEBUG_WARNING << "Attempting to lower a root window." << std::endl; }
 
 
 void RootWindow::AddClientWindow(ClientWindow &ClientWindow)
@@ -562,8 +580,8 @@ void FrameWindow::Update()
 
 		if (Glass::RootWindow const * const ClientRoot = ClientWindow.GetRootWindow())
 		{
-			AuxiliaryWindow::SetPosition(ClientRoot->GetPosition());
-			AuxiliaryWindow::SetSize(ClientRoot->GetSize());
+			AuxiliaryWindow::SetGeometry(ClientRoot->GetPosition(),
+										 ClientRoot->GetSize());
 		}
 		else
 			LOG_DEBUG_ERROR << "Client doesn't have a root!  Cannot update frame." << std::endl;
@@ -573,7 +591,7 @@ void FrameWindow::Update()
 		this->CurrentULOffset = this->ULOffset;
 		this->CurrentLROffset = this->LROffset;
 
-		AuxiliaryWindow::SetPosition(ClientWindow.GetPosition() + this->CurrentULOffset);
-		AuxiliaryWindow::SetSize(ClientWindow.GetSize() - this->CurrentULOffset + this->CurrentLROffset);
+		AuxiliaryWindow::SetGeometry(ClientWindow.GetPosition() + this->CurrentULOffset,
+									 ClientWindow.GetSize() - this->CurrentULOffset + this->CurrentLROffset);
 	}
 }

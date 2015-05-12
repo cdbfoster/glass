@@ -463,29 +463,20 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 }
 
 
-void X11XCB_DisplayServer::Implementation::SetWindowPosition(xcb_window_t WindowID, Window &Window, Vector const &Position)
+void X11XCB_DisplayServer::Implementation::SetWindowGeometry(xcb_window_t WindowID, Window &Window, Vector const &Position,
+																									Vector const &Size)
 {
 	auto GeometryChangesAccessor = this->GetGeometryChanges();
 
 	auto GeometryChange = GeometryChangesAccessor->find(WindowID);
 	if (GeometryChange == GeometryChangesAccessor->end())
 		GeometryChangesAccessor->insert(std::make_pair(WindowID,
-													   new Implementation::GeometryChange(Window, WindowID, Position, Window.GetSize())));
+													   new Implementation::GeometryChange(Window, WindowID, Position, Size)));
 	else
+	{
 		GeometryChange->second->Position = Position;
-}
-
-
-void X11XCB_DisplayServer::Implementation::SetWindowSize(xcb_window_t WindowID, Window &Window, Vector const &Size)
-{
-	auto GeometryChangesAccessor = this->GetGeometryChanges();
-
-	auto GeometryChange = GeometryChangesAccessor->find(WindowID);
-	if (GeometryChange == GeometryChangesAccessor->end())
-		GeometryChangesAccessor->insert(std::make_pair(WindowID,
-													   new Implementation::GeometryChange(Window, WindowID, Window.GetPosition(), Size)));
-	else
 		GeometryChange->second->Size = Size;
+	}
 }
 
 

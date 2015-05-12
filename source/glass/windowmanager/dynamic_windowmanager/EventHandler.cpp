@@ -399,8 +399,8 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 						Vector const PositionOffset(ModalResizeMask.x < 0 ? -Offset.x : 0,
 													ModalResizeMask.y < 0 ? -Offset.y : 0);
 
-						ModalResize->SetPosition(ModalResize->GetPosition() + PositionOffset);
-						ModalResize->SetSize(ModalResize->GetSize() + Offset);
+						ModalResize->SetGeometry(ModalResize->GetPosition() + PositionOffset,
+												 ModalResize->GetSize() + Offset);
 					}
 
 					ModalOldPosition = EventCast->Position;
