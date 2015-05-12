@@ -263,8 +263,7 @@ void ConfigureWindow(xcb_connection_t *XConnection, Window const &Window, xcb_wi
 
 	xcb_configure_window(XConnection, WindowID, ConfigureMask, ConfigureValues);
 
-	// XXX Check ICCCM 4.2.3
-	if (ClientWindow const * const WindowCast = dynamic_cast<ClientWindow const *>(&Window))
+	if (dynamic_cast<ClientWindow const *>(&Window))
 	{
 		scoped_free<xcb_configure_notify_event_t *> ConfigureNotify = (xcb_configure_notify_event_t *)calloc(32, 1);
 

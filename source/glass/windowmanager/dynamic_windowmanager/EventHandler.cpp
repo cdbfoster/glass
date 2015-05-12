@@ -270,8 +270,6 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 	case Glass::Event::Type::WINDOW_CLOSE:
 		{
-			WindowClose_Event const * const EventCast = static_cast<WindowClose_Event const *>(Event);
-
 			if (this->Owner.ActiveClient != nullptr)
 				this->Owner.ActiveClient->Close();
 		}
@@ -466,7 +464,7 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 				// If we get here, something went wrong
 				LOG_ERROR << "Unable to spawn command '" << EventCast->Command[0];
 
-				for (int Index = 1; Index < EventCast->Command.size(); Index++)
+				for (unsigned int Index = 1; Index < EventCast->Command.size(); Index++)
 					LOG_ERROR_NOHEADER << " " << EventCast->Command[Index];
 
 				LOG_ERROR_NOHEADER << "'!" << std::endl;

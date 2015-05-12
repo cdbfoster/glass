@@ -24,6 +24,7 @@
 
 #include "glass/core/Event.hpp"
 #include "glass/core/Input.hpp"
+#include "glass/core/WindowDecorator.hpp"
 #include "glass/core/WindowLayout.hpp"
 #include "glass/windowdecorator/Default_WindowDecorator.hpp"
 #include "glass/windowlayout/Dummy_WindowLayout.hpp"
@@ -53,32 +54,32 @@ namespace Config
 		{ new EventType(WindowModal_Event::Mode::BEGIN), Input(InputType, InputValue, InputModifier, Input::State::PRESSED) },\
 		{ new EventType(WindowModal_Event::Mode::END),	 Input(InputType, InputValue, InputModifier, Input::State::RELEASED) }
 
-		MODAL_KEY(WindowMoveModal_Event, Input::Type::MOUSE, Input::Value::BUTTON_1, Keys::CommandModifier),
+		MODAL_KEY(WindowMoveModal_Event,   Input::Type::MOUSE, Input::Value::BUTTON_1, Keys::CommandModifier),
 		MODAL_KEY(WindowResizeModal_Event, Input::Type::MOUSE, Input::Value::BUTTON_3, Keys::CommandModifier),
 
 		#undef MODAL_KEY
 
 
-		{ new WindowClose_Event,		Input(Input::Type::KEYBOARD,	Input::Value::KEY_Q,	Keys::CommandModifier) },
+		{ new WindowClose_Event, Input(Input::Type::KEYBOARD, Input::Value::KEY_Q, Keys::CommandModifier) },
 
 
-		{ new FloatingToggle_Event,	Input(Input::Type::KEYBOARD,	Input::Value::KEY_RETURN,	Keys::CommandModifier) },
-		{ new FloatingRaise_Event,	Input(Input::Type::KEYBOARD,	Keys::CommandKey,			Input::Modifier::NONE) },
-		{ new SwitchTabbed_Event,	Input(Input::Type::KEYBOARD,	Input::Value::KEY_TAB,		Keys::CommandModifier) },
+		{ new FloatingToggle_Event, Input(Input::Type::KEYBOARD, Input::Value::KEY_RETURN, Keys::CommandModifier) },
+		{ new FloatingRaise_Event,  Input(Input::Type::KEYBOARD, Keys::CommandKey,		   Input::Modifier::NONE) },
+		{ new SwitchTabbed_Event,   Input(Input::Type::KEYBOARD, Input::Value::KEY_TAB,	   Keys::CommandModifier) },
 
 
-		{ new FocusCycle_Event(FocusCycle_Event::Direction::LEFT),	Input(Input::Type::KEYBOARD,	Input::Value::KEY_LEFT,		Keys::CommandModifier) },
-		{ new FocusCycle_Event(FocusCycle_Event::Direction::RIGHT),	Input(Input::Type::KEYBOARD,	Input::Value::KEY_RIGHT,	Keys::CommandModifier) },
-		{ new FocusCycle_Event(FocusCycle_Event::Direction::UP),	Input(Input::Type::KEYBOARD,	Input::Value::KEY_UP,		Keys::CommandModifier) },
-		{ new FocusCycle_Event(FocusCycle_Event::Direction::DOWN),	Input(Input::Type::KEYBOARD,	Input::Value::KEY_DOWN,		Keys::CommandModifier) },
+		{ new FocusCycle_Event(FocusCycle_Event::Direction::LEFT),  Input(Input::Type::KEYBOARD, Input::Value::KEY_LEFT,  Keys::CommandModifier) },
+		{ new FocusCycle_Event(FocusCycle_Event::Direction::RIGHT), Input(Input::Type::KEYBOARD, Input::Value::KEY_RIGHT, Keys::CommandModifier) },
+		{ new FocusCycle_Event(FocusCycle_Event::Direction::UP),	Input(Input::Type::KEYBOARD, Input::Value::KEY_UP,	  Keys::CommandModifier) },
+		{ new FocusCycle_Event(FocusCycle_Event::Direction::DOWN),  Input(Input::Type::KEYBOARD, Input::Value::KEY_DOWN,  Keys::CommandModifier) },
 
 
-		{ new SpawnCommand_Event({ "xterm" }),	Input(Input::Type::KEYBOARD,	Input::Value::KEY_T,	Keys::CommandModifier) },
+		{ new SpawnCommand_Event({ "xterm" }), Input(Input::Type::KEYBOARD, Input::Value::KEY_T, Keys::CommandModifier) },
 
 
 		#define TAG_MODIFIER		Keys::CommandModifier
-		#define TAG_TOGGLE_MODIFIER	Input::Modifier::SHIFT
-		#define TAG_CLIENT_MODIFIER	Input::Modifier::CONTROL
+		#define TAG_TOGGLE_MODIFIER Input::Modifier::SHIFT
+		#define TAG_CLIENT_MODIFIER Input::Modifier::CONTROL
 
 		#define TAG_KEY(TagNumber, InputType, InputValue) \
 		{ new TagDisplay_Event(TagDisplay_Event::Target::ROOT,	 TagDisplay_Event::Mode::SET,	 0x01 << TagNumber), Input(InputType, InputValue, TAG_MODIFIER) },\
@@ -110,7 +111,7 @@ namespace Config
 	};
 
 
-	// Window decorator
+	// Window decorator - Set to nullptr to disable all decorations
 	Glass::WindowDecorator * (* const WindowDecorator)(DisplayServer &, WindowManager &) = Default_WindowDecorator::Create;
 
 
