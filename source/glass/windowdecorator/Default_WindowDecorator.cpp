@@ -18,6 +18,7 @@
 */
 
 #include "glass/core/DisplayServer.hpp"
+#include "glass/window/Default_FrameWindow.hpp"
 #include "glass/windowdecorator/Default_WindowDecorator.hpp"
 
 using namespace Glass;
@@ -49,16 +50,35 @@ void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, unsigne
 	// Find the frame if it already exists
 	auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows(ClientWindow);
 
-	for (auto AuxiliaryWindow : *AuxiliaryWindowsAccessor)
+	for (auto AuxiliaryWindow = AuxiliaryWindowsAccessor->begin();
+			  AuxiliaryWindow != AuxiliaryWindowsAccessor->end();
+			  ++AuxiliaryWindow)
 	{
-		if ((Frame = dynamic_cast<FrameWindow *>(AuxiliaryWindow)))
-			break;
+		if ((Frame = dynamic_cast<FrameWindow *>(*AuxiliaryWindow)))
+		{
+			if (dynamic_cast<Default_FrameWindow *>(Frame))
+				break;
+			else // Delete other types of frames
+			{
+				{
+					auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+
+					AuxiliaryWindowsAccessor->remove(Frame);
+				}
+
+				delete Frame;
+
+				Frame = nullptr;
+
+				AuxiliaryWindow = AuxiliaryWindowsAccessor->erase(AuxiliaryWindow);
+			}
+		}
 	}
 
 
 	if (Frame == nullptr)
 	{
-		Frame = new FrameWindow(ClientWindow, "Frame", this->DisplayServer, FrameThickness * -1, FrameThickness, true);
+		Frame = new Default_FrameWindow(ClientWindow, "Frame", this->DisplayServer, FrameThickness * -1, FrameThickness, true);
 
 		AuxiliaryWindowsAccessor->push_back(Frame);
 
