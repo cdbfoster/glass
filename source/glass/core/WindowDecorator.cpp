@@ -60,15 +60,15 @@ void WindowDecorator::FlushWindow(AuxiliaryWindow &AuxiliaryWindow)
 }
 
 
-void WindowDecorator::DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, Color const &Color, DrawMode Mode)
+void WindowDecorator::DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode)
 {
-	this->DisplayServer.DrawRectangle(AuxiliaryWindow, ULCorner, LRCorner, Color, (Glass::DisplayServer::DrawMode)Mode);
+	this->DisplayServer.DrawRectangle(AuxiliaryWindow, Position, Size, Color, (Glass::DisplayServer::DrawMode)Mode);
 }
 
 
-void WindowDecorator::DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, float Radius, Color const &Color, DrawMode Mode)
+void WindowDecorator::DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode)
 {
-	this->DisplayServer.DrawRoundedRectangle(AuxiliaryWindow, ULCorner, LRCorner, Radius, Color, (Glass::DisplayServer::DrawMode)Mode);
+	this->DisplayServer.DrawRoundedRectangle(AuxiliaryWindow, Position, Size, Radius, Color, (Glass::DisplayServer::DrawMode)Mode);
 }
 
 

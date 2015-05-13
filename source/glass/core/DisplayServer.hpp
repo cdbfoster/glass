@@ -66,8 +66,8 @@ namespace Glass
 		virtual void ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor) = 0;
 		virtual void FlushWindow(AuxiliaryWindow &AuxiliaryWindow) = 0;
 
-		virtual void DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, Color const &Color, DrawMode Mode) = 0;
-		virtual void DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, float Radius, Color const &Color, DrawMode Mode) = 0;
+		virtual void DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode) = 0;
+		virtual void DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode) = 0;
 
 	protected: // Window manipulation interface, used by the Window interfaces
 		friend class AuxiliaryWindow;
