@@ -24,15 +24,13 @@
 
 #include "glass/core/Event.hpp"
 #include "glass/core/Input.hpp"
-#include "glass/core/WindowDecorator.hpp"
-#include "glass/core/WindowLayout.hpp"
 #include "glass/windowdecorator/Default_WindowDecorator.hpp"
-#include "glass/windowlayout/Dummy_WindowLayout.hpp"
 
 namespace Glass
 {
 	class DisplayServer;
 	class WindowDecorator;
+	class WindowLayout;
 	class WindowManager;
 }
 
@@ -105,10 +103,8 @@ namespace Config
 	};
 
 
-	// Window layouts
-	std::vector<WindowLayout *(*)(Vector const &, Vector const &)> const WindowLayouts = {
-		Dummy_WindowLayout::Create
-	};
+	// Window layouts - Leave the list blank to use a dummy layout
+	std::vector<WindowLayout *(*)(Vector const &, Vector const &)> const WindowLayouts = { };
 
 
 	// Window decorator - Set to nullptr to disable all decorations

@@ -25,6 +25,7 @@
 #include "glass/core/Event.hpp"
 #include "glass/core/EventQueue.hpp"
 #include "glass/core/Log.hpp"
+#include "glass/core/WindowLayout.hpp"
 #include "glass/windowmanager/dynamic_windowmanager/EventHandler.hpp"
 #include "glass/windowmanager/dynamic_windowmanager/TagManager.hpp"
 

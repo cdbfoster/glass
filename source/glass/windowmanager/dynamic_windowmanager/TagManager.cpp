@@ -20,6 +20,8 @@
 #include <limits>
 
 #include "config.hpp"
+#include "glass/core/WindowLayout.hpp"
+#include "glass/windowlayout/Dummy_WindowLayout.hpp"
 #include "glass/windowmanager/dynamic_windowmanager/TagManager.hpp"
 
 using namespace Glass;
@@ -518,10 +520,18 @@ TagManager::TagContainer::Tag::Tag(TagContainer const &Container, std::string co
 	Name(Name),
 	Activated(false)
 {
-	for (auto Layout : Config::WindowLayouts)
+	if (!Config::WindowLayouts.empty())
 	{
-		this->WindowLayouts.push_back(Layout(this->Container.RootWindow.GetPosition(),
-											 this->Container.RootWindow.GetSize()));
+		for (auto Layout : Config::WindowLayouts)
+		{
+			this->WindowLayouts.push_back(Layout(this->Container.RootWindow.GetPosition(),
+												 this->Container.RootWindow.GetSize()));
+		}
+	}
+	else
+	{
+		this->WindowLayouts.push_back(new Dummy_WindowLayout(this->Container.RootWindow.GetPosition(),
+															 this->Container.RootWindow.GetSize()));
 	}
 
 	// Set ActiveWindowLayout to the right position in the layout list
