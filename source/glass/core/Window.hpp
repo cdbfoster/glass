@@ -269,18 +269,6 @@ namespace Glass
 		virtual void Update() = 0;
 
 	protected:
-		// A mirror of DisplayServer's AuxiliaryWindow drawing interface.  AuxiliaryWindow implementations will use this to
-		// draw on themselves.
-		enum class DrawMode { OVERLAY,
-							  REPLACE };
-
-		void ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor = Color(0.0f, 0.0f, 0.0f, 0.0f));
-		void FlushWindow(AuxiliaryWindow &AuxiliaryWindow);
-
-		void DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, Color const &Color, DrawMode Mode = DrawMode::OVERLAY);
-		void DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, float Radius, Color const &Color, DrawMode Mode = DrawMode::OVERLAY);
-
-	protected:
 		Glass::PrimaryWindow   &PrimaryWindow;
 		std::string				Name;
 	};

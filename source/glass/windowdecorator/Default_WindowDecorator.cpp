@@ -44,7 +44,7 @@ Default_WindowDecorator::~Default_WindowDecorator()
 void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, unsigned char HintMask)
 {
 	FrameWindow *Frame = nullptr;
-	Vector const FrameThickness = (HintMask & Hint::MINIMAL ? Vector(2, 2) : Vector(4, 4));
+	Vector const FrameThickness = (HintMask & Hint::MINIMAL ? Vector(3, 3) : Vector(4, 4));
 
 	// Find the frame if it already exists
 	auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows(ClientWindow);

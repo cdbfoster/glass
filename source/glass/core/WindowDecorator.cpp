@@ -48,6 +48,30 @@ locked_accessor<AuxiliaryWindowList> WindowDecorator::GetAuxiliaryWindows(Primar
 }
 
 
+void WindowDecorator::ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor)
+{
+	this->DisplayServer.ClearWindow(AuxiliaryWindow, ClearColor);
+}
+
+
+void WindowDecorator::FlushWindow(AuxiliaryWindow &AuxiliaryWindow)
+{
+	this->DisplayServer.FlushWindow(AuxiliaryWindow);
+}
+
+
+void WindowDecorator::DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, Color const &Color, DrawMode Mode)
+{
+	this->DisplayServer.DrawRectangle(AuxiliaryWindow, ULCorner, LRCorner, Color, (Glass::DisplayServer::DrawMode)Mode);
+}
+
+
+void WindowDecorator::DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, float Radius, Color const &Color, DrawMode Mode)
+{
+	this->DisplayServer.DrawRoundedRectangle(AuxiliaryWindow, ULCorner, LRCorner, Radius, Color, (Glass::DisplayServer::DrawMode)Mode);
+}
+
+
 EventQueue &WindowDecorator::GetEventQueue() const
 {
 	return this->WindowManager.IncomingEventQueue;

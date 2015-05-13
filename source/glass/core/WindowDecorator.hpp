@@ -55,6 +55,17 @@ namespace Glass
 		locked_accessor<Glass::DisplayServer::AuxiliaryWindowList> GetAuxiliaryWindows() const;
 		locked_accessor<AuxiliaryWindowList>					   GetAuxiliaryWindows(PrimaryWindow &PrimaryWindow) const;
 
+		// A mirror of DisplayServer's AuxiliaryWindow drawing interface.  WindowDecorator implementations will use this to
+		// draw on AuxiliaryWindows.
+		enum class DrawMode { OVERLAY,
+							  REPLACE };
+
+		void ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor = Color(0.0f, 0.0f, 0.0f, 0.0f));
+		void FlushWindow(AuxiliaryWindow &AuxiliaryWindow);
+
+		void DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, Color const &Color, DrawMode Mode = DrawMode::OVERLAY);
+		void DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, float Radius, Color const &Color, DrawMode Mode = DrawMode::OVERLAY);
+
 		EventQueue &GetEventQueue() const;
 
 		Glass::DisplayServer &DisplayServer;
