@@ -17,6 +17,7 @@
 * Copyright 2014-2015 Chris Foster
 */
 
+#include <cmath>
 #include <set>
 #include <string.h> // memset
 #include <vector>
@@ -43,7 +44,8 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 	Data(new Implementation(*this))
 {
 	// Connect to X
-	this->Data->XConnection = xcb_connect(nullptr, &this->Data->DefaultScreenIndex);
+	int DefaultScreenIndex;
+	this->Data->XConnection = xcb_connect(nullptr, &DefaultScreenIndex);
 	if (xcb_connection_has_error(this->Data->XConnection))
 	{
 		LOG_FATAL << "Could not connect to the X server!" << std::endl;
@@ -56,7 +58,7 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 
 
 	// Get default screen info
-	this->Data->DefaultScreenInfo = xcb_aux_get_screen(this->Data->XConnection, this->Data->DefaultScreenIndex);
+	this->Data->XScreen = xcb_aux_get_screen(this->Data->XConnection, DefaultScreenIndex);
 
 
 	// Delete pre-existing events, displaying any errors
@@ -91,7 +93,7 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 		uint32_t const EventMask = XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT;
 
 		// Attempt to set substructure redirect on the root window
-		xcb_change_window_attributes(this->Data->XConnection, this->Data->DefaultScreenInfo->root, XCB_CW_EVENT_MASK, &EventMask);
+		xcb_change_window_attributes(this->Data->XConnection, this->Data->XScreen->root, XCB_CW_EVENT_MASK, &EventMask);
 		xcb_aux_sync(this->Data->XConnection);
 
 		// Any resulting event must be an error
@@ -103,9 +105,24 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 	}
 
 
+	// Setup the visual and colormap.  Use a 32-bit visual for transparency if available.
+	this->Data->XVisual =	   xcb_aux_find_visual_by_id(this->Data->XScreen, this->Data->XScreen->root_visual);
+	this->Data->XVisualDepth = this->Data->XScreen->root_depth;
+	this->Data->XColorMap =	   this->Data->XScreen->default_colormap;
+
+	if (xcb_visualtype_t * const Visual32Bit = xcb_aux_find_visual_by_attrs(this->Data->XScreen, -1, 32))
+	{
+		this->Data->XVisual =	   Visual32Bit;
+		this->Data->XVisualDepth = 32;
+
+		this->Data->XColorMap =	   xcb_generate_id(this->Data->XConnection);
+		xcb_create_colormap(this->Data->XConnection, XCB_COLORMAP_ALLOC_NONE, this->Data->XColorMap, this->Data->XScreen->root, this->Data->XVisual->visual_id);
+	}
+
+
 	// Initialize the root window(s)
 	{
-		RootWindowList RootWindows = this->Data->CreateRootWindows({ this->Data->DefaultScreenInfo->root });
+		RootWindowList RootWindows = this->Data->CreateRootWindows({ this->Data->XScreen->root });
 
 		for (auto &RootWindow : RootWindows)
 			this->OutgoingEventQueue.AddEvent(*(new RootCreate_Event(*RootWindow)));
@@ -125,7 +142,7 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 
 		{
 			// Query the tree
-			xcb_query_tree_cookie_t	TreeQueryCookie = xcb_query_tree_unchecked(this->Data->XConnection, this->Data->DefaultScreenInfo->root);
+			xcb_query_tree_cookie_t	TreeQueryCookie = xcb_query_tree_unchecked(this->Data->XConnection, this->Data->XScreen->root);
 			xcb_query_tree_reply_t *TreeQueryReply = nullptr;
 
 			if (!(TreeQueryReply = xcb_query_tree_reply(this->Data->XConnection, TreeQueryCookie, nullptr)))
@@ -328,6 +345,22 @@ void X11XCB_DisplayServer::Sync()
 		}
 		else
 			ConfigureWindow(this->Data->XConnection, Window, WindowID, Position, Size);
+
+		if (AuxiliaryWindow const * const WindowCast = dynamic_cast<AuxiliaryWindow const *>(&Window))
+		{
+			auto WindowDataAccessor = this->Data->GetWindowData();
+
+			auto WindowData = WindowDataAccessor->find(WindowID);
+			if (WindowData != WindowDataAccessor->end())
+			{
+				AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
+
+				Vector const Size = WindowCast->GetSize();
+				cairo_xcb_surface_set_size(WindowDataCast->CairoSurface, Size.x, Size.y);
+
+				WindowDataCast->ReplayDrawOperations();
+			}
+		}
 
 		delete ChangeData;
 	}
@@ -762,27 +795,109 @@ void X11XCB_DisplayServer::KillClientWindow(ClientWindow const &ClientWindow)
 }
 
 
+namespace Cairo
+{
+	enum class DrawMode { OVERLAY,
+						  REPLACE };
+
+
+	void ClearWindow(AuxiliaryWindow *AuxiliaryWindow, cairo_t *Context, Color const &Color)
+	{
+		Vector const Size = AuxiliaryWindow->GetSize();
+
+		cairo_set_operator(Context, CAIRO_OPERATOR_SOURCE);
+		cairo_set_source_rgba(Context, Color.R, Color.B, Color.G, Color.A);
+		cairo_rectangle(Context, 0, 0, Size.x, Size.y);
+		cairo_fill(Context);
+	}
+
+
+	void FlushWindow(cairo_surface_t *Surface)
+	{
+		cairo_surface_flush(Surface);
+	}
+
+
+	void DrawRectangle(cairo_t *Context, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode)
+	{
+		cairo_set_operator(Context, Mode == DrawMode::OVERLAY ? CAIRO_OPERATOR_OVER : CAIRO_OPERATOR_SOURCE);
+		cairo_set_source_rgba(Context, Color.R, Color.B, Color.G, Color.A);
+		cairo_rectangle(Context, Position.x, Position.y, Size.x, Size.y);
+		cairo_fill(Context);
+	}
+
+
+	void DrawRoundedRectangle(cairo_t *Context, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode)
+	{
+		cairo_set_operator(Context, Mode == DrawMode::OVERLAY ? CAIRO_OPERATOR_OVER : CAIRO_OPERATOR_SOURCE);
+		cairo_set_source_rgba(Context, Color.R, Color.B, Color.G, Color.A);
+
+		cairo_new_sub_path(Context);
+		cairo_arc(Context, Position.x + Size.x - Radius, Position.y + Radius, Radius, -M_PI_2, 0);
+		cairo_arc(Context, Position.x + Size.x - Radius, Position.y + Size.y - Radius, Radius, 0, M_PI_2);
+		cairo_arc(Context, Position.x + Radius, Position.y + Size.y - Radius, Radius, M_PI_2, M_PI);
+		cairo_arc(Context, Position.x + Radius, Position.y + Radius, Radius, M_PI, M_PI + M_PI_2);
+		cairo_close_path(Context);
+
+		cairo_fill(Context);
+	}
+}
+
+
 void X11XCB_DisplayServer::ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor)
 {
+	auto WindowDataAccessor = this->Data->GetWindowData();
 
+	auto WindowData = WindowDataAccessor->find(&AuxiliaryWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
+
+		WindowDataCast->DrawOperations.clear();
+		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::ClearWindow, &AuxiliaryWindow, WindowDataCast->CairoContext, ClearColor));
+	}
 }
 
 
 void X11XCB_DisplayServer::FlushWindow(AuxiliaryWindow &AuxiliaryWindow)
 {
+	auto WindowDataAccessor = this->Data->GetWindowData();
 
+	auto WindowData = WindowDataAccessor->find(&AuxiliaryWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
+
+		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::FlushWindow, WindowDataCast->CairoSurface));
+	}
 }
 
 
 void X11XCB_DisplayServer::DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode)
 {
+	auto WindowDataAccessor = this->Data->GetWindowData();
 
+	auto WindowData = WindowDataAccessor->find(&AuxiliaryWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
+
+		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::DrawRectangle, WindowDataCast->CairoContext, Position, Size, Color, (Cairo::DrawMode)Mode));
+	}
 }
 
 
 void X11XCB_DisplayServer::DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode)
 {
+	auto WindowDataAccessor = this->Data->GetWindowData();
 
+	auto WindowData = WindowDataAccessor->find(&AuxiliaryWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
+
+		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::DrawRoundedRectangle, WindowDataCast->CairoContext, Position, Size, Radius, Color, (Cairo::DrawMode)Mode));
+	}
 }
 
 
@@ -864,14 +979,20 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 								   XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
 
 		uint32_t const Values[] = {
-			this->Data->DefaultScreenInfo->white_pixel,
+			this->Data->XScreen->black_pixel,
+			this->Data->XScreen->white_pixel,
 			1,
-			EventMask
+			EventMask,
+			this->Data->XColorMap
 		};
 
-		xcb_create_window(this->Data->XConnection, this->Data->DefaultScreenInfo->root_depth, AuxiliaryWindowID, RootWindowID,
-						  Position.x, Position.y, Size.x, Size.y, 0, XCB_COPY_FROM_PARENT, this->Data->DefaultScreenInfo->root_visual,
-						  XCB_CW_BACK_PIXEL | XCB_CW_OVERRIDE_REDIRECT | XCB_CW_EVENT_MASK, Values);
+		xcb_create_window(this->Data->XConnection, this->Data->XVisualDepth,
+						  AuxiliaryWindowID, RootWindowID,
+						  Position.x, Position.y, Size.x, Size.y,
+						  0, XCB_COPY_FROM_PARENT,
+						  this->Data->XVisual->visual_id,
+						  XCB_CW_BACK_PIXEL | XCB_CW_BORDER_PIXEL | XCB_CW_OVERRIDE_REDIRECT | XCB_CW_EVENT_MASK | XCB_CW_COLORMAP,
+						  Values);
 
 
 		// Disable events
@@ -895,6 +1016,11 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 		}
 
 
+		// Prepare drawing surfaces
+		cairo_surface_t * const CairoSurface = cairo_xcb_surface_create(this->Data->XConnection, AuxiliaryWindowID, this->Data->XVisual, Size.x, Size.y);
+		cairo_t * const CairoContext = cairo_create(CairoSurface);
+
+
 		// Enable events
 		xcb_change_window_attributes(this->Data->XConnection, AuxiliaryWindowID, XCB_CW_EVENT_MASK, &EventMask);
 		xcb_change_window_attributes(this->Data->XConnection, PrimaryWindowID, XCB_CW_EVENT_MASK, &PrimaryWindowData->EventMask);
@@ -903,7 +1029,7 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 
 
 		// Store window data
-		WindowDataAccessor->push_back(new AuxiliaryWindowData(AuxiliaryWindow, AuxiliaryWindowID, EventMask, PrimaryWindowData, RootWindowID));
+		WindowDataAccessor->push_back(new AuxiliaryWindowData(AuxiliaryWindow, AuxiliaryWindowID, EventMask, PrimaryWindowData, RootWindowID, CairoSurface, CairoContext));
 	}
 	else
 	{
@@ -960,6 +1086,11 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 		}
 
 		xcb_destroy_window(this->Data->XConnection, AuxiliaryWindowData->ID);
+
+
+		// Destroy the drawing surfaces
+		cairo_destroy(AuxiliaryWindowData->CairoContext);
+		cairo_surface_destroy(AuxiliaryWindowData->CairoSurface);
 
 
 		// Enable events

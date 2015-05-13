@@ -40,11 +40,12 @@ namespace Glass
 
 		// Basic X server data
 		xcb_connection_t *XConnection;
+		xcb_screen_t	 *XScreen;
 
-		int DefaultScreenIndex;
-		xcb_screen_t *DefaultScreenInfo;
+		xcb_visualtype_t *XVisual;
+		uint8_t			  XVisualDepth;
 
-		xcb_window_t SupportingWindowID; // EWMH supporting window
+		xcb_colormap_t	  XColorMap;
 
 
 		// Event handling

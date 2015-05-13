@@ -55,12 +55,22 @@ ClientWindowData::ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID,
 }
 
 
-AuxiliaryWindowData::AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, uint32_t EventMask, WindowData *PrimaryWindowData, xcb_window_t RootID) :
+AuxiliaryWindowData::AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, uint32_t EventMask, WindowData *PrimaryWindowData, xcb_window_t RootID,
+										 cairo_surface_t *CairoSurface, cairo_t *CairoContext) :
 	WindowData(Window, ID, EventMask),
 	PrimaryWindowData(PrimaryWindowData),
-	RootID(RootID)
+	RootID(RootID),
+	CairoSurface(CairoSurface),
+	CairoContext(CairoContext)
 {
 
+}
+
+
+void AuxiliaryWindowData::ReplayDrawOperations()
+{
+	for (auto &Operation : this->DrawOperations)
+		Operation();
 }
 
 

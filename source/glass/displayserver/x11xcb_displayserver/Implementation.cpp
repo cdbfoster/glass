@@ -29,7 +29,7 @@ using namespace Glass;
 X11XCB_DisplayServer::Implementation::Implementation(X11XCB_DisplayServer &DisplayServer) :
 	DisplayServer(DisplayServer),
 	XConnection(nullptr),
-	DefaultScreenInfo(nullptr),
+	XScreen(nullptr),
 	ActiveWindowID(XCB_NONE)
 {
 
@@ -135,8 +135,8 @@ RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDL
 		xcb_window_t const SupportingWindowID = xcb_generate_id(this->XConnection);
 
 		// Create the window
-		xcb_create_window(this->XConnection, this->DefaultScreenInfo->root_depth, SupportingWindowID, RootWindowID,
-						  -1, -1, 1, 1, 0, XCB_COPY_FROM_PARENT, this->DefaultScreenInfo->root_visual, 0, NULL);
+		xcb_create_window(this->XConnection, this->XScreen->root_depth, SupportingWindowID, RootWindowID,
+						  -1, -1, 1, 1, 0, XCB_COPY_FROM_PARENT, this->XScreen->root_visual, 0, NULL);
 
 		// Add the supporting property to both the root window and the supporting window.  Point them both at the supporting window.
 		xcb_change_property(this->XConnection, XCB_PROP_MODE_REPLACE, RootWindowID,
@@ -171,8 +171,8 @@ RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDL
 		// Create the root window with default dimensions, for now
 		RootWindow *NewRootWindow = new RootWindow(this->DisplayServer,
 												   Vector(0, 0),
-												   Vector(this->DefaultScreenInfo->width_in_pixels,
-														  this->DefaultScreenInfo->height_in_pixels));
+												   Vector(this->XScreen->width_in_pixels,
+														  this->XScreen->height_in_pixels));
 
 
 		// Store data
@@ -455,7 +455,7 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 			ClientWindowsAccessor->push_back(NewClientWindow);
 		}
 
-		this->WindowData.push_back(new ClientWindowData(*NewClientWindow, ClientWindowID, EventMask, NeverFocus, XCB_NONE, this->DefaultScreenInfo->root));
+		this->WindowData.push_back(new ClientWindowData(*NewClientWindow, ClientWindowID, EventMask, NeverFocus, XCB_NONE, this->XScreen->root));
 
 		ClientWindows.push_back(NewClientWindow);
 	}
