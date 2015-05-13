@@ -54,6 +54,13 @@ namespace Glass
 		void KillClientWindow(ClientWindow const &ClientWindow);
 
 	protected:
+		void ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor);
+		void FlushWindow(AuxiliaryWindow &AuxiliaryWindow);
+
+		void DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, Color const &Color, DrawMode Mode);
+		void DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, float Radius, Color const &Color, DrawMode Mode);
+
+	protected:
 		void ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow);
 		void DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow);
 

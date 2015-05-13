@@ -16,6 +16,7 @@
 # Copyright 2014-2015 Chris Foster
 
 set(glass_include ${glass_include}
+	core/Color.hpp
 	core/DisplayServer.hpp
 	core/Event.hpp
 	core/EventQueue.hpp

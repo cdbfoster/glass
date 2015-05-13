@@ -522,6 +522,30 @@ void AuxiliaryWindow::SetName(std::string const &Name)
 }
 
 
+void AuxiliaryWindow::ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor)
+{
+	this->DisplayServer.ClearWindow(AuxiliaryWindow, ClearColor);
+}
+
+
+void AuxiliaryWindow::FlushWindow(AuxiliaryWindow &AuxiliaryWindow)
+{
+	this->DisplayServer.FlushWindow(AuxiliaryWindow);
+}
+
+
+void AuxiliaryWindow::DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, Color const &Color, DrawMode Mode)
+{
+	this->DisplayServer.DrawRectangle(AuxiliaryWindow, ULCorner, LRCorner, Color, (Glass::DisplayServer::DrawMode)Mode);
+}
+
+
+void AuxiliaryWindow::DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, float Radius, Color const &Color, DrawMode Mode)
+{
+	this->DisplayServer.DrawRoundedRectangle(AuxiliaryWindow, ULCorner, LRCorner, Radius, Color, (Glass::DisplayServer::DrawMode)Mode);
+}
+
+
 FrameWindow::FrameWindow(Glass::ClientWindow &ClientWindow, std::string const &Name,
 						 Glass::DisplayServer &DisplayServer, Vector const &ULOffset, Vector const &LROffset, bool Visible) :
 	AuxiliaryWindow(ClientWindow, Name, DisplayServer,

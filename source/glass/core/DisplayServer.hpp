@@ -22,6 +22,7 @@
 
 #include <mutex>
 
+#include "glass/core/Color.hpp"
 #include "glass/core/Window.hpp"
 #include "util/locked_accessor.hpp"
 
@@ -58,7 +59,7 @@ namespace Glass
 
 		locked_accessor<AuxiliaryWindowList> GetAuxiliaryWindows();
 
-	protected: // Window manipulation interface -- not to be used directly, use the Window interfaces
+	protected: // Window manipulation interface, used by the Window interfaces
 		friend class AuxiliaryWindow;
 		friend class ClientWindow;
 		friend class FrameWindow;
@@ -80,6 +81,16 @@ namespace Glass
 
 		virtual void CloseClientWindow(ClientWindow const &ClientWindow) = 0;
 		virtual void KillClientWindow(ClientWindow const &ClientWindow) = 0;
+
+	protected: // AuxiliaryWindow drawing interface, used by AuxiliaryWindow implementations
+		enum class DrawMode { OVERLAY,
+							  REPLACE };
+
+		virtual void ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor) = 0;
+		virtual void FlushWindow(AuxiliaryWindow &AuxiliaryWindow) = 0;
+
+		virtual void DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, Color const &Color, DrawMode Mode) = 0;
+		virtual void DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, float Radius, Color const &Color, DrawMode Mode) = 0;
 
 	protected:
 		virtual void ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow) = 0;

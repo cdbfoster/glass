@@ -24,6 +24,7 @@
 #include <mutex>
 #include <string>
 
+#include "glass/core/Color.hpp"
 #include "glass/core/Vector.hpp"
 #include "util/locked_accessor.hpp"
 
@@ -266,6 +267,18 @@ namespace Glass
 
 		virtual void HandleEvent(Event const &Event) = 0;
 		virtual void Update() = 0;
+
+	protected:
+		// A mirror of DisplayServer's AuxiliaryWindow drawing interface.  AuxiliaryWindow implementations will use this to
+		// draw on themselves.
+		enum class DrawMode { OVERLAY,
+							  REPLACE };
+
+		void ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor = Color(0.0f, 0.0f, 0.0f, 0.0f));
+		void FlushWindow(AuxiliaryWindow &AuxiliaryWindow);
+
+		void DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, Color const &Color, DrawMode Mode = DrawMode::OVERLAY);
+		void DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, float Radius, Color const &Color, DrawMode Mode = DrawMode::OVERLAY);
 
 	protected:
 		Glass::PrimaryWindow   &PrimaryWindow;

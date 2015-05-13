@@ -762,6 +762,30 @@ void X11XCB_DisplayServer::KillClientWindow(ClientWindow const &ClientWindow)
 }
 
 
+void X11XCB_DisplayServer::ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor)
+{
+
+}
+
+
+void X11XCB_DisplayServer::FlushWindow(AuxiliaryWindow &AuxiliaryWindow)
+{
+
+}
+
+
+void X11XCB_DisplayServer::DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, Color const &Color, DrawMode Mode)
+{
+
+}
+
+
+void X11XCB_DisplayServer::DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &ULCorner, Vector const &LRCorner, float Radius, Color const &Color, DrawMode Mode)
+{
+
+}
+
+
 void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow)
 {
 	auto WindowDataAccessor = this->Data->GetWindowData();
