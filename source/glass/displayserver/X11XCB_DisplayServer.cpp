@@ -1071,6 +1071,11 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 		xcb_change_window_attributes(this->Data->XConnection, AuxiliaryWindowData->ID, XCB_CW_EVENT_MASK, &NoEvent);
 
 
+		// Destroy the drawing surfaces
+		cairo_destroy(AuxiliaryWindowData->CairoContext);
+		cairo_surface_destroy(AuxiliaryWindowData->CairoSurface);
+
+
 		// Destroy the auxiliary window
 		if (dynamic_cast<FrameWindow *>(&AuxiliaryWindow))
 		{
@@ -1086,11 +1091,6 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 		}
 
 		xcb_destroy_window(this->Data->XConnection, AuxiliaryWindowData->ID);
-
-
-		// Destroy the drawing surfaces
-		cairo_destroy(AuxiliaryWindowData->CairoContext);
-		cairo_surface_destroy(AuxiliaryWindowData->CairoSurface);
 
 
 		// Enable events
