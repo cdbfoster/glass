@@ -44,8 +44,19 @@ void Dynamic_WindowManager::Implementation::ActivateClient(ClientWindow &ClientW
 
 	RootWindow * const ClientRoot = ClientWindow.GetRootWindow();
 
-	this->ActiveRoot =    ClientRoot;
-	this->ActiveClient = &ClientWindow;
+	{
+		Glass::ClientWindow * const OldActiveClient = this->ActiveClient;
+
+		this->ActiveRoot =    ClientRoot;
+		this->ActiveClient = &ClientWindow;
+
+		if (OldActiveClient != nullptr &&
+			this->WindowDecorator != nullptr &&
+			this->ClientData.find(*OldActiveClient) != this->ClientData.end())
+		{
+			this->WindowDecorator->DecorateWindow(*OldActiveClient, this->GetDecorationHint(*OldActiveClient));
+		}
+	}
 
 	{
 		auto ClientWindowsAccessor = this->WindowManager.GetClientWindows();
