@@ -17,6 +17,7 @@
 * Copyright 2014-2015 Chris Foster
 */
 
+#include "config.hpp"
 #include "glass/core/DisplayServer.hpp"
 #include "glass/windowdecorator/Default_WindowDecorator.hpp"
 
@@ -41,24 +42,68 @@ Default_WindowDecorator::~Default_WindowDecorator()
 }
 
 
+namespace Glass
+{
+	class Default_FrameWindow : public FrameWindow
+	{
+	public:
+		Default_FrameWindow(Glass::ClientWindow &ClientWindow, std::string const &Name,
+							Glass::DisplayServer &DisplayServer, Vector const &ULOffset, Vector const &LROffset, bool Visible,
+							Default_WindowDecorator &WindowDecorator) :
+			FrameWindow(ClientWindow, Name, DisplayServer, ULOffset, LROffset, Visible),
+			WindowDecorator(WindowDecorator)
+		{ }
+
+		void Update()
+		{
+			FrameWindow::Update();
+
+			this->WindowDecorator.PaintFrame(*this);
+		}
+
+	private:
+		Default_WindowDecorator &WindowDecorator;
+	};
+}
+
+
 void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, unsigned char HintMask)
 {
 	FrameWindow *Frame = nullptr;
-	Vector const FrameThickness = (HintMask & Hint::MINIMAL ? Vector(3, 3) : Vector(4, 4));
+	Vector const FrameThickness = (HintMask & Hint::MINIMAL ? Vector(4, 4) : Vector(3, 3));
 
 	// Find the frame if it already exists
 	auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows(ClientWindow);
 
-	for (auto AuxiliaryWindow : *AuxiliaryWindowsAccessor)
+	for (auto AuxiliaryWindow = AuxiliaryWindowsAccessor->begin();
+			  AuxiliaryWindow != AuxiliaryWindowsAccessor->end();
+			  ++AuxiliaryWindow)
 	{
-		if ((Frame = dynamic_cast<FrameWindow *>(AuxiliaryWindow)))
-			break;
+		if ((Frame = dynamic_cast<FrameWindow *>(*AuxiliaryWindow)))
+		{
+			if (dynamic_cast<Default_FrameWindow *>(Frame))
+				break;
+			else // Delete other types of frames
+			{
+				{
+					auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+
+					AuxiliaryWindowsAccessor->remove(Frame);
+				}
+
+				delete Frame;
+				Frame = nullptr;
+
+				AuxiliaryWindow = AuxiliaryWindowsAccessor->erase(AuxiliaryWindow);
+			}
+		}
 	}
 
+	this->ClientHints[&ClientWindow] = HintMask;
 
 	if (Frame == nullptr)
 	{
-		Frame = new FrameWindow(ClientWindow, "Frame", this->DisplayServer, FrameThickness * -1, FrameThickness, true);
+		Frame = new Default_FrameWindow(ClientWindow, "Frame", this->DisplayServer, FrameThickness * -1, FrameThickness, true, *this);
 
 		AuxiliaryWindowsAccessor->push_back(Frame);
 
@@ -67,6 +112,8 @@ void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, unsigne
 
 			AuxiliaryWindowsAccessor->push_back(Frame);
 		}
+
+		Frame->Update();
 	}
 	else
 	{
@@ -92,7 +139,7 @@ void Default_WindowDecorator::StripWindow(PrimaryWindow &PrimaryWindow)
 				  AuxiliaryWindow != AuxiliaryWindowsAccessor->end();
 				  ++AuxiliaryWindow)
 		{
-			if (dynamic_cast<FrameWindow *>(*AuxiliaryWindow))
+			if (dynamic_cast<Default_FrameWindow *>(*AuxiliaryWindow))
 			{
 				{
 					auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
@@ -134,4 +181,18 @@ Vector Default_WindowDecorator::GetDecoratedActiveAreaPosition(RootWindow &RootW
 Vector Default_WindowDecorator::GetDecoratedActiveAreaSize(RootWindow &RootWindow)
 {
 	return Vector();
+}
+
+
+void Default_WindowDecorator::PaintFrame(Default_FrameWindow &FrameWindow)
+{
+	unsigned int const ClientHintMask = this->ClientHints[static_cast<ClientWindow *>(&FrameWindow.GetPrimaryWindow())];
+
+	this->ClearWindow(FrameWindow);
+
+	this->DrawRoundedRectangle(FrameWindow, Vector(0, 0), FrameWindow.GetSize(), 2.0f, (ClientHintMask & Hint::ACTIVE ? Config::FrameColorActive :
+																					   (ClientHintMask & Hint::SPECIAL ? Config::FrameColorUrgent :
+																														 Config::FrameColorNormal)));
+
+	this->FlushWindow(FrameWindow);
 }

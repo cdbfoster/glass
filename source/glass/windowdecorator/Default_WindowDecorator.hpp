@@ -20,11 +20,14 @@
 #ifndef GLASS_WINDOWDECORATOR_DEFAULT_WINDOWDECORATOR
 #define GLASS_WINDOWDECORATOR_DEFAULT_WINDOWDECORATOR
 
+#include <map>
+
 #include "glass/core/WindowDecorator.hpp"
 
 namespace Glass
 {
 	class DisplayServer;
+	class Default_FrameWindow;
 
 	class Default_WindowDecorator : public WindowDecorator
 	{
@@ -43,6 +46,13 @@ namespace Glass
 
 		Vector GetDecoratedActiveAreaPosition(RootWindow &RootWindow);
 		Vector GetDecoratedActiveAreaSize(RootWindow &RootWindow);
+
+	private:
+		friend class Default_FrameWindow;
+
+		void PaintFrame(Default_FrameWindow &FrameWindow);
+
+		std::map<ClientWindow *, unsigned char> ClientHints;
 	};
 }
 
