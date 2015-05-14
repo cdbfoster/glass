@@ -611,7 +611,6 @@ void X11XCB_DisplayServer::DeleteWindow(Window &Window)
 		}
 	}
 
-	//if (!dynamic_cast<AuxiliaryWindow *>(&Window)) // Auxiliary window data gets erased by DeactivateAuxiliaryWindow()
 	WindowDataAccessor->erase(&Window);
 }
 

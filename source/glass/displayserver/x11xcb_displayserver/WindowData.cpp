@@ -49,7 +49,8 @@ ClientWindowData::ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID,
 	WindowData(Window, ID, EventMask),
 	NeverFocus(NeverFocus),
 	ParentID(ParentID),
-	RootID(RootID)
+	RootID(RootID),
+	Destroyed(false)
 {
 
 }
