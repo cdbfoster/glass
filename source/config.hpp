@@ -22,6 +22,7 @@
 
 #include <vector>
 
+#include "glass/core/Color.hpp"
 #include "glass/core/Event.hpp"
 #include "glass/core/Input.hpp"
 #include "glass/windowdecorator/Default_WindowDecorator.hpp"
@@ -109,6 +110,10 @@ namespace Config
 
 	// Window decorator - Set to nullptr to disable all decorations
 	Glass::WindowDecorator * (* const WindowDecorator)(DisplayServer &, WindowManager &) = Default_WindowDecorator::Create;
+
+	Color const FrameColorNormal(0.2f, 0.2f, 0.2f, 0.6f);
+	Color const FrameColorActive(0.3f, 0.3f, 0.3f, 0.75f);
+	Color const FrameColorUrgent(0.5f, 0.5f, 0.5f, 0.6f);
 
 
 	// Tag names
