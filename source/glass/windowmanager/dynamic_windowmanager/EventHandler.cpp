@@ -116,7 +116,6 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 	static ClientWindow *ModalMove = nullptr;
 	static ClientWindow *ModalResize = nullptr;
-	static Vector ModalStartPosition;
 	static Vector ModalOldPosition;
 	static Vector ModalResizeMask;
 
@@ -290,7 +289,7 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			if (EventCast->EventMode == WindowModal_Event::Mode::BEGIN && !ModalMove)
 			{
 				ModalMove = this->Owner.ActiveClient;
-				ModalOldPosition = ModalStartPosition;
+				ModalOldPosition = this->Owner.WindowManager.DisplayServer.GetMousePosition();
 
 				if (!this->Owner.ClientData[*ModalMove]->Floating)
 				{
@@ -319,7 +318,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			if (EventCast->EventMode == WindowModal_Event::Mode::BEGIN && !ModalResize)
 			{
 				ModalResize = this->Owner.ActiveClient;
-				ModalOldPosition = ModalStartPosition;
+
+				Vector const StartPosition = this->Owner.WindowManager.DisplayServer.GetMousePosition();
+				ModalOldPosition = StartPosition;
 
 				if (!this->Owner.ClientData[*ModalResize]->Floating)
 				{
@@ -350,10 +351,10 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 					  -1, 1  | 0, 1  | 1, 1
 				*/
 
-				ModalResizeMask = Vector((ModalStartPosition.x < InnerAreaULCorner.x || ModalStartPosition.x > InnerAreaLRCorner.x) ?
-										 (ModalStartPosition.x < InnerAreaULCorner.x ? -1 : 1) : 0,
-										 (ModalStartPosition.y < InnerAreaULCorner.y || ModalStartPosition.y > InnerAreaLRCorner.y) ?
-										 (ModalStartPosition.y < InnerAreaULCorner.y ? -1 : 1) : 0);
+				ModalResizeMask = Vector((StartPosition.x < InnerAreaULCorner.x || StartPosition.x > InnerAreaLRCorner.x) ?
+										 (StartPosition.x < InnerAreaULCorner.x ? -1 : 1) : 0,
+										 (StartPosition.y < InnerAreaULCorner.y || StartPosition.y > InnerAreaLRCorner.y) ?
+										 (StartPosition.y < InnerAreaULCorner.y ? -1 : 1) : 0);
 
 				if (ModalResizeMask.IsZero())
 					ModalResize = nullptr;
@@ -368,11 +369,7 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 		{
 			PointerMove_Event const * const EventCast = static_cast<PointerMove_Event const *>(Event);
 
-			if (!ModalMove && !ModalResize)
-			{
-				ModalStartPosition = EventCast->Position;
-			}
-			else if (ModalMove)
+			if (ModalMove)
 			{
 				Vector const PositionOffset = EventCast->Position - ModalOldPosition;
 

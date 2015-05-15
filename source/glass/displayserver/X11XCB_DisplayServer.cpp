@@ -373,7 +373,10 @@ void X11XCB_DisplayServer::Sync()
 
 Vector X11XCB_DisplayServer::GetMousePosition()
 {
-	return Vector();
+	xcb_query_pointer_cookie_t QueryPointerCookie = xcb_query_pointer_unchecked(this->Data->XConnection, this->Data->XScreen->root);
+	scoped_free<xcb_query_pointer_reply_t *> QueryPointerReply = xcb_query_pointer_reply(this->Data->XConnection, QueryPointerCookie, NULL);
+
+	return Vector(QueryPointerReply->root_x, QueryPointerReply->root_y);
 }
 
 
@@ -868,6 +871,7 @@ void X11XCB_DisplayServer::FlushWindow(AuxiliaryWindow &AuxiliaryWindow)
 		AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
 
 		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::FlushWindow, WindowDataCast->CairoSurface));
+		WindowDataCast->ReplayDrawOperations();
 	}
 }
 
@@ -974,6 +978,7 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 		uint32_t const EventMask = XCB_EVENT_MASK_ENTER_WINDOW |
 								   XCB_EVENT_MASK_PROPERTY_CHANGE |
 								   XCB_EVENT_MASK_STRUCTURE_NOTIFY |
+								   XCB_EVENT_MASK_POINTER_MOTION |
 								   XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE |
 								   XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
 

@@ -163,8 +163,7 @@ RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDL
 		uint32_t const EventMask = XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT |
 								   XCB_EVENT_MASK_ENTER_WINDOW |
 								   XCB_EVENT_MASK_STRUCTURE_NOTIFY |
-								   XCB_EVENT_MASK_PROPERTY_CHANGE |
-								   XCB_EVENT_MASK_POINTER_MOTION;
+								   XCB_EVENT_MASK_PROPERTY_CHANGE;
 
 		xcb_change_window_attributes(this->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &EventMask);
 
@@ -424,7 +423,6 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 		uint32_t const EventMask = XCB_EVENT_MASK_ENTER_WINDOW |
 								   XCB_EVENT_MASK_STRUCTURE_NOTIFY |
 								   XCB_EVENT_MASK_PROPERTY_CHANGE |
-								   XCB_EVENT_MASK_POINTER_MOTION |
 								   XCB_EVENT_MASK_FOCUS_CHANGE; // Grab focus change events so we can deal with troublesome clients
 																// that steal it
 
