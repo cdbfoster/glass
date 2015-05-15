@@ -74,6 +74,7 @@ namespace Config
 
 
 		{ new SpawnCommand_Event({ "xterm" }), Input(Input::Type::KEYBOARD, Input::Value::KEY_T, Keys::CommandModifier) },
+		{ new SpawnCommand_Event({ "gedit" }), Input(Input::Type::KEYBOARD, Input::Value::KEY_E, Keys::CommandModifier) },
 
 
 		#define TAG_MODIFIER		Keys::CommandModifier
