@@ -580,8 +580,15 @@ void FrameWindow::Update()
 
 		if (Glass::RootWindow const * const ClientRoot = ClientWindow.GetRootWindow())
 		{
-			AuxiliaryWindow::SetGeometry(ClientRoot->GetPosition(),
-										 ClientRoot->GetSize());
+
+			Vector const Position = ClientRoot->GetPosition();
+			Vector const Size = ClientRoot->GetSize();
+
+			if (this->GetPosition() != Position ||
+				this->GetSize() != Size)
+			{
+				AuxiliaryWindow::SetGeometry(Position, Size);
+			}
 		}
 		else
 			LOG_DEBUG_ERROR << "Client doesn't have a root!  Cannot update frame." << std::endl;
@@ -591,7 +598,13 @@ void FrameWindow::Update()
 		this->CurrentULOffset = this->ULOffset;
 		this->CurrentLROffset = this->LROffset;
 
-		AuxiliaryWindow::SetGeometry(ClientWindow.GetPosition() + this->CurrentULOffset,
-									 ClientWindow.GetSize() - this->CurrentULOffset + this->CurrentLROffset);
+		Vector const Position = ClientWindow.GetPosition() + this->CurrentULOffset;
+		Vector const Size = ClientWindow.GetSize() - this->CurrentULOffset + this->CurrentLROffset;
+
+		if (this->GetPosition() != Position ||
+			this->GetSize() != Size)
+		{
+			AuxiliaryWindow::SetGeometry(Position, Size);
+		}
 	}
 }
