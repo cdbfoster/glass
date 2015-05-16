@@ -194,5 +194,7 @@ void Default_WindowDecorator::PaintFrame(Default_FrameWindow &FrameWindow)
 																					   (ClientHintMask & Hint::SPECIAL ? Config::FrameColorUrgent :
 																														 Config::FrameColorNormal)));
 
+	this->DrawRectangle(FrameWindow, FrameWindow.GetULOffset() * -1, FrameWindow.GetPrimaryWindow().GetSize(), Color(0.0f, 0.0f, 0.0f, 0.0f), DrawMode::REPLACE);
+
 	this->FlushWindow(FrameWindow);
 }
