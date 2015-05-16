@@ -40,7 +40,10 @@ void Dynamic_WindowManager::Implementation::ActivateClient(ClientWindow &ClientW
 {
 	// Is the window already the active client?
 	if (this->ActiveClient == &ClientWindow)
+	{
+		ClientWindow.Focus();
 		return;
+	}
 
 	RootWindow * const ClientRoot = ClientWindow.GetRootWindow();
 
@@ -119,6 +122,8 @@ void Dynamic_WindowManager::Implementation::RefreshStackingOrder()
 
 	for (auto Client : this->RaisedClients)
 		Client->Raise();
+
+	// XXX Raise fullscreen clients
 }
 
 
