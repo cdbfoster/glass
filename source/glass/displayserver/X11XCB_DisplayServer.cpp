@@ -309,42 +309,7 @@ void X11XCB_DisplayServer::Sync()
 		Vector const	   &Position =	ChangeData->Position;
 		Vector const	   &Size =		ChangeData->Size;
 
-		if (ClientWindow const * const WindowCast = dynamic_cast<ClientWindow const *>(&Window))
-		{
-			auto WindowDataAccessor = this->Data->GetWindowData();
-
-			auto WindowData = WindowDataAccessor->find(WindowID);
-			if (WindowData != WindowDataAccessor->end())
-			{
-				// Assume correct window data
-				ClientWindowData * const WindowDataCast = static_cast<ClientWindowData *>(*WindowData);
-
-				if (WindowDataCast->ParentID != XCB_NONE)
-				{
-					// Get the frame
-					FrameWindow const *Frame = nullptr;
-					auto AuxiliaryWindowsAccessor = WindowCast->GetAuxiliaryWindows();
-
-					for (auto &AuxiliaryWindow : *AuxiliaryWindowsAccessor)
-					{
-						if ((Frame = dynamic_cast<FrameWindow *>(AuxiliaryWindow)))
-							break;
-					}
-
-					// Position client within the frame
-					if (Frame != nullptr)
-						ConfigureWindow(this->Data->XConnection, Window, WindowID, Frame->GetULOffset() * -1, Size);
-					else
-						LOG_DEBUG_ERROR << "Could not find a frame window for the current client." << std::endl;
-				}
-				else
-					ConfigureWindow(this->Data->XConnection, Window, WindowID, Position, Size);
-			}
-			else
-				LOG_DEBUG_ERROR << "Could not find a window ID for the provided window.  Cannot set geometry." << std::endl;
-		}
-		else
-			ConfigureWindow(this->Data->XConnection, Window, WindowID, Position, Size);
+		ConfigureWindow(this->Data->XConnection, Window, WindowID, Position, Size);
 
 		if (AuxiliaryWindow const * const WindowCast = dynamic_cast<AuxiliaryWindow const *>(&Window))
 		{
@@ -425,19 +390,11 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 
 		if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
 		{
-			xcb_window_t const &ParentID = WindowDataCast->ParentID;
-
-			if (ParentID != XCB_NONE)
+			if (!WindowDataCast->Destroyed)
 			{
-				if (!Visible)
-					xcb_unmap_window(this->Data->XConnection, ParentID);
-				else
-					xcb_map_window(this->Data->XConnection, ParentID);
+				uint32_t const NoStructureEvents = WindowDataCast->EventMask & ~XCB_EVENT_MASK_STRUCTURE_NOTIFY;
+				xcb_change_window_attributes(this->Data->XConnection, WindowID, XCB_CW_EVENT_MASK, &NoStructureEvents);
 			}
-
-			// Don't generate an error if this doesn't go through
-			uint32_t const NoStructureEvents = WindowDataCast->EventMask & ~XCB_EVENT_MASK_STRUCTURE_NOTIFY;
-			xcb_change_window_attributes_checked(this->Data->XConnection, WindowID, XCB_CW_EVENT_MASK, &NoStructureEvents);
 		}
 
 		// Check the window's map state
@@ -452,13 +409,13 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 				xcb_map_window(this->Data->XConnection, WindowID);
 		}
 
+		free(WindowAttributes);
+
 		if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
 		{
-			// Don't generate an error if this doesn't go through
-			xcb_change_window_attributes_checked(this->Data->XConnection, WindowID, XCB_CW_EVENT_MASK, &WindowDataCast->EventMask);
+			if (!WindowDataCast->Destroyed)
+				xcb_change_window_attributes(this->Data->XConnection, WindowID, XCB_CW_EVENT_MASK, &WindowDataCast->EventMask);
 		}
-
-		free(WindowAttributes);
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window! Cannot set window visibility." << std::endl;
@@ -556,12 +513,6 @@ void X11XCB_DisplayServer::RaiseWindow(Window const &Window)
 	{
 		xcb_window_t const &WindowID = (*WindowData)->ID;
 
-		if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
-		{
-			if (WindowDataCast->ParentID != XCB_NONE)
-				this->Data->RaiseWindow(this->Data->XConnection, WindowDataCast->ParentID);
-		}
-
 		this->Data->RaiseWindow(this->Data->XConnection, WindowID);
 	}
 	else
@@ -577,12 +528,6 @@ void X11XCB_DisplayServer::LowerWindow(Window const &Window)
 	if (WindowData != WindowDataAccessor->end())
 	{
 		xcb_window_t const &WindowID = (*WindowData)->ID;
-
-		if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
-		{
-			if (WindowDataCast->ParentID != XCB_NONE)
-				this->Data->LowerWindow(this->Data->XConnection, WindowDataCast->ParentID);
-		}
 
 		this->Data->LowerWindow(this->Data->XConnection, WindowID);
 	}
@@ -637,8 +582,6 @@ void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, 
 		Glass::ClientWindowData * const ClientWindowData = static_cast<Glass::ClientWindowData *>(*WindowData);
 
 		xcb_window_t const &WindowID = (*WindowData)->ID;
-		xcb_window_t const &ParentID = ClientWindowData->ParentID;
-
 		if (Value)
 		{
 			uint32_t StateValues[] = { XCB_ICCCM_WM_STATE_ICONIC, XCB_NONE };
@@ -647,11 +590,6 @@ void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, 
 
 			ClientWindowData->_NET_WM_STATE.insert(Atoms::_NET_WM_STATE_HIDDEN);
 			Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
-
-			if (ParentID != XCB_NONE)
-				xcb_unmap_window(this->Data->XConnection, ParentID);
-
-			xcb_unmap_window(this->Data->XConnection, WindowID);
 		}
 		else
 		{
@@ -661,11 +599,6 @@ void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, 
 
 			ClientWindowData->_NET_WM_STATE.erase(Atoms::_NET_WM_STATE_HIDDEN);
 			Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
-
-			if (ParentID != XCB_NONE)
-				xcb_map_window(this->Data->XConnection, ParentID);
-
-			xcb_map_window(this->Data->XConnection, WindowID);
 		}
 	}
 	else
@@ -675,47 +608,47 @@ void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, 
 
 void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow, bool Value)
 {
-	if (ClientWindow.GetFullscreen() == Value)
-		return;
-
-	auto WindowDataAccessor = this->Data->GetWindowData();
-
-	auto WindowData = WindowDataAccessor->find(&ClientWindow);
-	if (WindowData != WindowDataAccessor->end())
 	{
-		Glass::ClientWindowData * const ClientWindowData = static_cast<Glass::ClientWindowData *>(*WindowData);
+		auto WindowDataAccessor = this->Data->GetWindowData();
 
-		xcb_window_t const &WindowID = (*WindowData)->ID;
-
-		if (Value)
+		auto WindowData = WindowDataAccessor->find(&ClientWindow);
+		if (WindowData != WindowDataAccessor->end())
 		{
-			ClientWindowData->_NET_WM_STATE.insert(Atoms::_NET_WM_STATE_FULLSCREEN);
-			Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
+			Glass::ClientWindowData * const ClientWindowData = static_cast<Glass::ClientWindowData *>(*WindowData);
 
-			if (RootWindow const * const ClientRoot = ClientWindow.GetRootWindow())
+			xcb_window_t const &WindowID = (*WindowData)->ID;
+
+			if (Value)
 			{
-				this->Data->SetWindowGeometry(WindowID, ClientWindow, ClientRoot->GetPosition(),
-																	  ClientRoot->GetSize());
+				ClientWindowData->_NET_WM_STATE.insert(Atoms::_NET_WM_STATE_FULLSCREEN);
+				Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
+
+				if (RootWindow const * const ClientRoot = ClientWindow.GetRootWindow())
+				{
+					this->Data->SetWindowGeometry(WindowID, ClientWindow, ClientRoot->GetPosition(),
+												  ClientRoot->GetSize());
+				}
+				else
+					LOG_DEBUG_ERROR << "Client doesn't have a root!  Cannot set fullscreen size." << std::endl;
 			}
 			else
-				LOG_DEBUG_ERROR << "Client doesn't have a root!  Cannot set fullscreen size." << std::endl;
+			{
+				ClientWindowData->_NET_WM_STATE.erase(Atoms::_NET_WM_STATE_FULLSCREEN);
+				Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
 
-			if (ClientWindowData->ParentID != XCB_NONE)
-				this->Data->RaiseWindow(this->Data->XConnection, ClientWindowData->ParentID);
-
-			this->Data->RaiseWindow(this->Data->XConnection, WindowID);
+				this->Data->SetWindowGeometry(WindowID, ClientWindow, ClientWindow.GetPosition(),
+											  ClientWindow.GetSize());
+			}
 		}
 		else
 		{
-			ClientWindowData->_NET_WM_STATE.erase(Atoms::_NET_WM_STATE_FULLSCREEN);
-			Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
-
-			this->Data->SetWindowGeometry(WindowID, ClientWindow, ClientWindow.GetPosition(),
-																  ClientWindow.GetSize());
+			LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set fullscreen." << std::endl;
+			return;
 		}
 	}
-	else
-		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set fullscreen." << std::endl;
+
+	if (Value)
+		ClientWindow.Raise();
 }
 
 
@@ -1010,13 +943,17 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 		// Apply the auxiliary window
 		if (FrameWindow const * const WindowCast = dynamic_cast<FrameWindow const *>(&AuxiliaryWindow))
 		{
-			Vector const Position = WindowCast->GetULOffset() * -1;
-			xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, AuxiliaryWindowID, Position.x, Position.y);
-
 			if (PrimaryWindow.GetVisibility() == true)
+			{
 				xcb_map_window(this->Data->XConnection, AuxiliaryWindowID);
 
-			static_cast<ClientWindowData *>(PrimaryWindowData)->ParentID = AuxiliaryWindowID; // Safe cast because of the sanity check above
+				// Ensure the frame and the client are together in the stack
+				this->Data->RaiseWindow(this->Data->XConnection, AuxiliaryWindowID);
+				this->Data->RaiseWindow(this->Data->XConnection, PrimaryWindowID);
+
+				// Note: The frame window isn't a true X parent window of the client.  This helps prevent ICCCM-non-conformant
+				// clients from misbehaving. *cough*Steam*cough*
+			}
 		}
 
 
@@ -1036,9 +973,7 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 		WindowDataAccessor->push_back(new AuxiliaryWindowData(AuxiliaryWindow, AuxiliaryWindowID, EventMask, PrimaryWindowData, RootWindowID, CairoSurface, CairoContext));
 	}
 	else
-	{
 		LOG_DEBUG_ERROR << "Auxiliary window already exists on the server!  Cannot activate auxiliary window." << std::endl;
-	}
 }
 
 
@@ -1090,8 +1025,6 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 				Vector const Position = PrimaryWindow.GetPosition();
 				xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, RootWindowID, Position.x, Position.y);
 			}
-
-			PrimaryWindowDataCast->ParentID = XCB_NONE;
 		}
 
 		xcb_destroy_window(this->Data->XConnection, AuxiliaryWindowData->ID);
@@ -1107,7 +1040,5 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 		xcb_ungrab_server(this->Data->XConnection);
 	}
 	else
-	{
 		LOG_DEBUG_ERROR << "Auxiliary window doesn't exist on the server!  Cannot deactivate auxiliary window." << std::endl;
-	}
 }

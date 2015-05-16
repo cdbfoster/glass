@@ -453,7 +453,7 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 			ClientWindowsAccessor->push_back(NewClientWindow);
 		}
 
-		this->WindowData.push_back(new ClientWindowData(*NewClientWindow, ClientWindowID, EventMask, NeverFocus, XCB_NONE, this->XScreen->root));
+		this->WindowData.push_back(new ClientWindowData(*NewClientWindow, ClientWindowID, EventMask, NeverFocus, this->XScreen->root));
 
 		ClientWindows.push_back(NewClientWindow);
 	}
