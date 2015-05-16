@@ -174,15 +174,18 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 			{
 				ClientWindow &EventWindow = static_cast<ClientWindow &>((*WindowData)->Window);
 
-				Vector const CurrentPosition = EventWindow.GetPosition();
-				Vector const RequestedPosition(ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_X ? ConfigureRequest->x : CurrentPosition.x,
-											   ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_Y ? ConfigureRequest->y : CurrentPosition.y);
+				unsigned char ValueMask = (ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_X ?		 ClientGeometryChangeRequest_Event::Values::POSITION_X : 0) |
+										  (ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_Y ?		 ClientGeometryChangeRequest_Event::Values::POSITION_Y : 0) |
+										  (ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_WIDTH ?	 ClientGeometryChangeRequest_Event::Values::SIZE_X : 0) |
+										  (ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_HEIGHT ? ClientGeometryChangeRequest_Event::Values::SIZE_Y : 0);
 
-				Vector const CurrentSize = EventWindow.GetSize();
-				Vector const RequestedSize(ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_WIDTH ? ConfigureRequest->width : CurrentSize.x,
-										   ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_HEIGHT ? ConfigureRequest->height : CurrentSize.y);
+				Vector const RequestedPosition(ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_X ? ConfigureRequest->x : 0,
+											   ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_Y ? ConfigureRequest->y : 0);
 
-				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientGeometryChangeRequest_Event(EventWindow, RequestedPosition, RequestedSize)));
+				Vector const RequestedSize(ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_WIDTH ? ConfigureRequest->width : 0,
+										   ConfigureRequest->value_mask & XCB_CONFIG_WINDOW_HEIGHT ? ConfigureRequest->height : 0);
+
+				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientGeometryChangeRequest_Event(EventWindow, ValueMask, RequestedPosition, RequestedSize)));
 			}
 			else // Otherwise, configure it along with everything else
 			{
@@ -380,18 +383,15 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 				else if (ClientMessage->type == Atoms::_NET_WM_STATE &&
 						(ClientMessage->data.data32[1] == Atoms::_NET_WM_STATE_FULLSCREEN || ClientMessage->data.data32[2] == Atoms::_NET_WM_STATE_FULLSCREEN))
 				{
-					bool Value;
+					ClientFullscreenRequest_Event::Mode Value = ClientFullscreenRequest_Event::Mode::FALSE;
 
 					switch (ClientMessage->data.data32[0])
 					{
 					case XCB_EWMH_WM_STATE_ADD:
-						Value = true;
+						Value = ClientFullscreenRequest_Event::Mode::TRUE;
 						break;
 					case XCB_EWMH_WM_STATE_TOGGLE:
-						Value = !EventWindow->GetFullscreen();
-						break;
-					default:
-						Value = false;
+						Value = ClientFullscreenRequest_Event::Mode::TOGGLE;
 						break;
 					}
 

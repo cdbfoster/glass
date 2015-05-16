@@ -126,18 +126,26 @@ namespace Glass
 
 	struct ClientGeometryChangeRequest_Event : public Client_Event
 	{
-		ClientGeometryChangeRequest_Event(Glass::ClientWindow &ClientWindow, Vector const &RequestedPosition,
-																			 Vector const &RequestedSize) :
+		enum Values { NONE =	   0x00,
+					  POSITION_X = 0x01,
+					  POSITION_Y = 0x02,
+					  SIZE_X =	   0x04,
+					  SIZE_Y =	   0x08 };
+
+		ClientGeometryChangeRequest_Event(Glass::ClientWindow &ClientWindow, unsigned char ValueMask, Vector const &Position,
+																									  Vector const &Size) :
 			Client_Event(ClientWindow, Event::Type::CLIENT_GEOMETRY_CHANGE_REQUEST),
-			RequestedPosition(RequestedPosition),
-			RequestedSize(RequestedSize)
+			ValueMask(ValueMask),
+			Position(Position),
+			Size(Size)
 		{ }
 
-		Event *Copy() const { return new ClientGeometryChangeRequest_Event(this->ClientWindow, this->RequestedPosition,
-																							   this->RequestedSize); }
+		Event *Copy() const { return new ClientGeometryChangeRequest_Event(this->ClientWindow, this->ValueMask, this->Position,
+																												this->Size); }
 
-		Vector const RequestedPosition;
-		Vector const RequestedSize;
+		unsigned char ValueMask;
+		Vector const  Position;
+		Vector const  Size;
 	};
 
 
@@ -153,14 +161,18 @@ namespace Glass
 
 	struct ClientFullscreenRequest_Event : public Client_Event
 	{
-		ClientFullscreenRequest_Event(Glass::ClientWindow &ClientWindow, bool Value) :
+		enum class Mode { TRUE,
+						  FALSE,
+						  TOGGLE };
+
+		ClientFullscreenRequest_Event(Glass::ClientWindow &ClientWindow, Mode ModeValue) :
 			Client_Event(ClientWindow, Event::Type::CLIENT_FULLSCREEN_REQUEST),
-			Value(Value)
+			ModeValue(ModeValue)
 		{ }
 
-		Event *Copy() const { return new ClientFullscreenRequest_Event(this->ClientWindow, this->Value); }
+		Event *Copy() const { return new ClientFullscreenRequest_Event(this->ClientWindow, this->ModeValue); }
 
-		bool const Value;
+		Mode const ModeValue;
 	};
 
 
