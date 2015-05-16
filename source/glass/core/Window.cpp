@@ -47,8 +47,6 @@ Vector	Window::GetSize() const			{ return this->Size; }
 
 bool Window::GetVisibility() const
 {
-	std::lock_guard<std::mutex> Lock(this->VisibleMutex);
-
 	return this->Visible;
 }
 
@@ -80,8 +78,6 @@ void Window::SetGeometry(Vector const &Position, Vector const &Size)
 
 void Window::SetVisibility(bool Visible)
 {
-	std::lock_guard<std::mutex> Lock(this->VisibleMutex);
-
 	if (this->Visible != Visible)
 	{
 		this->DisplayServer.SetWindowVisibility(*this, Visible);
@@ -151,9 +147,93 @@ void PrimaryWindow::SetGeometry(Vector const &Position, Vector const &Size)
 }
 
 
+void PrimaryWindow::SetVisibility(bool Visible)
+{
+	{
+		auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+
+		for (auto AuxiliaryWindow : *AuxiliaryWindowsAccessor)
+		{
+			if (dynamic_cast<FrameWindow *>(AuxiliaryWindow))
+				AuxiliaryWindow->SetVisibility(Visible);
+		}
+	}
+
+	Window::SetVisibility(Visible);
+
+	{
+		auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+
+		for (auto AuxiliaryWindow : *AuxiliaryWindowsAccessor)
+		{
+			if (!dynamic_cast<FrameWindow *>(AuxiliaryWindow))
+				AuxiliaryWindow->SetVisibility(Visible);
+		}
+	}
+
+	this->UpdateAuxiliaryWindows();
+}
+
+
 void PrimaryWindow::Focus()
 {
 	Window::Focus();
+
+	this->UpdateAuxiliaryWindows();
+}
+
+
+void PrimaryWindow::Raise()
+{
+	{
+		auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+
+		for (auto AuxiliaryWindow : *AuxiliaryWindowsAccessor)
+		{
+			if (dynamic_cast<FrameWindow *>(AuxiliaryWindow))
+				AuxiliaryWindow->Raise();
+		}
+	}
+
+	Window::Raise();
+
+	{
+		auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+
+		for (auto AuxiliaryWindow : *AuxiliaryWindowsAccessor)
+		{
+			if (!dynamic_cast<FrameWindow *>(AuxiliaryWindow))
+				AuxiliaryWindow->Raise();
+		}
+	}
+
+	this->UpdateAuxiliaryWindows();
+}
+
+
+void PrimaryWindow::Lower()
+{
+	{
+		auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+
+		for (auto AuxiliaryWindow : *AuxiliaryWindowsAccessor)
+		{
+			if (!dynamic_cast<FrameWindow *>(AuxiliaryWindow))
+				AuxiliaryWindow->Lower();
+		}
+	}
+
+	Window::Lower();
+
+	{
+		auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+
+		for (auto AuxiliaryWindow : *AuxiliaryWindowsAccessor)
+		{
+			if (dynamic_cast<FrameWindow *>(AuxiliaryWindow))
+				AuxiliaryWindow->Lower();
+		}
+	}
 
 	this->UpdateAuxiliaryWindows();
 }
@@ -169,7 +249,7 @@ void PrimaryWindow::UpdateAuxiliaryWindows()
 {
 	auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
 
-	for (auto &AuxiliaryWindow : *AuxiliaryWindowsAccessor)
+	for (auto AuxiliaryWindow : *AuxiliaryWindowsAccessor)
 		AuxiliaryWindow->Update();
 }
 
@@ -210,8 +290,6 @@ ClientWindow::~ClientWindow()
 
 std::string ClientWindow::GetName() const
 {
-	std::lock_guard<std::mutex> Lock(this->NameMutex);
-
 	return this->Name;
 }
 
@@ -221,24 +299,18 @@ ClientWindow::Type	ClientWindow::GetType() const	{ return this->TypeValue; }
 
 bool ClientWindow::GetIconified() const
 {
-	std::lock_guard<std::mutex> Lock(this->IconifiedMutex);
-
 	return this->Iconified;
 }
 
 
 bool ClientWindow::GetFullscreen() const
 {
-	std::lock_guard<std::mutex> Lock(this->FullscreenMutex);
-
 	return this->Fullscreen;
 }
 
 
 bool ClientWindow::GetUrgent() const
 {
-	std::lock_guard<std::mutex> Lock(this->UrgentMutex);
-
 	return this->Urgent;
 }
 
@@ -249,85 +321,61 @@ ClientWindow   *ClientWindow::GetTransientFor() const	{ return this->TransientFo
 
 RootWindow *ClientWindow::GetRootWindow() const
 {
-	std::lock_guard<std::mutex> Lock(this->RootWindowMutex);
-
 	return this->RootWindow;
 }
 
 
 void ClientWindow::SetVisibility(bool Visible)
 {
-	std::lock_guard<std::mutex> LockVisible(this->VisibleMutex);
+	PrimaryWindow::SetVisibility(Visible);
 
-	if (this->Visible != Visible)
+	if (Visible == true && this->Iconified == true)
 	{
-		this->DisplayServer.SetWindowVisibility(*this, Visible);
-
-		{
-			std::lock_guard<std::mutex> LockIconified(this->IconifiedMutex);
-
-			if (Visible == true && this->Iconified == true)
-			{
-				this->DisplayServer.SetClientWindowIconified(*this, false);
-
-				this->Iconified = false;
-			}
-		}
-
-		this->Visible = Visible;
+		this->DisplayServer.SetClientWindowIconified(*this, false);
+		this->Iconified = false;
 	}
+}
+
+
+void ClientWindow::SetName(std::string const &Name)
+{
+	this->Name = Name;
 }
 
 
 void ClientWindow::SetIconified(bool Value)
 {
-	std::lock_guard<std::mutex> LockIconified(this->IconifiedMutex);
-
 	if (this->Iconified != Value)
 	{
 		this->DisplayServer.SetClientWindowIconified(*this, Value);
-
-		{
-			std::lock_guard<std::mutex> LockVisible(this->VisibleMutex);
-
-			if (this->Visible != !Value)
-			{
-				this->DisplayServer.SetWindowVisibility(*this, !Value);
-
-				this->Visible = !Value;
-			}
-		}
-
 		this->Iconified = Value;
+
+		PrimaryWindow::SetVisibility(!Value);
 	}
 }
 
 
 void ClientWindow::SetFullscreen(bool Value)
 {
+	if (this->Fullscreen != Value)
 	{
-		std::lock_guard<std::mutex> Lock(this->FullscreenMutex);
-
 		this->DisplayServer.SetClientWindowFullscreen(*this, Value);
-
 		this->Fullscreen = Value;
-	}
 
-	PrimaryWindow::UpdateAuxiliaryWindows();
+		PrimaryWindow::UpdateAuxiliaryWindows();
+	}
 }
 
 
 void ClientWindow::SetUrgent(bool Value)
 {
+	if (this->Urgent != Value)
 	{
-		std::lock_guard<std::mutex> Lock(this->UrgentMutex);
-
 		this->DisplayServer.SetClientWindowUrgent(*this, Value);
-
 		this->Urgent = Value;
-	}
 
-	PrimaryWindow::UpdateAuxiliaryWindows();
+		PrimaryWindow::UpdateAuxiliaryWindows();
+	}
 }
 
 
@@ -343,18 +391,8 @@ void ClientWindow::Kill()
 }
 
 
-void ClientWindow::SetName(std::string const &Name)
-{
-	std::lock_guard<std::mutex> Lock(this->NameMutex);
-
-	this->Name = Name;
-}
-
-
 void ClientWindow::SetRootWindow(Glass::RootWindow *RootWindow)
 {
-	std::lock_guard<std::mutex> Lock(this->RootWindowMutex);
-
 	this->RootWindow = RootWindow;
 }
 

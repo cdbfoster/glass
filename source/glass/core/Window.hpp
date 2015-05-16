@@ -61,11 +61,10 @@ namespace Glass
 	protected:
 		Glass::DisplayServer &DisplayServer;
 
-		Vector	Position;
-		Vector	Size;
+		Vector Position;
+		Vector Size;
 
-		bool				Visible;
-		mutable std::mutex	VisibleMutex;
+		bool   Visible;
 	};
 
 	typedef std::list<Window *> WindowList;
@@ -88,7 +87,11 @@ namespace Glass
 		void SetSize(Vector const &Size);
 		void SetGeometry(Vector const &Position, Vector const &Size);
 
+		void SetVisibility(bool Visible);
+
 		void Focus();
+		void Raise();
+		void Lower();
 
 	private:
 		friend class WindowDecorator;
@@ -136,6 +139,8 @@ namespace Glass
 
 		void SetVisibility(bool Visible);
 
+		void SetName(std::string const &Name);
+
 		void SetIconified(bool Value);
 		void SetFullscreen(bool Value);
 		void SetUrgent(bool Value);
@@ -143,37 +148,24 @@ namespace Glass
 		void Close();
 		void Kill();
 
-	// Friend interfaces
-	private:
-		friend class DisplayServer;
-
-		void SetName(std::string const &Name);
-
 	private:
 		friend class Glass::RootWindow;
 
 		void SetRootWindow(Glass::RootWindow *RootWindow);
 
 	private:
-		std::string			Name;
-		mutable std::mutex	NameMutex;
+		std::string Name;
 
-		Type TypeValue;
+		Type		TypeValue;
 
-		bool				Iconified;
-		mutable std::mutex	IconifiedMutex;
-
-		bool				Fullscreen;
-		mutable std::mutex	FullscreenMutex;
-
-		bool				Urgent;
-		mutable std::mutex	UrgentMutex;
+		bool		Iconified;
+		bool		Fullscreen;
+		bool		Urgent;
 
 		Vector const			BaseSize;
 		ClientWindow * const	TransientFor;
 
 		Glass::RootWindow  *RootWindow;
-		mutable std::mutex	RootWindowMutex;
 	};
 
 	typedef std::list<ClientWindow *> ClientWindowList;
