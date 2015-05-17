@@ -256,13 +256,13 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 	for (auto &ClientWindowID : WindowIDs)
 	{
 		GeometryCookies.push_back(xcb_get_geometry_unchecked(this->XConnection, ClientWindowID));
-		WMHintsCookies.push_back(xcb_icccm_get_wm_hints_unchecked(this->XConnection, ClientWindowID));
 		EWMHStateCookies.push_back(xcb_get_property_unchecked(this->XConnection, false, ClientWindowID,
 															  Atoms::_NET_WM_STATE, Atoms::ATOM, 0, 0xFFFFFFFF));
 		EWMHWindowTypeCookies.push_back(xcb_get_property_unchecked(this->XConnection, false, ClientWindowID,
 																   Atoms::_NET_WM_WINDOW_TYPE, Atoms::ATOM, 0, 0xFFFFFFFF));
+		WindowAttributesCookies.push_back(xcb_get_window_attributes_unchecked(this->XConnection, ClientWindowID));
+		WMHintsCookies.push_back(xcb_icccm_get_wm_hints_unchecked(this->XConnection, ClientWindowID));
 		TransientForCookies.push_back(xcb_icccm_get_wm_transient_for_unchecked(this->XConnection, ClientWindowID));
-		WindowAttributesCookies.push_back(xcb_get_window_attributes(this->XConnection, ClientWindowID));
 	}
 
 
@@ -284,15 +284,14 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 
 		for (unsigned short Index = 0; Index < WindowIDs.size(); Index++)
 		{
-			xcb_get_geometry_reply_t		   *GeometryReply = nullptr;
-			xcb_icccm_wm_hints_t				WMHintsReply;
-			xcb_get_property_reply_t		   *EWMHStateReply = nullptr;
-			xcb_get_property_reply_t		   *EWMHWindowTypeReply = nullptr;
-			xcb_window_t						TransientForReply = XCB_NONE;
-			xcb_get_window_attributes_reply_t  *WindowAttributesReply = nullptr;
+			xcb_get_geometry_reply_t		  *GeometryReply = nullptr;
+			xcb_get_property_reply_t		  *EWMHStateReply = nullptr;
+			xcb_get_property_reply_t		  *EWMHWindowTypeReply = nullptr;
+			xcb_get_window_attributes_reply_t *WindowAttributesReply = nullptr;
+			xcb_icccm_wm_hints_t			   WMHintsReply;
+			xcb_window_t					   TransientForReply = XCB_NONE;
 
 			if (!(GeometryReply = xcb_get_geometry_reply(this->XConnection, GeometryCookies[Index], nullptr)) ||
-				!(xcb_icccm_get_wm_hints_reply(this->XConnection, WMHintsCookies[Index], &WMHintsReply, nullptr)) ||
 				!(EWMHStateReply = xcb_get_property_reply(this->XConnection, EWMHStateCookies[Index], nullptr)) ||
 				!(EWMHWindowTypeReply = xcb_get_property_reply(this->XConnection, EWMHWindowTypeCookies[Index], nullptr)) ||
 				!(WindowAttributesReply = xcb_get_window_attributes_reply(this->XConnection, WindowAttributesCookies[Index], nullptr)))
@@ -311,14 +310,17 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 				continue;
 			}
 
+			xcb_icccm_wm_hints_set_none(&WMHintsReply);
+			xcb_icccm_get_wm_hints_reply(this->XConnection, WMHintsCookies[Index], &WMHintsReply, nullptr);
+
 			xcb_icccm_get_wm_transient_for_reply(this->XConnection, TransientForCookies[Index], &TransientForReply, NULL);
 
 			GeometryReplies.push_back(GeometryReply);
-			WMHintsReplies.push_back(WMHintsReply);
 			EWMHStateReplies.push_back(EWMHStateReply);
 			EWMHWindowTypeReplies.push_back(EWMHWindowTypeReply);
-			TransientForReplies.push_back(TransientForReply);
 			WindowAttributesReplies.push_back(WindowAttributesReply);
+			WMHintsReplies.push_back(WMHintsReply);
+			TransientForReplies.push_back(TransientForReply);
 			ManageableWindowIDs.push_back(WindowIDs[Index]);
 
 			// Place non-transient windows before transient windows (in no particular order) so that their client structures
@@ -347,13 +349,6 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 		Vector const Size(GeometryReply->width, GeometryReply->height);
 
 		free(GeometryReply);
-
-
-		// Get data from the window manager hints
-		xcb_icccm_wm_hints_t &WMHints = WMHintsReplies[Index];
-
-		bool const Urgent = xcb_icccm_wm_hints_get_urgency(&WMHints);
-		bool const NeverFocus = ((WMHints.flags & XCB_ICCCM_WM_HINT_INPUT) ? !WMHints.input : false);
 
 
 		// Determine the fullscreen state of the client from the EWMH window state reply
@@ -394,6 +389,19 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 		}
 
 
+		// Get the client's map state
+		bool const Visible = WindowAttributesReplies[Index]->map_state;
+
+		free(WindowAttributesReplies[Index]);
+
+
+		// Get data from the window manager hints
+		xcb_icccm_wm_hints_t &WMHints = WMHintsReplies[Index];
+
+		bool const Urgent = xcb_icccm_wm_hints_get_urgency(&WMHints);
+		bool const NeverFocus = ((WMHints.flags & XCB_ICCCM_WM_HINT_INPUT) ? !WMHints.input : false);
+
+
 		// Get the client's TransientFor client, if any
 		ClientWindow *TransientForClient = nullptr;
 
@@ -409,12 +417,6 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 					LOG_DEBUG_ERROR << "TransientFor client's WindowData does not exist!" << std::endl;
 			}
 		}
-
-
-		// Get the client's map state
-		bool const Visible = WindowAttributesReplies[Index]->map_state;
-
-		free(WindowAttributesReplies[Index]);
 
 
 		// Select events on the client
