@@ -220,25 +220,7 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 				}
 
 				if (&EventCast->ClientWindow == this->Owner.ActiveClient)
-				{
-					ClientWindow *NextClient = nullptr;
-					{
-						auto ClientWindowsAccessor = this->Owner.WindowManager.GetClientWindows();
-
-						if (!ClientWindowsAccessor->empty())
-							NextClient = ClientWindowsAccessor->front();
-					}
-
-					if (NextClient != nullptr)
-					{
-						this->Owner.ActivateClient(*NextClient);
-					}
-					else
-					{
-						this->Owner.ActiveRoot = nullptr;
-						this->Owner.ActiveClient = nullptr;
-					}
-				}
+					this->Owner.ActiveClient = nullptr;
 
 				if (ModalMove == &EventCast->ClientWindow)
 					ModalMove = nullptr;
@@ -281,7 +263,7 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 	case Glass::Event::Type::WINDOW_MOVE_MODAL:
 		{
-			if (ModalResize)
+			if (ModalResize || this->Owner.ActiveClient == nullptr)
 				break;
 
 			WindowMoveModal_Event const * const EventCast = static_cast<WindowMoveModal_Event const *>(Event);
@@ -310,7 +292,7 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 	case Glass::Event::Type::WINDOW_RESIZE_MODAL:
 		{
-			if (ModalMove)
+			if (ModalMove || this->Owner.ActiveClient == nullptr)
 				break;
 
 			WindowResizeModal_Event const * const EventCast = static_cast<WindowResizeModal_Event const *>(Event);
@@ -440,6 +422,19 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 				LOG_DEBUG_INFO << "New Client Mask: " << NewMask << std::endl;
 
 				TagContainer->SetClientWindowTagMask(*this->Owner.ActiveClient, NewMask);
+			}
+
+			// If there is no active client, or it's no longer visible, pick a new one
+			TagManager::TagContainer::TagMask const ClientTagMask = (this->Owner.ActiveClient == nullptr ? 0x00 :
+																										   TagContainer->GetClientWindowTagMask(*this->Owner.ActiveClient));
+			if (!(ClientTagMask & TagContainer->GetActiveTagMask()))
+			{
+				ClientWindow * const NewActiveClient = TagContainer->GetActiveTag()->GetActiveClient();
+
+				if (NewActiveClient != nullptr)
+					this->Owner.ActivateClient(*NewActiveClient);
+				else
+					this->Owner.ActiveClient = nullptr;
 			}
 		}
 		break;

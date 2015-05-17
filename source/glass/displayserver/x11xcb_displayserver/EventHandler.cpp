@@ -106,7 +106,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 									   ConfigureNotify->width << ", " << ConfigureNotify->height << ")";
 		}
 		break;
-	case XCB_PROPERTY_NOTIFY:
+	case XCB_PROPERTY_NOTIFY: // XXX Check for a root property change related to resuming from a suspend
 		LOG_DEBUG_INFO_NOHEADER << " - Property notify on " << ((xcb_property_notify_event_t *)Event)->window;
 		break;
 	case XCB_MOTION_NOTIFY:

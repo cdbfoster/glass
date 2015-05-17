@@ -88,6 +88,8 @@ void Dynamic_WindowManager::Implementation::ActivateClient(ClientWindow &ClientW
 		TagContainer->SetActiveTagMask(ActivateMask);
 	}
 
+	TagContainer->GetActiveTag()->SetActiveClient(ClientWindow);
+
 	if (ClientWindow.GetUrgent() == true)
 		ClientWindow.SetUrgent(false);
 
