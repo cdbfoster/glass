@@ -234,7 +234,6 @@ namespace Glass
 
 	private:
 		ClientWindow	   *ActiveClientWindow;
-		mutable std::mutex	ActiveClientWindowMutex;
 
 		ClientWindowList	ClientWindows;
 		mutable std::mutex	ClientWindowsMutex;

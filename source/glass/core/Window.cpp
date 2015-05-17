@@ -428,16 +428,12 @@ locked_accessor<RootWindow::ClientWindowList const> RootWindow::GetClientWindows
 
 ClientWindow *RootWindow::GetActiveClientWindow() const
 {
-	std::lock_guard<std::mutex> Lock(this->ActiveClientWindowMutex);
-
 	return this->ActiveClientWindow;
 }
 
 
 void RootWindow::SetActiveClientWindow(ClientWindow &ClientWindow)
 {
-	std::lock_guard<std::mutex> Lock(this->ActiveClientWindowMutex);
-
 	this->ActiveClientWindow = &ClientWindow;
 }
 
