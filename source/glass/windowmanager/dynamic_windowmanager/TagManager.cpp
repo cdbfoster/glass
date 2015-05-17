@@ -734,6 +734,9 @@ void TagManager::TagContainer::Tag::Activate()
 		this->Activated = true;
 		(*this->ActiveWindowLayout)->Activate();
 	}
+
+	for (auto Client : this->ExemptClientWindows)
+		Client->SetVisibility(true);
 }
 
 
@@ -743,6 +746,9 @@ void TagManager::TagContainer::Tag::Deactivate()
 	{
 		this->Activated = false;
 		(*this->ActiveWindowLayout)->Deactivate();
+
+		for (auto Client : this->ExemptClientWindows)
+			Client->SetVisibility(false);
 	}
 }
 
