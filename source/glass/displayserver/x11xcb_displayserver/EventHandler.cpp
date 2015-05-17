@@ -260,7 +260,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 			}
 			else if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
 			{
-				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientShowRequest_Event(static_cast<ClientWindow &>(WindowDataCast->Window))));
+				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientIconifiedRequest_Event(static_cast<ClientWindow &>(WindowDataCast->Window), false)));
 			}
 		}
 		break;
@@ -378,7 +378,7 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 					ClientMessage->format == 32 &&
 					ClientMessage->data.data32[0] == XCB_ICCCM_WM_STATE_ICONIC)
 				{
-					this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientIconifiedRequest_Event(*EventWindow)));
+					this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientIconifiedRequest_Event(*EventWindow, true)));
 				}
 				else if (ClientMessage->type == Atoms::_NET_WM_STATE &&
 						(ClientMessage->data.data32[1] == Atoms::_NET_WM_STATE_FULLSCREEN || ClientMessage->data.data32[2] == Atoms::_NET_WM_STATE_FULLSCREEN))

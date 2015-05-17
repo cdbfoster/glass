@@ -35,7 +35,6 @@ namespace Glass
 						  ROOT_CREATE,
 						  CLIENT_CREATE,
 						  CLIENT_DESTROY,
-						  CLIENT_SHOW_REQUEST,
 						  CLIENT_GEOMETRY_CHANGE_REQUEST,
 						  CLIENT_ICONIFIED_REQUEST,
 						  CLIENT_FULLSCREEN_REQUEST,
@@ -112,16 +111,6 @@ namespace Glass
 	};
 
 
-	struct ClientShowRequest_Event : public Client_Event
-	{
-		ClientShowRequest_Event(Glass::ClientWindow &ClientWindow) :
-			Client_Event(ClientWindow, Event::Type::CLIENT_SHOW_REQUEST)
-		{ }
-
-		Event *Copy() const { return new ClientShowRequest_Event(this->ClientWindow); }
-	};
-
-
 	struct ClientGeometryChangeRequest_Event : public Client_Event
 	{
 		enum Values { NONE =	   0x00,
@@ -149,11 +138,14 @@ namespace Glass
 
 	struct ClientIconifiedRequest_Event : public Client_Event
 	{
-		ClientIconifiedRequest_Event(Glass::ClientWindow &ClientWindow) :
-			Client_Event(ClientWindow, Event::Type::CLIENT_ICONIFIED_REQUEST)
+		ClientIconifiedRequest_Event(Glass::ClientWindow &ClientWindow, bool State) :
+			Client_Event(ClientWindow, Event::Type::CLIENT_ICONIFIED_REQUEST),
+			State(State)
 		{ }
 
-		Event *Copy() const { return new ClientIconifiedRequest_Event(this->ClientWindow); }
+		Event *Copy() const { return new ClientIconifiedRequest_Event(this->ClientWindow, this->State); }
+
+		bool const State;
 	};
 
 

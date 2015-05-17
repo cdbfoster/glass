@@ -84,9 +84,6 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	case Glass::Event::Type::CLIENT_DESTROY:
 		LOG_DEBUG_INFO << "Client Destroy event!" << std::endl;
 		break;
-	case Glass::Event::Type::CLIENT_SHOW_REQUEST:
-		LOG_DEBUG_INFO << "Client Show Request event!" << std::endl;
-		break;
 	case Glass::Event::Type::CLIENT_GEOMETRY_CHANGE_REQUEST:
 		LOG_DEBUG_INFO << "Client Geometry Change Request event!" << std::endl;
 		break;
@@ -255,10 +252,6 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 				delete &EventCast->ClientWindow;
 			}
 		}
-		break;
-
-
-	case Glass::Event::Type::CLIENT_SHOW_REQUEST:
 		break;
 
 
