@@ -263,6 +263,24 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 
 	case Glass::Event::Type::CLIENT_GEOMETRY_CHANGE_REQUEST:
+		{
+			ClientGeometryChangeRequest_Event const * const EventCast = static_cast<ClientGeometryChangeRequest_Event const *>(Event);
+
+			ClientDataContainer::iterator ClientData;
+			if ((ClientData = this->Owner.ClientData.find(EventCast->ClientWindow)) != this->Owner.ClientData.end())
+			{
+				if (!ClientData->second->Floating)
+					break;
+
+				Vector const Position(EventCast->ValueMask & ClientGeometryChangeRequest_Event::Values::POSITION_X ? EventCast->Position.x : EventCast->ClientWindow.GetPosition().x,
+									  EventCast->ValueMask & ClientGeometryChangeRequest_Event::Values::POSITION_Y ? EventCast->Position.y : EventCast->ClientWindow.GetPosition().y);
+
+				Vector const Size(EventCast->ValueMask & ClientGeometryChangeRequest_Event::Values::SIZE_X ? EventCast->Size.x : EventCast->ClientWindow.GetSize().x,
+								  EventCast->ValueMask & ClientGeometryChangeRequest_Event::Values::SIZE_Y ? EventCast->Size.y : EventCast->ClientWindow.GetSize().y);
+
+				EventCast->ClientWindow.SetGeometry(Position, Size);
+			}
+		}
 		break;
 
 
