@@ -81,20 +81,26 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	case Glass::Event::Type::CLIENT_CREATE:
 		LOG_DEBUG_INFO << "Client Create event!" << std::endl;
 		break;
+	case Glass::Event::Type::CLIENT_DESTROY:
+		LOG_DEBUG_INFO << "Client Destroy event!" << std::endl;
+		break;
 	case Glass::Event::Type::CLIENT_SHOW_REQUEST:
 		LOG_DEBUG_INFO << "Client Show Request event!" << std::endl;
 		break;
 	case Glass::Event::Type::CLIENT_GEOMETRY_CHANGE_REQUEST:
 		LOG_DEBUG_INFO << "Client Geometry Change Request event!" << std::endl;
 		break;
-	case Glass::Event::Type::CLIENT_DESTROY:
-		LOG_DEBUG_INFO << "Client Destroy event!" << std::endl;
+	case Glass::Event::Type::CLIENT_ICONIFIED_REQUEST:
+		LOG_DEBUG_INFO << "Client Iconified Request event!" << std::endl;
+		break;
+	case Glass::Event::Type::CLIENT_FULLSCREEN_REQUEST:
+		LOG_DEBUG_INFO << "Client Fullscreen Request event!" << std::endl;
 		break;
 	case Glass::Event::Type::WINDOW_ENTER:
 		LOG_DEBUG_INFO << "Enter Window event!" << std::endl;
 		break;
-	case Glass::Event::Type::WINDOW_CLOSE:
-		LOG_DEBUG_INFO << "Close Window event!" << std::endl;
+	case Glass::Event::Type::INPUT:
+		LOG_DEBUG_INFO << "Input event!" << std::endl;
 		break;
 	case Glass::Event::Type::WINDOW_MOVE_MODAL:
 		LOG_DEBUG_INFO << "Modal Window Move event!" << std::endl;
@@ -102,14 +108,27 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	case Glass::Event::Type::WINDOW_RESIZE_MODAL:
 		LOG_DEBUG_INFO << "Modal Window Resize event!" << std::endl;
 		break;
-	case Glass::Event::Type::POINTER_MOVE:
-		//LOG_DEBUG_INFO << "Pointer move event!" << std::endl;
+	case Glass::Event::Type::WINDOW_CLOSE:
+		LOG_DEBUG_INFO << "Close Window event!" << std::endl;
+		break;
+	case Glass::Event::Type::FLOATING_TOGGLE:
+		LOG_DEBUG_INFO << "Floating Toggle event!" << std::endl;
+		break;
+	case Glass::Event::Type::FLOATING_RAISE:
+		LOG_DEBUG_INFO << "Floating Raise event!" << std::endl;
+		break;
+	case Glass::Event::Type::SWITCH_TABBED:
+		LOG_DEBUG_INFO << "Switch Tabbed event!" << std::endl;
+		break;
+	case Glass::Event::Type::FOCUS_CYCLE:
+		LOG_DEBUG_INFO << "Focus Cycle event!" << std::endl;
+		break;
+	case Glass::Event::Type::SPAWN_COMMAND:
+		LOG_DEBUG_INFO << "Spawn Command event!" << std::endl;
 		break;
 	case Glass::Event::Type::TAG_DISPLAY:
 		LOG_DEBUG_INFO << "Tag Display event!" << std::endl;
 		break;
-	case Glass::Event::Type::SPAWN_COMMAND:
-		LOG_DEBUG_INFO << "Spawn Command event!" << std::endl;
 	default:
 		LOG_DEBUG_INFO << "Some other type of event received!" << std::endl;
 	}
@@ -234,6 +253,66 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 		break;
 
 
+	case Glass::Event::Type::CLIENT_SHOW_REQUEST:
+		break;
+
+
+	case Glass::Event::Type::CLIENT_GEOMETRY_CHANGE_REQUEST:
+		break;
+
+
+	case Glass::Event::Type::CLIENT_ICONIFIED_REQUEST:
+		break;
+
+
+	case Glass::Event::Type::CLIENT_FULLSCREEN_REQUEST:
+		break;
+
+
+	case Glass::Event::Type::POINTER_MOVE:
+		{
+			PointerMove_Event const * const EventCast = static_cast<PointerMove_Event const *>(Event);
+
+			if (ModalMove)
+			{
+				Vector const PositionOffset = EventCast->Position - ModalOldPosition;
+
+				if (!PositionOffset.IsZero())
+				{
+					Vector const OldPosition = ModalMove->GetPosition();
+
+					if (!this->Owner.ClientData[*ModalMove]->Floating)
+						this->Owner.RootTags[*ModalMove->GetRootWindow()]->GetWindowLayout().MoveClientWindow(*ModalMove, ModalOldPosition, PositionOffset);
+
+					ModalMove->SetPosition(OldPosition + PositionOffset);
+
+					ModalOldPosition = EventCast->Position;
+				}
+			}
+			else if (ModalResize)
+			{
+				Vector const Offset = (EventCast->Position - ModalOldPosition) * ModalResizeMask;
+
+				if (!Offset.IsZero())
+				{
+					if (!this->Owner.ClientData[*ModalResize]->Floating)
+						this->Owner.RootTags[*ModalResize->GetRootWindow()]->GetWindowLayout().ResizeClientWindow(*ModalResize, ModalResizeMask, Offset);
+					else
+					{
+						Vector const PositionOffset(ModalResizeMask.x < 0 ? -Offset.x : 0,
+													ModalResizeMask.y < 0 ? -Offset.y : 0);
+
+						ModalResize->SetGeometry(ModalResize->GetPosition() + PositionOffset,
+												 ModalResize->GetSize() + Offset);
+					}
+
+					ModalOldPosition = EventCast->Position;
+				}
+			}
+		}
+		break;
+
+
 	case Glass::Event::Type::WINDOW_ENTER:
 		{
 			WindowEnter_Event const * const EventCast = static_cast<WindowEnter_Event const *>(Event);
@@ -253,11 +332,7 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 		break;
 
 
-	case Glass::Event::Type::WINDOW_CLOSE:
-		{
-			if (this->Owner.ActiveClient != nullptr)
-				this->Owner.ActiveClient->Close();
-		}
+	case Glass::Event::Type::INPUT:
 		break;
 
 
@@ -347,45 +422,56 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 		break;
 
 
-	case Glass::Event::Type::POINTER_MOVE:
+	case Glass::Event::Type::WINDOW_CLOSE:
 		{
-			PointerMove_Event const * const EventCast = static_cast<PointerMove_Event const *>(Event);
+			if (this->Owner.ActiveClient != nullptr)
+				this->Owner.ActiveClient->Close();
+		}
+		break;
 
-			if (ModalMove)
+
+	case Glass::Event::Type::FLOATING_TOGGLE:
+		break;
+
+
+	case Glass::Event::Type::FLOATING_RAISE:
+		break;
+
+
+	case Glass::Event::Type::SWITCH_TABBED:
+		break;
+
+
+	case Glass::Event::Type::FOCUS_CYCLE:
+		break;
+
+
+	case Glass::Event::Type::SPAWN_COMMAND:
+		{
+			SpawnCommand_Event const * const EventCast = static_cast<SpawnCommand_Event const *>(Event);
+
+			if (fork() == 0)
 			{
-				Vector const PositionOffset = EventCast->Position - ModalOldPosition;
+				setsid();
 
-				if (!PositionOffset.IsZero())
-				{
-					Vector const OldPosition = ModalMove->GetPosition();
+				char *Command[EventCast->Command.size() + 1];
+				int Index = 0;
+				for (auto const &Argument : EventCast->Command)
+					Command[Index++] = const_cast<char *>(Argument.c_str());
+				Command[Index] = nullptr;
 
-					if (!this->Owner.ClientData[*ModalMove]->Floating)
-						this->Owner.RootTags[*ModalMove->GetRootWindow()]->GetWindowLayout().MoveClientWindow(*ModalMove, ModalOldPosition, PositionOffset);
+				// Replace the process image with that of the command we want to spawn
+				execvp(Command[0], Command);
 
-					ModalMove->SetPosition(OldPosition + PositionOffset);
+				// If we get here, something went wrong
+				LOG_ERROR << "Unable to spawn command '" << EventCast->Command[0];
 
-					ModalOldPosition = EventCast->Position;
-				}
-			}
-			else if (ModalResize)
-			{
-				Vector const Offset = (EventCast->Position - ModalOldPosition) * ModalResizeMask;
+				for (unsigned int Index = 1; Index < EventCast->Command.size(); Index++)
+					LOG_ERROR_NOHEADER << " " << EventCast->Command[Index];
 
-				if (!Offset.IsZero())
-				{
-					if (!this->Owner.ClientData[*ModalResize]->Floating)
-						this->Owner.RootTags[*ModalResize->GetRootWindow()]->GetWindowLayout().ResizeClientWindow(*ModalResize, ModalResizeMask, Offset);
-					else
-					{
-						Vector const PositionOffset(ModalResizeMask.x < 0 ? -Offset.x : 0,
-													ModalResizeMask.y < 0 ? -Offset.y : 0);
+				LOG_ERROR_NOHEADER << "'!" << std::endl;
 
-						ModalResize->SetGeometry(ModalResize->GetPosition() + PositionOffset,
-												 ModalResize->GetSize() + Offset);
-					}
-
-					ModalOldPosition = EventCast->Position;
-				}
+				exit(EXIT_SUCCESS);
 			}
 		}
 		break;
@@ -438,38 +524,6 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			}
 		}
 		break;
-
-
-	case Glass::Event::Type::SPAWN_COMMAND:
-		{
-			SpawnCommand_Event const * const EventCast = static_cast<SpawnCommand_Event const *>(Event);
-
-			if (fork() == 0)
-			{
-				setsid();
-
-				char *Command[EventCast->Command.size() + 1];
-				int Index = 0;
-				for (auto const &Argument : EventCast->Command)
-					Command[Index++] = const_cast<char *>(Argument.c_str());
-				Command[Index] = nullptr;
-
-				// Replace the process image with that of the command we want to spawn
-				execvp(Command[0], Command);
-
-				// If we get here, something went wrong
-				LOG_ERROR << "Unable to spawn command '" << EventCast->Command[0];
-
-				for (unsigned int Index = 1; Index < EventCast->Command.size(); Index++)
-					LOG_ERROR_NOHEADER << " " << EventCast->Command[Index];
-
-				LOG_ERROR_NOHEADER << "'!" << std::endl;
-
-				exit(EXIT_SUCCESS);
-			}
-		}
-		break;
-
 	}
 
 	this->Owner.WindowManager.DisplayServer.Sync();

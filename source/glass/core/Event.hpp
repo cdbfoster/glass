@@ -43,12 +43,10 @@ namespace Glass
 						  WINDOW_ENTER,
 						  INPUT,
 
-						  // Window
+						  // User
 						  WINDOW_MOVE_MODAL,
 						  WINDOW_RESIZE_MODAL,
 						  WINDOW_CLOSE,
-
-						  // Window manager
 						  FLOATING_TOGGLE,
 						  FLOATING_RAISE,
 						  SWITCH_TABBED,
