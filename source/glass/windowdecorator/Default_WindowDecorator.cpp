@@ -70,7 +70,7 @@ namespace Glass
 void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, unsigned char HintMask)
 {
 	FrameWindow *Frame = nullptr;
-	Vector const FrameThickness = (HintMask & Hint::MINIMAL ? Vector(4, 4) : Vector(3, 3));
+	Vector const FrameThickness = (HintMask & Hint::MINIMAL ? Vector(3, 3) : Vector(5, 5));
 
 	// Find the frame if it already exists
 	auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows(ClientWindow);
