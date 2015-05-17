@@ -17,6 +17,7 @@
 * Copyright 2014-2015 Chris Foster
 */
 
+#include <algorithm>
 #include <limits>
 
 #include "config.hpp"
@@ -552,17 +553,17 @@ TagManager::TagContainer::Tag::~Tag()
 }
 
 
-TagManager::TagContainer::Tag::iterator			TagManager::TagContainer::Tag::begin()			{ return this->ClientWindows.begin(); }
-TagManager::TagContainer::Tag::const_iterator	TagManager::TagContainer::Tag::begin() const	{ return this->ClientWindows.begin(); }
-TagManager::TagContainer::Tag::const_iterator	TagManager::TagContainer::Tag::cbegin() const	{ return this->ClientWindows.cbegin(); }
+TagManager::TagContainer::Tag::iterator			TagManager::TagContainer::Tag::begin()			{ return this->ClientOrder.begin(); }
+TagManager::TagContainer::Tag::const_iterator	TagManager::TagContainer::Tag::begin() const	{ return this->ClientOrder.begin(); }
+TagManager::TagContainer::Tag::const_iterator	TagManager::TagContainer::Tag::cbegin() const	{ return this->ClientOrder.cbegin(); }
 
 
-TagManager::TagContainer::Tag::iterator			TagManager::TagContainer::Tag::end()			{ return this->ClientWindows.end(); }
-TagManager::TagContainer::Tag::const_iterator	TagManager::TagContainer::Tag::end() const		{ return this->ClientWindows.end(); }
-TagManager::TagContainer::Tag::const_iterator	TagManager::TagContainer::Tag::cend() const		{ return this->ClientWindows.cend(); }
+TagManager::TagContainer::Tag::iterator			TagManager::TagContainer::Tag::end()			{ return this->ClientOrder.end(); }
+TagManager::TagContainer::Tag::const_iterator	TagManager::TagContainer::Tag::end() const		{ return this->ClientOrder.end(); }
+TagManager::TagContainer::Tag::const_iterator	TagManager::TagContainer::Tag::cend() const		{ return this->ClientOrder.cend(); }
 
 
-TagManager::TagContainer::Tag::size_type		TagManager::TagContainer::Tag::size() const		{ return this->ClientWindows.size(); }
+TagManager::TagContainer::Tag::size_type		TagManager::TagContainer::Tag::size() const		{ return this->ClientOrder.size(); }
 
 
 void TagManager::TagContainer::Tag::insert(ClientWindow &ClientWindow, bool Exempt)
@@ -577,6 +578,8 @@ void TagManager::TagContainer::Tag::insert(ClientWindow &ClientWindow, bool Exem
 		else
 			this->ExemptClientWindows.insert(&ClientWindow);
 
+		this->ClientOrder.push_back(&ClientWindow);
+
 		if (this->Activated)
 		{
 			if (ClientWindow.GetVisibility() == false)
@@ -590,13 +593,15 @@ void TagManager::TagContainer::Tag::erase(iterator position)
 {
 	ClientWindow * const ClientWindow = *position;
 
-	this->ClientWindows.erase(position);
+	this->ClientWindows.erase(ClientWindow);
 
 	if (!this->ExemptClientWindows.erase(ClientWindow))
 	{
 		for (auto Layout : this->WindowLayouts)
 			Layout->remove(ClientWindow);
 	}
+
+	this->ClientOrder.erase(position);
 
 	if (this->Activated)
 	{
@@ -630,13 +635,13 @@ TagManager::TagContainer::Tag::size_type TagManager::TagContainer::Tag::erase(Cl
 
 TagManager::TagContainer::Tag::iterator TagManager::TagContainer::Tag::find(ClientWindow &ClientWindow)
 {
-	return this->ClientWindows.find(&ClientWindow);
+	return std::find(this->begin(), this->end(), &ClientWindow);
 }
 
 
 TagManager::TagContainer::Tag::const_iterator TagManager::TagContainer::Tag::find(ClientWindow &ClientWindow) const
 {
-	return this->ClientWindows.find(&ClientWindow);
+	return std::find(this->begin(), this->end(), &ClientWindow);
 }
 
 
@@ -649,6 +654,26 @@ WindowLayout &TagManager::TagContainer::Tag::GetWindowLayout() const
 std::string const &TagManager::TagContainer::Tag::GetName() const
 {
 	return this->Name;
+}
+
+
+void TagManager::TagContainer::Tag::SetActiveClient(ClientWindow &ClientWindow)
+{
+	iterator position;
+	if ((position = std::find(this->ClientOrder.begin(), this->ClientOrder.end(), &ClientWindow)) != this->ClientOrder.end())
+	{
+		this->ClientOrder.erase(position);
+		this->ClientOrder.push_front(&ClientWindow);
+	}
+}
+
+
+ClientWindow *TagManager::TagContainer::Tag::GetActiveClient() const
+{
+	if (!this->ClientOrder.empty())
+		return this->ClientOrder.front();
+	else
+		return nullptr;
 }
 
 
@@ -669,9 +694,9 @@ void TagManager::TagContainer::Tag::SetExempt(ClientWindow &ClientWindow, bool E
 	if (this->find(ClientWindow) == this->end())
 		return;
 
-	iterator ClientIterator;
+	std::set<Glass::ClientWindow *>::iterator ClientIterator;
 	// If the client's exemption status is not already what we want it to be,
-	if (((ClientIterator = this->ExemptClientWindows.find(&ClientWindow)) == this->end()) == Exempt)
+	if (((ClientIterator = this->ExemptClientWindows.find(&ClientWindow)) == this->ExemptClientWindows.end()) == Exempt)
 	{
 		if (Exempt)
 		{

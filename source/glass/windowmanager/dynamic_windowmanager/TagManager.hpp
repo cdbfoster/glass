@@ -38,9 +38,9 @@ namespace Glass
 
 		class TagContainer;
 
-		typedef std::map<RootWindow *, TagContainer *>::size_type			size_type;
-		typedef std::map<RootWindow *, TagContainer *>::iterator			iterator;
-		typedef std::map<RootWindow *, TagContainer *>::const_iterator		const_iterator;
+		typedef std::map<RootWindow *, TagContainer *>::size_type	   size_type;
+		typedef std::map<RootWindow *, TagContainer *>::iterator	   iterator;
+		typedef std::map<RootWindow *, TagContainer *>::const_iterator const_iterator;
 
 		iterator		begin();
 		const_iterator	begin() const;
@@ -74,11 +74,11 @@ namespace Glass
 
 			class Tag;
 
-			typedef std::list<Tag *>::size_type			size_type;
-			typedef std::list<Tag *>::value_type		value_type;
-			typedef std::list<Tag *>::reference			reference;
-			typedef std::list<Tag *>::iterator			iterator;
-			typedef std::list<Tag *>::const_iterator	const_iterator;
+			typedef std::list<Tag *>::size_type		 size_type;
+			typedef std::list<Tag *>::value_type	 value_type;
+			typedef std::list<Tag *>::reference		 reference;
+			typedef std::list<Tag *>::iterator		 iterator;
+			typedef std::list<Tag *>::const_iterator const_iterator;
 
 			iterator		begin();
 			const_iterator	begin() const;
@@ -134,9 +134,9 @@ namespace Glass
 				Tag(TagContainer const &Container, std::string const &Name);
 				~Tag();
 
-				typedef std::set<ClientWindow *>::size_type			size_type;
-				typedef std::set<ClientWindow *>::iterator			iterator;
-				typedef std::set<ClientWindow *>::const_iterator	const_iterator;
+				typedef ClientWindowList::size_type		 size_type;
+				typedef ClientWindowList::iterator		 iterator;
+				typedef ClientWindowList::const_iterator const_iterator;
 
 				iterator		begin();
 				const_iterator	begin() const;
@@ -160,6 +160,9 @@ namespace Glass
 
 				std::string const &GetName() const;
 
+				void SetActiveClient(ClientWindow &ClientWindow);
+				ClientWindow *GetActiveClient() const;
+
 				bool IsActive() const;
 
 			private:
@@ -170,6 +173,8 @@ namespace Glass
 
 				std::set<ClientWindow *> ClientWindows;
 				std::set<ClientWindow *> ExemptClientWindows; // Clients that aren't participating in window layouts (floating, fullscreen, etc)
+
+				ClientWindowList ClientOrder;
 
 				bool IsExempt(ClientWindow &ClientWindow) const;
 				void SetExempt(ClientWindow &ClientWindow, bool Exempt);
