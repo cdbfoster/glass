@@ -399,6 +399,7 @@ void ClientWindow::SetRootWindow(Glass::RootWindow *RootWindow)
 
 RootWindow::RootWindow(Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size) :
 	PrimaryWindow(DisplayServer, Position, Size, true),
+	ActiveClientWindow(nullptr),
 	ClientWindows(*this)
 {
 
