@@ -96,6 +96,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	case Glass::Event::Type::CLIENT_FULLSCREEN_REQUEST:
 		LOG_DEBUG_INFO << "Client Fullscreen Request event!" << std::endl;
 		break;
+	case Glass::Event::Type::POINTER_MOVE:
+		//LOG_DEBUG_INFO << "Pointer Move event!" << std::endl;
+		break;
 	case Glass::Event::Type::WINDOW_ENTER:
 		LOG_DEBUG_INFO << "Enter Window event!" << std::endl;
 		break;
@@ -212,6 +215,8 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 				this->Owner.ActivateClient(EventCast->ClientWindow);
 			}
+
+			this->Owner.RefreshStackingOrder();
 		}
 		break;
 
@@ -431,10 +436,23 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 
 	case Glass::Event::Type::FLOATING_TOGGLE:
+		{
+			if (this->Owner.ActiveClient == nullptr)
+				break;
+
+			this->Owner.SetClientFloating(*this->Owner.ActiveClient, !this->Owner.ClientData[*this->Owner.ActiveClient]->Floating);
+		}
 		break;
 
 
 	case Glass::Event::Type::FLOATING_RAISE:
+		{
+			if (this->Owner.ActiveClient == nullptr)
+				break;
+
+			if (this->Owner.ClientData[*this->Owner.ActiveClient]->Floating)
+				this->Owner.SetClientRaised(*this->Owner.ActiveClient, true);
+		}
 		break;
 
 

@@ -66,6 +66,7 @@ namespace Glass
 		void		  ActivateClient(ClientWindow &ClientWindow);
 		unsigned char GetDecorationHint(ClientWindow &ClientWindow) const;
 		void		  RefreshStackingOrder();
+		void		  SetClientFloating(ClientWindow &ClientWindow, bool Floating);
 		void		  SetClientLowered(ClientWindow &ClientWindow, bool Lowered);
 		void		  SetClientRaised(ClientWindow &ClientWindow, bool Raised);
 	};

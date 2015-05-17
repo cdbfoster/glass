@@ -129,6 +129,26 @@ void Dynamic_WindowManager::Implementation::RefreshStackingOrder()
 }
 
 
+void Dynamic_WindowManager::Implementation::SetClientFloating(ClientWindow &ClientWindow, bool Floating)
+{
+	auto ClientData = this->ClientData[ClientWindow];
+
+	if (ClientData->Floating == Floating)
+		return;
+	else
+		ClientData->Floating = Floating;
+
+	TagManager::TagContainer * const TagContainer = this->RootTags[*ClientWindow.GetRootWindow()];
+
+	TagContainer->SetClientWindowExempt(ClientWindow, Floating);
+
+	if (this->WindowDecorator != nullptr)
+		this->WindowDecorator->DecorateWindow(ClientWindow, this->GetDecorationHint(ClientWindow));
+
+	this->SetClientRaised(ClientWindow, Floating);
+}
+
+
 void Dynamic_WindowManager::Implementation::SetClientLowered(ClientWindow &ClientWindow, bool Lowered)
 {
 	this->LoweredClients.remove(&ClientWindow);
