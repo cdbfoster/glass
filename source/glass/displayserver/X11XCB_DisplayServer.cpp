@@ -475,8 +475,8 @@ void X11XCB_DisplayServer::FocusWindow(Window const &Window)
 					memset(&ClientMessage, 0, sizeof(ClientMessage));
 
 					ClientMessage.response_type = XCB_CLIENT_MESSAGE;
-					ClientMessage.window = WindowID;
 					ClientMessage.format = 32;
+					ClientMessage.window = WindowID;
 					ClientMessage.type = Atoms::WM_PROTOCOLS;
 					ClientMessage.data.data32[0] = Atoms::WM_TAKE_FOCUS;
 					ClientMessage.data.data32[1] = XCB_CURRENT_TIME;
@@ -700,8 +700,8 @@ void X11XCB_DisplayServer::CloseClientWindow(ClientWindow const &ClientWindow)
 			memset(&ClientMessage, 0, sizeof(ClientMessage));
 
 			ClientMessage.response_type = XCB_CLIENT_MESSAGE;
-			ClientMessage.window = WindowID;
 			ClientMessage.format = 32;
+			ClientMessage.window = WindowID;
 			ClientMessage.type = Atoms::WM_PROTOCOLS;
 			ClientMessage.data.data32[0] = Atoms::WM_DELETE_WINDOW;
 			ClientMessage.data.data32[1] = XCB_CURRENT_TIME;

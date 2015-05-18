@@ -61,17 +61,14 @@ namespace Config
 
 		{ new WindowClose_Event, Input(Input::Type::KEYBOARD, Input::Value::KEY_Q, Keys::CommandModifier) },
 
-
 		{ new FloatingToggle_Event, Input(Input::Type::KEYBOARD, Input::Value::KEY_RETURN, Keys::CommandModifier) },
 		{ new FloatingRaise_Event,  Input(Input::Type::KEYBOARD, Keys::CommandKey,		   Input::Modifier::NONE) },
 		{ new SwitchTabbed_Event,   Input(Input::Type::KEYBOARD, Input::Value::KEY_TAB,	   Keys::CommandModifier) },
-
 
 		{ new FocusCycle_Event(FocusCycle_Event::Direction::LEFT),  Input(Input::Type::KEYBOARD, Input::Value::KEY_LEFT,  Keys::CommandModifier) },
 		{ new FocusCycle_Event(FocusCycle_Event::Direction::RIGHT), Input(Input::Type::KEYBOARD, Input::Value::KEY_RIGHT, Keys::CommandModifier) },
 		{ new FocusCycle_Event(FocusCycle_Event::Direction::UP),	Input(Input::Type::KEYBOARD, Input::Value::KEY_UP,	  Keys::CommandModifier) },
 		{ new FocusCycle_Event(FocusCycle_Event::Direction::DOWN),  Input(Input::Type::KEYBOARD, Input::Value::KEY_DOWN,  Keys::CommandModifier) },
-
 
 		{ new LayoutCycle_Event(LayoutCycle_Event::Direction::FORWARD),  Input(Input::Type::KEYBOARD, Input::Value::KEY_RIGHT, Keys::CommandModifier | Input::Modifier::CONTROL) },
 		{ new LayoutCycle_Event(LayoutCycle_Event::Direction::BACKWARD), Input(Input::Type::KEYBOARD, Input::Value::KEY_LEFT,  Keys::CommandModifier | Input::Modifier::CONTROL) },
@@ -108,7 +105,7 @@ namespace Config
 	};
 
 
-	// Window layouts - Leave the list blank to use a dummy layout
+	// Window layouts - Leave the list empty to use a dummy layout
 	std::vector<WindowLayout *(*)(Vector const &, Vector const &)> const WindowLayouts = { };
 
 
