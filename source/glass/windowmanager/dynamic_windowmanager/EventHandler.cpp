@@ -284,6 +284,40 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 
 	case Glass::Event::Type::CLIENT_ICONIFIED_REQUEST:
+		{
+			ClientIconifiedRequest_Event const * const EventCast = static_cast<ClientIconifiedRequest_Event const *>(Event);
+
+			TagManager::TagContainer * const TagContainer = this->Owner.RootTags[*EventCast->ClientWindow.GetRootWindow()];
+
+			if (EventCast->State == true)
+			{
+				TagContainer->RemoveClientWindow(EventCast->ClientWindow);
+
+				if (&EventCast->ClientWindow == this->Owner.ActiveClient)
+				{
+					ClientWindow * const NewActiveClient = TagContainer->GetActiveTag()->GetActiveClient();
+
+					if (NewActiveClient != nullptr)
+						this->Owner.ActivateClient(*NewActiveClient);
+					else
+						this->Owner.ActiveClient = nullptr;
+				}
+			}
+
+			EventCast->ClientWindow.SetIconified(EventCast->State);
+
+			if (EventCast->State == false)
+			{
+				TagContainer->AddClientWindow(EventCast->ClientWindow, this->Owner.ClientData[EventCast->ClientWindow]->Floating);
+
+				// Activate the client only if the current active client isn't fullscreen
+				if ((this->Owner.ActiveClient != nullptr && this->Owner.ActiveClient->GetFullscreen() == false) ||
+					 this->Owner.ActiveClient == nullptr)
+				{
+					this->Owner.ActivateClient(EventCast->ClientWindow);
+				}
+			}
+		}
 		break;
 
 
