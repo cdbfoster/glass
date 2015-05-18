@@ -51,6 +51,7 @@ namespace Glass
 						  FLOATING_RAISE,
 						  SWITCH_TABBED,
 						  FOCUS_CYCLE,
+						  LAYOUT_CYCLE,
 						  SPAWN_COMMAND,
 						  TAG_DISPLAY };
 
@@ -328,6 +329,22 @@ namespace Glass
 		{ }
 
 		Event *Copy() const { return new FocusCycle_Event(this->CycleDirection); }
+
+		Direction const CycleDirection;
+	};
+
+
+	struct LayoutCycle_Event : public UserCommand_Event
+	{
+		enum class Direction { FORWARD,
+							   BACKWARD };
+
+		LayoutCycle_Event(Direction CycleDirection) :
+			UserCommand_Event(Event::Type::LAYOUT_CYCLE),
+			CycleDirection(CycleDirection)
+		{ }
+
+		Event *Copy() const { return new LayoutCycle_Event(this->CycleDirection); }
 
 		Direction const CycleDirection;
 	};

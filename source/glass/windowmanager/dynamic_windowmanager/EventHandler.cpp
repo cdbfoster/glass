@@ -126,6 +126,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	case Glass::Event::Type::FOCUS_CYCLE:
 		LOG_DEBUG_INFO << "Focus Cycle event!" << std::endl;
 		break;
+	case Glass::Event::Type::LAYOUT_CYCLE:
+		LOG_DEBUG_INFO << "Layout Cycle event!" << std::endl;
+		break;
 	case Glass::Event::Type::SPAWN_COMMAND:
 		LOG_DEBUG_INFO << "Spawn Command event!" << std::endl;
 		break;
@@ -490,6 +493,10 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 
 	case Glass::Event::Type::FOCUS_CYCLE:
+		break;
+
+
+	case Glass::Event::Type::LAYOUT_CYCLE:
 		break;
 
 

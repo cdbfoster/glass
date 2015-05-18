@@ -73,6 +73,9 @@ namespace Config
 		{ new FocusCycle_Event(FocusCycle_Event::Direction::DOWN),  Input(Input::Type::KEYBOARD, Input::Value::KEY_DOWN,  Keys::CommandModifier) },
 
 
+		{ new LayoutCycle_Event(LayoutCycle_Event::Direction::FORWARD),  Input(Input::Type::KEYBOARD, Input::Value::KEY_RIGHT, Keys::CommandModifier | Input::Modifier::CONTROL) },
+		{ new LayoutCycle_Event(LayoutCycle_Event::Direction::BACKWARD), Input(Input::Type::KEYBOARD, Input::Value::KEY_LEFT,  Keys::CommandModifier | Input::Modifier::CONTROL) },
+
 		{ new SpawnCommand_Event({ "xterm" }), Input(Input::Type::KEYBOARD, Input::Value::KEY_T, Keys::CommandModifier) },
 		{ new SpawnCommand_Event({ "gedit" }), Input(Input::Type::KEYBOARD, Input::Value::KEY_E, Keys::CommandModifier) },
 
