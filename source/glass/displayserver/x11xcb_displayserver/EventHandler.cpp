@@ -106,9 +106,6 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 									   ConfigureNotify->width << ", " << ConfigureNotify->height << ")";
 		}
 		break;
-	case XCB_PROPERTY_NOTIFY: // XXX Check for a root property change related to resuming from a suspend
-		LOG_DEBUG_INFO_NOHEADER << " - Property notify on " << ((xcb_property_notify_event_t *)Event)->window;
-		break;
 	case XCB_MOTION_NOTIFY:
 		//LOG_DEBUG_INFO_NOHEADER << " - Motion notify on " << ((xcb_motion_notify_event_t *)Event)->child << ", " <<
 		//													 ((xcb_motion_notify_event_t *)Event)->event << " at " <<
@@ -151,6 +148,54 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 				Vector const Position = Vector(KeyPress->root_x, KeyPress->root_y);
 
 				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new Input_Event(EventWindow, Input, Position)));
+			}
+		}
+		break;
+
+
+	case XCB_PROPERTY_NOTIFY:
+		{
+			xcb_property_notify_event_t * const PropertyNotify = (xcb_property_notify_event_t *)Event;
+
+			LOG_DEBUG_INFO_NOHEADER << " - Property notify";
+
+			auto WindowDataAccessor = this->Owner.GetWindowData();
+
+			auto WindowData = WindowDataAccessor->find(PropertyNotify->window);
+			if (WindowData != WindowDataAccessor->end())
+			{
+				xcb_window_t const WindowID = PropertyNotify->window;
+				LOG_DEBUG_INFO_NOHEADER << " on " << WindowID;
+
+				if (ClientWindowData * const WindowDataCast = dynamic_cast<ClientWindowData *>(*WindowData))
+				{
+					if (WindowDataCast->Destroyed)
+						break;
+
+					ClientWindow &EventWindow = static_cast<ClientWindow &>(WindowDataCast->Window);
+
+					if (PropertyNotify->atom == Atoms::WM_HINTS)
+					{
+						LOG_DEBUG_INFO_NOHEADER << ", WM_HINTS";
+
+						xcb_icccm_wm_hints_t	  WMHints;
+						xcb_get_property_cookie_t WMHintsCookie = xcb_icccm_get_wm_hints_unchecked(this->Owner.XConnection, WindowID);
+
+						if (!xcb_icccm_get_wm_hints_reply(this->Owner.XConnection, WMHintsCookie, &WMHints, nullptr))
+							break;
+
+						if ((bool)(WMHints.flags & XCB_ICCCM_WM_HINT_X_URGENCY) != WindowDataCast->Urgent)
+						{
+							WindowDataCast->Urgent = !WindowDataCast->Urgent;
+
+							this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*new ClientUrgencyChange_Event(EventWindow, WindowDataCast->Urgent));
+						}
+					}
+				}
+				else if (dynamic_cast<RootWindowData *>(*WindowData))
+				{
+					// XXX Check for a root property change related to resuming from a suspend
+				}
 			}
 		}
 		break;

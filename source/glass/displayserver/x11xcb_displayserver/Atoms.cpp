@@ -40,6 +40,7 @@ struct Atom
 void Atoms::Initialize(xcb_connection_t *XConnection)
 {
 	std::vector<Atom> Atoms = {
+		{ WM_HINTS,								"WM_HINTS" },
 		{ WM_NAME,								"WM_NAME" },
 		{ WM_STATE,								"WM_STATE" },
 		{ WM_PROTOCOLS,							"WM_PROTOCOLS" },
@@ -128,6 +129,7 @@ void Atoms::Initialize(xcb_connection_t *XConnection)
 
 // Atom definitions
 
+xcb_atom_t Atoms::WM_HINTS;
 xcb_atom_t Atoms::WM_NAME;
 xcb_atom_t Atoms::WM_STATE;
 xcb_atom_t Atoms::WM_PROTOCOLS;

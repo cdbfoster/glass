@@ -26,6 +26,7 @@ namespace Glass
 {
 	struct Atoms
 	{
+		static xcb_atom_t WM_HINTS;
 		static xcb_atom_t WM_NAME;
 		static xcb_atom_t WM_STATE;
 

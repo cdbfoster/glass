@@ -53,12 +53,13 @@ namespace Glass
 
 	struct ClientWindowData : public WindowData
 	{
-		ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID, uint32_t EventMask, bool NeverFocus, xcb_window_t RootID);
+		ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID, uint32_t EventMask, bool NeverFocus, xcb_window_t RootID, bool Urgent);
 
 		bool const NeverFocus;
 		std::set<xcb_atom_t> _NET_WM_STATE;
 
 		xcb_window_t RootID;
+		bool Urgent;
 		bool Destroyed;
 	};
 

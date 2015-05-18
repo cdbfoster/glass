@@ -90,6 +90,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	case Glass::Event::Type::CLIENT_ICONIFIED_REQUEST:
 		LOG_DEBUG_INFO << "Client Iconified Request event!" << std::endl;
 		break;
+	case Glass::Event::Type::CLIENT_URGENCY_CHANGE:
+		LOG_DEBUG_INFO << "Client Urgency Change event!" << std::endl;
+		break;
 	case Glass::Event::Type::CLIENT_FULLSCREEN_REQUEST:
 		LOG_DEBUG_INFO << "Client Fullscreen Request event!" << std::endl;
 		break;
@@ -278,6 +281,21 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 
 	case Glass::Event::Type::CLIENT_ICONIFIED_REQUEST:
+		break;
+
+
+	case Glass::Event::Type::CLIENT_URGENCY_CHANGE:
+		{
+			ClientUrgencyChange_Event const * const EventCast = static_cast<ClientUrgencyChange_Event const *>(Event);
+
+			EventCast->ClientWindow.SetUrgent(EventCast->State);
+
+			if (EventCast->State == true && &EventCast->ClientWindow == this->Owner.ActiveClient)
+				EventCast->ClientWindow.SetUrgent(false);
+
+			if (this->Owner.WindowDecorator != nullptr)
+				this->Owner.WindowDecorator->DecorateWindow(EventCast->ClientWindow, this->Owner.GetDecorationHint(EventCast->ClientWindow));
+		}
 		break;
 
 

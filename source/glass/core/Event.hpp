@@ -37,6 +37,7 @@ namespace Glass
 						  CLIENT_DESTROY,
 						  CLIENT_GEOMETRY_CHANGE_REQUEST,
 						  CLIENT_ICONIFIED_REQUEST,
+						  CLIENT_URGENCY_CHANGE,
 						  CLIENT_FULLSCREEN_REQUEST,
 						  POINTER_MOVE,
 						  WINDOW_ENTER,
@@ -144,6 +145,19 @@ namespace Glass
 		{ }
 
 		Event *Copy() const { return new ClientIconifiedRequest_Event(this->ClientWindow, this->State); }
+
+		bool const State;
+	};
+
+
+	struct ClientUrgencyChange_Event : public Client_Event
+	{
+		ClientUrgencyChange_Event(Glass::ClientWindow &ClientWindow, bool State) :
+			Client_Event(ClientWindow, Event::Type::CLIENT_URGENCY_CHANGE),
+			State(State)
+		{ }
+
+		Event *Copy() const { return new ClientUrgencyChange_Event(this->ClientWindow, this->State); }
 
 		bool const State;
 	};

@@ -659,15 +659,16 @@ void X11XCB_DisplayServer::SetClientWindowUrgent(ClientWindow &ClientWindow, boo
 	auto WindowData = WindowDataAccessor->find(&ClientWindow);
 	if (WindowData != WindowDataAccessor->end())
 	{
+		ClientWindowData * const WindowDataCast = static_cast<ClientWindowData *>(*WindowData);
 		xcb_window_t const &WindowID = (*WindowData)->ID;
 
-		xcb_icccm_wm_hints_t		WMHints;
-
-		xcb_get_property_cookie_t	WMHintsCookie = xcb_icccm_get_wm_hints(this->Data->XConnection, WindowID);
-		xcb_icccm_get_wm_hints_reply(this->Data->XConnection, WMHintsCookie, &WMHints, nullptr);
-
-		if ((WMHints.flags & XCB_ICCCM_WM_HINT_X_URGENCY) == Value)
+		if (WindowDataCast->Urgent == Value)
 			return;
+
+		xcb_icccm_wm_hints_t	  WMHints;
+		xcb_get_property_cookie_t WMHintsCookie = xcb_icccm_get_wm_hints_unchecked(this->Data->XConnection, WindowID);
+
+		xcb_icccm_get_wm_hints_reply(this->Data->XConnection, WMHintsCookie, &WMHints, nullptr);
 
 		if (Value)
 			WMHints.flags |= XCB_ICCCM_WM_HINT_X_URGENCY;
@@ -675,6 +676,8 @@ void X11XCB_DisplayServer::SetClientWindowUrgent(ClientWindow &ClientWindow, boo
 			WMHints.flags &= ~XCB_ICCCM_WM_HINT_X_URGENCY;
 
 		xcb_icccm_set_wm_hints(this->Data->XConnection, WindowID, &WMHints);
+
+		WindowDataCast->Urgent = Value;
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window! Cannot set urgency." << std::endl;
