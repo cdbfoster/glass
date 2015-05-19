@@ -154,7 +154,7 @@ void PrimaryWindow::SetVisibility(bool Visible)
 
 		for (auto AuxiliaryWindow : *AuxiliaryWindowsAccessor)
 		{
-			if (dynamic_cast<FrameWindow *>(AuxiliaryWindow))
+			if ((dynamic_cast<FrameWindow *>(AuxiliaryWindow) != nullptr) == Visible)
 				AuxiliaryWindow->SetVisibility(Visible);
 		}
 	}
@@ -166,7 +166,7 @@ void PrimaryWindow::SetVisibility(bool Visible)
 
 		for (auto AuxiliaryWindow : *AuxiliaryWindowsAccessor)
 		{
-			if (!dynamic_cast<FrameWindow *>(AuxiliaryWindow))
+			if ((dynamic_cast<FrameWindow *>(AuxiliaryWindow) == nullptr) == Visible)
 				AuxiliaryWindow->SetVisibility(Visible);
 		}
 	}
