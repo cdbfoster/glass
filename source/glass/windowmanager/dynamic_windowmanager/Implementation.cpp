@@ -17,6 +17,8 @@
 * Copyright 2014-2015 Chris Foster
 */
 
+#include <algorithm>
+
 #include "glass/windowmanager/dynamic_windowmanager/Implementation.hpp"
 
 using namespace Glass;
@@ -47,6 +49,13 @@ void Dynamic_WindowManager::Implementation::ActivateClient(ClientWindow &ClientW
 
 	RootWindow * const ClientRoot = ClientWindow.GetRootWindow();
 
+	auto const TagContainer =  this->RootTags[*ClientRoot];
+	auto const ClientTagMask = TagContainer->GetClientWindowTagMask(ClientWindow);
+	if (!(TagContainer->GetActiveTagMask() & ClientTagMask))
+		return;
+	else
+		TagContainer->GetActiveTag()->SetActiveClient(ClientWindow);
+
 	{
 		Glass::ClientWindow * const OldActiveClient = this->ActiveClient;
 
@@ -54,10 +63,13 @@ void Dynamic_WindowManager::Implementation::ActivateClient(ClientWindow &ClientW
 		this->ActiveClient = &ClientWindow;
 
 		if (OldActiveClient != nullptr &&
-			this->WindowDecorator != nullptr &&
 			this->ClientData.find(*OldActiveClient) != this->ClientData.end())
 		{
-			this->WindowDecorator->DecorateWindow(*OldActiveClient, this->GetDecorationHint(*OldActiveClient));
+			if (this->WindowDecorator != nullptr)
+				this->WindowDecorator->DecorateWindow(*OldActiveClient, this->GetDecorationHint(*OldActiveClient));
+
+			if (OldActiveClient->GetFullscreen() == true && !this->IsClientLowered(*OldActiveClient))
+				this->SetClientLowered(*OldActiveClient, true);
 		}
 	}
 
@@ -75,20 +87,6 @@ void Dynamic_WindowManager::Implementation::ActivateClient(ClientWindow &ClientW
 	// Is the window already the active client of its root?
 	if (ClientRoot->GetActiveClientWindow() != &ClientWindow)
 		ClientRoot->SetActiveClientWindow(ClientWindow);
-
-	// Activate the first tag containing the client if none are activated already
-	auto const TagContainer =  this->RootTags[*ClientRoot];
-	auto const ClientTagMask = TagContainer->GetClientWindowTagMask(ClientWindow);
-	if (!(TagContainer->GetActiveTagMask() & ClientTagMask))
-	{
-		TagManager::TagContainer::TagMask ActivateMask;
-		for (ActivateMask = 0x01; !(ActivateMask & ClientTagMask); ActivateMask <<= 1)
-		{ }
-
-		TagContainer->SetActiveTagMask(ActivateMask);
-	}
-
-	TagContainer->GetActiveTag()->SetActiveClient(ClientWindow);
 
 	if (ClientWindow.GetUrgent() == true)
 		ClientWindow.SetUrgent(false);
@@ -117,6 +115,18 @@ unsigned char Dynamic_WindowManager::Implementation::GetDecorationHint(ClientWin
 }
 
 
+bool Dynamic_WindowManager::Implementation::IsClientLowered(ClientWindow &ClientWindow) const
+{
+	return std::find(this->LoweredClients.begin(), this->LoweredClients.end(), &ClientWindow) != this->LoweredClients.end();
+}
+
+
+bool Dynamic_WindowManager::Implementation::IsClientRaised(ClientWindow &ClientWindow) const
+{
+	return std::find(this->RaisedClients.begin(), this->RaisedClients.end(), &ClientWindow) != this->RaisedClients.end();
+}
+
+
 void Dynamic_WindowManager::Implementation::RefreshStackingOrder()
 {
 	for (auto Client : this->LoweredClients)
@@ -124,8 +134,6 @@ void Dynamic_WindowManager::Implementation::RefreshStackingOrder()
 
 	for (auto Client : this->RaisedClients)
 		Client->Raise();
-
-	// XXX Raise fullscreen clients
 }
 
 
@@ -138,12 +146,18 @@ void Dynamic_WindowManager::Implementation::SetClientFloating(ClientWindow &Clie
 	else
 		ClientData->Floating = Floating;
 
+	if (!Floating)
+		ClientData->FloatingSize = ClientWindow.GetSize();
+
 	TagManager::TagContainer * const TagContainer = this->RootTags[*ClientWindow.GetRootWindow()];
 
 	TagContainer->SetClientWindowExempt(ClientWindow, Floating);
 
 	if (this->WindowDecorator != nullptr)
 		this->WindowDecorator->DecorateWindow(ClientWindow, this->GetDecorationHint(ClientWindow));
+
+	if (Floating)
+		ClientWindow.SetSize(ClientData->FloatingSize);
 
 	this->SetClientRaised(ClientWindow, Floating);
 }
