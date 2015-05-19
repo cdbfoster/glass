@@ -410,6 +410,7 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 
 			if (TransientForReply != XCB_NONE)
 			{
+				// XXX Probably protect WindowData
 				WindowDataContainer::const_iterator TransientForClientData = this->WindowData.find(TransientForReply);
 				if (TransientForClientData != this->WindowData.end())
 					TransientForClient = dynamic_cast<ClientWindow *>(&(*TransientForClientData)->Window);
@@ -478,24 +479,4 @@ void X11XCB_DisplayServer::Implementation::SetWindowGeometry(xcb_window_t Window
 		GeometryChange->second->Position = Position;
 		GeometryChange->second->Size = Size;
 	}
-}
-
-
-void X11XCB_DisplayServer::Implementation::RaiseWindow(xcb_connection_t *XConnection, xcb_window_t WindowID)
-{
-	uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_STACK_MODE;
-
-	uint32_t const ConfigureValues[] = { XCB_STACK_MODE_ABOVE };
-
-	xcb_configure_window(XConnection, WindowID, ConfigureMask, ConfigureValues);
-}
-
-
-void X11XCB_DisplayServer::Implementation::LowerWindow(xcb_connection_t *XConnection, xcb_window_t WindowID)
-{
-	uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_STACK_MODE;
-
-	uint32_t const ConfigureValues[] = { XCB_STACK_MODE_BELOW };
-
-	xcb_configure_window(XConnection, WindowID, ConfigureMask, ConfigureValues);
 }

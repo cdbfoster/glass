@@ -85,8 +85,6 @@ namespace Glass
 
 		// Window manipulation
 		void SetWindowGeometry(xcb_window_t WindowID, Window &Window, Vector const &Position, Vector const &Size);
-		void RaiseWindow(xcb_connection_t *XConnection, xcb_window_t WindowID);
-		void LowerWindow(xcb_connection_t *XConnection, xcb_window_t WindowID);
 	};
 }
 

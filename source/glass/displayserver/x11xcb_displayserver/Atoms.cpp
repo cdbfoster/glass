@@ -101,7 +101,8 @@ void Atoms::Initialize(xcb_connection_t *XConnection)
 		{ _NET_FRAME_EXTENTS,					"_NET_FRAME_EXTENTS" },
 		{ ATOM,									"ATOM" },
 		{ STRING,								"STRING" },
-		{ UTF8_STRING,							"UTF8_STRING" }
+		{ UTF8_STRING,							"UTF8_STRING" },
+		{ _MOTIF_WM_HINTS,						"_MOTIF_WM_HINTS" }
 	};
 
 	xcb_intern_atom_cookie_t AtomCookies[Atoms.size()];
@@ -191,3 +192,4 @@ xcb_atom_t Atoms::_NET_FRAME_EXTENTS;
 xcb_atom_t Atoms::ATOM;
 xcb_atom_t Atoms::STRING;
 xcb_atom_t Atoms::UTF8_STRING;
+xcb_atom_t Atoms::_MOTIF_WM_HINTS;

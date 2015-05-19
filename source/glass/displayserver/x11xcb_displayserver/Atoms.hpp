@@ -98,6 +98,8 @@ namespace Glass
 		static xcb_atom_t STRING;
 		static xcb_atom_t UTF8_STRING;
 
+		static xcb_atom_t _MOTIF_WM_HINTS;
+
 		static void Initialize(xcb_connection_t *XConnection);
 	};
 }

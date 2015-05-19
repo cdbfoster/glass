@@ -379,6 +379,19 @@ void X11XCB_DisplayServer::SetWindowGeometry(Window &Window, Vector const &Posit
 }
 
 
+void DisableEvents(xcb_connection_t *XConnection, xcb_window_t WindowID)
+{
+	uint32_t const NoEvents = 0;
+	xcb_change_window_attributes(XConnection, WindowID, XCB_CW_EVENT_MASK, &NoEvents);
+}
+
+
+void EnableEvents(xcb_connection_t *XConnection, xcb_window_t WindowID, uint32_t EventMask)
+{
+	xcb_change_window_attributes(XConnection, WindowID, XCB_CW_EVENT_MASK, &EventMask);
+}
+
+
 void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 {
 	auto WindowDataAccessor = this->Data->GetWindowData();
@@ -392,10 +405,11 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 		{
 			if (!WindowDataCast->Destroyed)
 			{
-				uint32_t const NoStructureEvents = WindowDataCast->EventMask & ~XCB_EVENT_MASK_STRUCTURE_NOTIFY;
-				xcb_change_window_attributes(this->Data->XConnection, WindowID, XCB_CW_EVENT_MASK, &NoStructureEvents);
+				DisableEvents(this->Data->XConnection, WindowID);
 			}
 		}
+		else
+			DisableEvents(this->Data->XConnection, WindowID);
 
 		// Check the window's map state
 		xcb_get_window_attributes_cookie_t const WindowAttributesCookie = xcb_get_window_attributes(this->Data->XConnection, WindowID);
@@ -414,8 +428,10 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 		if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
 		{
 			if (!WindowDataCast->Destroyed)
-				xcb_change_window_attributes(this->Data->XConnection, WindowID, XCB_CW_EVENT_MASK, &WindowDataCast->EventMask);
+				EnableEvents(this->Data->XConnection, WindowID, WindowDataCast->EventMask);
 		}
+		else
+			EnableEvents(this->Data->XConnection, WindowID, (*WindowData)->EventMask);
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window! Cannot set window visibility." << std::endl;
@@ -504,6 +520,26 @@ void X11XCB_DisplayServer::FocusWindow(Window const &Window)
 }
 
 
+void Raise(xcb_connection_t *XConnection, xcb_window_t WindowID)
+{
+	uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_STACK_MODE;
+
+	uint32_t const ConfigureValues[] = { XCB_STACK_MODE_ABOVE };
+
+	xcb_configure_window(XConnection, WindowID, ConfigureMask, ConfigureValues);
+}
+
+
+void Lower(xcb_connection_t *XConnection, xcb_window_t WindowID)
+{
+	uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_STACK_MODE;
+
+	uint32_t const ConfigureValues[] = { XCB_STACK_MODE_BELOW };
+
+	xcb_configure_window(XConnection, WindowID, ConfigureMask, ConfigureValues);
+}
+
+
 void X11XCB_DisplayServer::RaiseWindow(Window const &Window)
 {
 	auto WindowDataAccessor = this->Data->GetWindowData();
@@ -513,7 +549,7 @@ void X11XCB_DisplayServer::RaiseWindow(Window const &Window)
 	{
 		xcb_window_t const &WindowID = (*WindowData)->ID;
 
-		this->Data->RaiseWindow(this->Data->XConnection, WindowID);
+		Raise(this->Data->XConnection, WindowID);
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot raise window." << std::endl;
@@ -529,7 +565,7 @@ void X11XCB_DisplayServer::LowerWindow(Window const &Window)
 	{
 		xcb_window_t const &WindowID = (*WindowData)->ID;
 
-		this->Data->LowerWindow(this->Data->XConnection, WindowID);
+		Lower(this->Data->XConnection, WindowID);
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot lower window." << std::endl;
@@ -565,7 +601,7 @@ void X11XCB_DisplayServer::DeleteWindow(Window &Window)
 
 void Update_NET_WM_STATE(xcb_connection_t *XConnection, xcb_window_t WindowID, std::set<xcb_atom_t> const &StateAtoms)
 {
-	std::vector<xcb_atom_t> Data(StateAtoms.begin(), StateAtoms.end());
+	std::vector<xcb_atom_t> const Data(StateAtoms.begin(), StateAtoms.end());
 
 	xcb_change_property(XConnection, XCB_PROP_MODE_REPLACE, WindowID,
 						Atoms::_NET_WM_STATE, XCB_ATOM_ATOM, 32, Data.size(), &Data.front());
@@ -938,9 +974,8 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 		// Disable events
 		xcb_grab_server(this->Data->XConnection);
 
-		uint32_t const NoEvent = 0;
-		xcb_change_window_attributes(this->Data->XConnection, PrimaryWindowID, XCB_CW_EVENT_MASK, &NoEvent);
-		xcb_change_window_attributes(this->Data->XConnection, AuxiliaryWindowID, XCB_CW_EVENT_MASK, &NoEvent);
+		DisableEvents(this->Data->XConnection, PrimaryWindowID);
+		DisableEvents(this->Data->XConnection, AuxiliaryWindowID);
 
 
 		// Apply the auxiliary window
@@ -951,8 +986,8 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 				xcb_map_window(this->Data->XConnection, AuxiliaryWindowID);
 
 				// Ensure the frame and the client are together in the stack
-				this->Data->RaiseWindow(this->Data->XConnection, AuxiliaryWindowID);
-				this->Data->RaiseWindow(this->Data->XConnection, PrimaryWindowID);
+				Raise(this->Data->XConnection, AuxiliaryWindowID);
+				Raise(this->Data->XConnection, PrimaryWindowID);
 
 				// Note: The frame window isn't a true X parent window of the client.  This helps prevent ICCCM-non-conformant
 				// clients from misbehaving. *cough*Steam*cough*
@@ -966,8 +1001,8 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 
 
 		// Enable events
-		xcb_change_window_attributes(this->Data->XConnection, AuxiliaryWindowID, XCB_CW_EVENT_MASK, &EventMask);
-		xcb_change_window_attributes(this->Data->XConnection, PrimaryWindowID, XCB_CW_EVENT_MASK, &PrimaryWindowData->EventMask);
+		EnableEvents(this->Data->XConnection, AuxiliaryWindowID, EventMask);
+		EnableEvents(this->Data->XConnection, PrimaryWindowID, PrimaryWindowData->EventMask);
 
 		xcb_ungrab_server(this->Data->XConnection);
 
