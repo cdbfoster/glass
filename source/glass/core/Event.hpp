@@ -51,6 +51,7 @@ namespace Glass
 						  FLOATING_RAISE,
 						  SWITCH_TABBED,
 						  FOCUS_CYCLE,
+						  LEVEL_TOGGLE,
 						  LAYOUT_CYCLE,
 						  SPAWN_COMMAND,
 						  TAG_DISPLAY };
@@ -170,14 +171,14 @@ namespace Glass
 						  FALSE,
 						  TOGGLE };
 
-		ClientFullscreenRequest_Event(Glass::ClientWindow &ClientWindow, Mode ModeValue) :
+		ClientFullscreenRequest_Event(Glass::ClientWindow &ClientWindow, Mode EventMode) :
 			Client_Event(ClientWindow, Event::Type::CLIENT_FULLSCREEN_REQUEST),
-			ModeValue(ModeValue)
+			EventMode(EventMode)
 		{ }
 
-		Event *Copy() const { return new ClientFullscreenRequest_Event(this->ClientWindow, this->ModeValue); }
+		Event *Copy() const { return new ClientFullscreenRequest_Event(this->ClientWindow, this->EventMode); }
 
-		Mode const ModeValue;
+		Mode const EventMode;
 	};
 
 
@@ -319,9 +320,7 @@ namespace Glass
 	struct FocusCycle_Event : public UserCommand_Event
 	{
 		enum class Direction { LEFT,
-							   RIGHT,
-							   UP,
-							   DOWN };
+							   RIGHT };
 
 		FocusCycle_Event(Direction CycleDirection) :
 			UserCommand_Event(Event::Type::FOCUS_CYCLE),
@@ -331,6 +330,22 @@ namespace Glass
 		Event *Copy() const { return new FocusCycle_Event(this->CycleDirection); }
 
 		Direction const CycleDirection;
+	};
+
+
+	struct LevelToggle_Event : public UserCommand_Event
+	{
+		enum class Mode { RAISE,
+						  LOWER };
+
+		LevelToggle_Event(Mode EventMode) :
+			UserCommand_Event(Event::Type::LEVEL_TOGGLE),
+			EventMode(EventMode)
+		{ }
+
+		Event *Copy() const { return new LevelToggle_Event(this->EventMode); }
+
+		Mode const EventMode;
 	};
 
 
