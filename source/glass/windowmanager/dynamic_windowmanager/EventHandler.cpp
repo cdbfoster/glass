@@ -126,6 +126,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	case Glass::Event::Type::FOCUS_CYCLE:
 		LOG_DEBUG_INFO << "Focus Cycle event!" << std::endl;
 		break;
+	case Glass::Event::Type::LEVEL_TOGGLE:
+		LOG_DEBUG_INFO << "Level Toggle event!" << std::endl;
+		break;
 	case Glass::Event::Type::LAYOUT_CYCLE:
 		LOG_DEBUG_INFO << "Layout Cycle event!" << std::endl;
 		break;
@@ -143,6 +146,8 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	static ClientWindow *ModalResize = nullptr;
 	static Vector ModalOldPosition;
 	static Vector ModalResizeMask;
+
+	static ClientWindow *TabbedTarget = nullptr;
 
 	switch (Event->GetType())
 	{
@@ -287,6 +292,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 		{
 			ClientIconifiedRequest_Event const * const EventCast = static_cast<ClientIconifiedRequest_Event const *>(Event);
 
+			if (EventCast->State == EventCast->ClientWindow.GetIconified())
+				break;
+
 			TagManager::TagContainer * const TagContainer = this->Owner.RootTags[*EventCast->ClientWindow.GetRootWindow()];
 
 			if (EventCast->State == true)
@@ -337,6 +345,21 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 
 	case Glass::Event::Type::CLIENT_FULLSCREEN_REQUEST:
+		{
+			ClientFullscreenRequest_Event const * const EventCast = static_cast<ClientFullscreenRequest_Event const *>(Event);
+
+			bool const Value = (EventCast->EventMode == ClientFullscreenRequest_Event::Mode::TRUE ?  true :
+							   (EventCast->EventMode == ClientFullscreenRequest_Event::Mode::FALSE ? false :
+																									 !EventCast->ClientWindow.GetFullscreen()));
+
+			if (Value == EventCast->ClientWindow.GetFullscreen())
+				break;
+
+			EventCast->ClientWindow.SetFullscreen(Value);
+
+			if (Value == false)
+				this->Owner.SetClientLowered(EventCast->ClientWindow, false);
+		}
 		break;
 
 
@@ -390,15 +413,16 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 			if (ClientWindow * const WindowCast = dynamic_cast<ClientWindow *>(&EventCast->Window))
 			{
+				LOG_DEBUG_INFO << "  Client: " << WindowCast->GetPosition() << ", " << WindowCast->GetSize() << std::endl;
 				this->Owner.ActivateClient(*WindowCast);
 			}
 			else if (AuxiliaryWindow * const WindowCast = dynamic_cast<AuxiliaryWindow *>(&EventCast->Window))
 			{
-				if (ClientWindow * const PrimaryCast = dynamic_cast<ClientWindow *>(&WindowCast->GetPrimaryWindow()))
-					this->Owner.ActivateClient(*PrimaryCast);
-
+				LOG_DEBUG_INFO << "  Auxiliary: " << WindowCast->GetPosition() << ", " << WindowCast->GetSize() << std::endl;
 				WindowCast->Focus();
 			}
+			else
+				LOG_DEBUG_INFO << "  Root"  << std::endl;
 		}
 		break;
 
@@ -409,7 +433,7 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 	case Glass::Event::Type::WINDOW_MOVE_MODAL:
 		{
-			if (ModalResize || this->Owner.ActiveClient == nullptr)
+			if (ModalResize || this->Owner.ActiveClient == nullptr || this->Owner.ActiveClient->GetFullscreen() == true)
 				break;
 
 			WindowMoveModal_Event const * const EventCast = static_cast<WindowMoveModal_Event const *>(Event);
@@ -438,7 +462,7 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 	case Glass::Event::Type::WINDOW_RESIZE_MODAL:
 		{
-			if (ModalMove || this->Owner.ActiveClient == nullptr)
+			if (ModalMove || this->Owner.ActiveClient == nullptr || this->Owner.ActiveClient->GetFullscreen() == true)
 				break;
 
 			WindowResizeModal_Event const * const EventCast = static_cast<WindowResizeModal_Event const *>(Event);
@@ -523,10 +547,55 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 
 	case Glass::Event::Type::SWITCH_TABBED:
+		{
+			ClientWindow * const OldActiveClient = this->Owner.ActiveClient;
+
+			if (TabbedTarget != nullptr &&
+				TabbedTarget != this->Owner.ActiveClient &&
+				this->Owner.ClientData.find(*TabbedTarget) != this->Owner.ClientData.end())
+			{
+				// Activate the first tag containing the client if none are activated already
+				auto const TagContainer = this->Owner.RootTags[*TabbedTarget->GetRootWindow()];
+				auto const ClientTagMask = TagContainer->GetClientWindowTagMask(*TabbedTarget);
+
+				if (!(TagContainer->GetActiveTagMask() & ClientTagMask))
+				{
+					TagManager::TagContainer::TagMask ActivateMask;
+					for (ActivateMask = 0x01; !(ActivateMask & ClientTagMask); ActivateMask <<= 1)
+					{ }
+
+					TagContainer->SetActiveTagMask(ActivateMask);
+				}
+
+				this->Owner.ActivateClient(*TabbedTarget);
+			}
+			else
+			{
+				auto const TagContainer = this->Owner.RootTags[*this->Owner.ActiveRoot];
+
+				if (TagContainer->GetActiveTag()->size() > 0)
+				{
+					auto NewActiveClient = TagContainer->GetActiveTag()->begin();
+
+					if (*NewActiveClient == this->Owner.ActiveClient)
+						++NewActiveClient;
+
+					if (NewActiveClient != TagContainer->GetActiveTag()->end())
+						this->Owner.ActivateClient(**NewActiveClient);
+				}
+			}
+
+			if (OldActiveClient != nullptr)
+				TabbedTarget = OldActiveClient;
+		}
 		break;
 
 
 	case Glass::Event::Type::FOCUS_CYCLE:
+		break;
+
+
+	case Glass::Event::Type::LEVEL_TOGGLE:
 		break;
 
 
@@ -569,7 +638,7 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 		{
 			TagDisplay_Event const * const EventCast = static_cast<TagDisplay_Event const *>(Event);
 
-			TagManager::TagContainer * const TagContainer = this->Owner.RootTags[*this->Owner.ActiveRoot];
+			auto const TagContainer = this->Owner.RootTags[*this->Owner.ActiveRoot];
 
 			if (EventCast->EventTarget == TagDisplay_Event::Target::ROOT)
 			{
