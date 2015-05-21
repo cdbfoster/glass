@@ -41,10 +41,11 @@ namespace Glass
 		void SetWindowGeometry(Window &Window, Vector const &Position, Vector const &Size);
 		void SetWindowVisibility(Window &Window, bool Visible);
 
-		void FocusWindow(Window const &Window);
 		void RaiseWindow(Window const &Window);
 		void LowerWindow(Window const &Window);
 		void DeleteWindow(Window &Window);
+
+		void FocusClientWindow(ClientWindow const &ClientWindow);
 
 		void SetClientWindowIconified(ClientWindow &ClientWindow, bool Value);
 		void SetClientWindowFullscreen(ClientWindow &ClientWindow, bool Value);

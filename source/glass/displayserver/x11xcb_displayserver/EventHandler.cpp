@@ -83,7 +83,6 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 			LOG_DEBUG_INFO_NOHEADER << " - Error: " << xcb_event_get_error_label(Error->error_code) << ", " <<
 													   xcb_event_get_request_label(Error->major_code) << ", " << (int)Error->minor_code << ", " <<
 													   (unsigned int)Error->resource_id;
-
 		}
 		break;
 	case XCB_CREATE_NOTIFY:
@@ -341,25 +340,55 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 		{
 			xcb_enter_notify_event_t * const EnterNotify = (xcb_enter_notify_event_t *)Event;
 
-			LOG_DEBUG_INFO_NOHEADER << " - Enter notify on " << EnterNotify->event << " at " << EnterNotify->root_x << ", " << EnterNotify->root_y;
+			LOG_DEBUG_INFO_NOHEADER << " - Enter notify on " << EnterNotify->child << ", " << EnterNotify->event << "(" << (unsigned int)EnterNotify->mode << ", " << (unsigned int)EnterNotify->detail << ") at " << EnterNotify->root_x << ", " << EnterNotify->root_y;
 
 			auto WindowDataAccessor = this->Owner.GetWindowData();
 
-			auto WindowData = WindowDataAccessor->find(EnterNotify->event);
-			if (WindowData != WindowDataAccessor->end())
+			if (EnterNotify->child != XCB_NONE)
 			{
-				if (AuxiliaryWindowData * const WindowDataCast = dynamic_cast<AuxiliaryWindowData *>(*WindowData))
+				auto WindowData = WindowDataAccessor->find(EnterNotify->child);
+				if (WindowData == WindowDataAccessor->end())
+					WindowData = WindowDataAccessor->find(EnterNotify->event);
+
+				if (WindowData != WindowDataAccessor->end())
 				{
-					if (ClientWindowData * const PrimaryWindowDataCast = dynamic_cast<ClientWindowData *>(WindowDataCast->PrimaryWindowData))
+					if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData *>(*WindowData))
 					{
-						if (PrimaryWindowDataCast->Destroyed)
+						if (WindowDataCast->Destroyed)
 							break;
 					}
-				}
+					else if (AuxiliaryWindowData const * const WindowDataCast = dynamic_cast<AuxiliaryWindowData const *>(*WindowData))
+					{
+						if (ClientWindowData const * const PrimaryWindowDataCast = dynamic_cast<ClientWindowData const *>(WindowDataCast->PrimaryWindowData))
+						{
+							if (PrimaryWindowDataCast->Destroyed)
+								break;
+						}
+					}
 
-				this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new WindowEnter_Event((*WindowData)->Window,
-																							  Vector(EnterNotify->root_x,
-																									 EnterNotify->root_y))));
+					this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new WindowEnter_Event((*WindowData)->Window,
+																								  Vector(EnterNotify->root_x,
+																										 EnterNotify->root_y))));
+				}
+			}
+			else
+			{
+				auto WindowData = WindowDataAccessor->find(EnterNotify->event);
+				if (WindowData != WindowDataAccessor->end())
+				{
+					if (AuxiliaryWindowData const * const WindowDataCast = dynamic_cast<AuxiliaryWindowData const *>(*WindowData))
+					{
+						if (ClientWindowData const * const PrimaryWindowDataCast = dynamic_cast<ClientWindowData const *>(WindowDataCast->PrimaryWindowData))
+						{
+							if (PrimaryWindowDataCast->Destroyed)
+								break;
+						}
+					}
+
+					this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new WindowEnter_Event((*WindowData)->Window,
+																								  Vector(EnterNotify->root_x,
+																										 EnterNotify->root_y))));
+				}
 			}
 		}
 		break;
@@ -372,31 +401,18 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 			LOG_DEBUG_INFO_NOHEADER << " - Focus in on " << FocusIn->event;
 
 			// Check to see if the window that's taking the focus is the one we want it to be
-			xcb_window_t ReclaimFocusID = XCB_NONE;
+			ClientWindowData *ReclaimFocusData = nullptr;
 
 			{
 				auto ActiveWindowAccessor = this->Owner.GetActiveWindow();
 
-				if (*ActiveWindowAccessor != XCB_NONE && *ActiveWindowAccessor != FocusIn->event)
-					ReclaimFocusID = *ActiveWindowAccessor;
+				if (*ActiveWindowAccessor != nullptr && (*ActiveWindowAccessor)->ID != FocusIn->event)
+					ReclaimFocusData = *ActiveWindowAccessor;
 			}
 
 			// If it's not, take back the focus
-			if (ReclaimFocusID != XCB_NONE)
-			{
-				Window *ReclaimFocus = nullptr;
-
-				{
-					auto WindowDataAccessor = this->Owner.GetWindowData();
-
-					auto WindowData = WindowDataAccessor->find(ReclaimFocusID);
-					if (WindowData != WindowDataAccessor->end())
-						ReclaimFocus = &(*WindowData)->Window;
-				}
-
-				if (ReclaimFocus != nullptr)
-					ReclaimFocus->Focus();
-			}
+			if (ReclaimFocusData != nullptr && !ReclaimFocusData->Destroyed)
+				static_cast<ClientWindow &>(ReclaimFocusData->Window).Focus();
 		}
 		break;
 

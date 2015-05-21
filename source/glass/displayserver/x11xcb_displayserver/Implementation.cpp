@@ -30,7 +30,7 @@ X11XCB_DisplayServer::Implementation::Implementation(X11XCB_DisplayServer &Displ
 	DisplayServer(DisplayServer),
 	XConnection(nullptr),
 	XScreen(nullptr),
-	ActiveWindowID(XCB_NONE)
+	ActiveWindowData(XCB_NONE)
 {
 
 }
@@ -42,7 +42,7 @@ X11XCB_DisplayServer::Implementation::~Implementation()
 }
 
 
-locked_accessor<xcb_window_t>	X11XCB_DisplayServer::Implementation::GetActiveWindow()	{ return { this->ActiveWindowID, this->ActiveWindowMutex }; }
+locked_accessor<ClientWindowData *> X11XCB_DisplayServer::Implementation::GetActiveWindow()		{ return { this->ActiveWindowData, this->ActiveWindowMutex }; }
 
 
 locked_accessor<RootWindowList>		X11XCB_DisplayServer::Implementation::GetRootWindows()		{ return this->DisplayServer.GetRootWindows(); }
@@ -456,7 +456,7 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 			ClientWindowsAccessor->push_back(NewClientWindow);
 		}
 
-		this->WindowData.push_back(new ClientWindowData(*NewClientWindow, ClientWindowID, EventMask, NeverFocus, this->XScreen->root, Urgent));
+		this->WindowData.push_back(new ClientWindowData(*NewClientWindow, ClientWindowID, EventMask, NeverFocus, this->XScreen->root, XCB_NONE, Urgent));
 
 		ClientWindows.push_back(NewClientWindow);
 	}
@@ -465,18 +465,60 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 }
 
 
-void X11XCB_DisplayServer::Implementation::SetWindowGeometry(xcb_window_t WindowID, Window &Window, Vector const &Position,
-																									Vector const &Size)
+void X11XCB_DisplayServer::Implementation::SetWindowGeometry(Glass::WindowData *WindowData, Vector const &Position,
+																							Vector const &Size)
 {
 	auto GeometryChangesAccessor = this->GetGeometryChanges();
 
-	auto GeometryChange = GeometryChangesAccessor->find(WindowID);
-	if (GeometryChange == GeometryChangesAccessor->end())
-		GeometryChangesAccessor->insert(std::make_pair(WindowID,
-													   new Implementation::GeometryChange(Window, WindowID, Position, Size)));
+	if (AuxiliaryWindowData * const WindowDataCast = dynamic_cast<AuxiliaryWindowData *>(WindowData))
+	{
+		if (dynamic_cast<FrameWindow *>(&WindowDataCast->Window))
+		{
+			auto GeometryChange = GeometryChangesAccessor->find(WindowDataCast->PrimaryWindowData->ID);
+			if (GeometryChange == GeometryChangesAccessor->end() ||
+				static_cast<ClientWindowData *>(GeometryChange->second->WindowData)->ParentID == XCB_NONE)
+			{
+				auto FrameGeometryChange = GeometryChangesAccessor->find(WindowDataCast->ID);
+				if (FrameGeometryChange == GeometryChangesAccessor->end())
+				{
+					GeometryChangesAccessor->insert(std::make_pair(WindowDataCast->ID,
+																   new Implementation::GeometryChange(WindowDataCast, Position, Size)));
+				}
+				else
+				{
+					FrameGeometryChange->second->Position = Position;
+					FrameGeometryChange->second->Size = Size;
+				}
+			}
+			// Otherwise, do nothing because the frame will be positioned when the client's geometry change is processed
+		}
+		else
+		{
+			auto GeometryChange = GeometryChangesAccessor->find(WindowDataCast->ID);
+			if (GeometryChange == GeometryChangesAccessor->end())
+			{
+				GeometryChangesAccessor->insert(std::make_pair(WindowDataCast->ID,
+															   new Implementation::GeometryChange(WindowDataCast, Position, Size)));
+			}
+			else
+			{
+				GeometryChange->second->Position = Position;
+				GeometryChange->second->Size = Size;
+			}
+		}
+	}
 	else
 	{
-		GeometryChange->second->Position = Position;
-		GeometryChange->second->Size = Size;
+		auto GeometryChange = GeometryChangesAccessor->find(WindowData->ID);
+		if (GeometryChange == GeometryChangesAccessor->end())
+		{
+			GeometryChangesAccessor->insert(std::make_pair(WindowData->ID,
+														   new Implementation::GeometryChange(WindowData, Position, Size)));
+		}
+		else
+		{
+			GeometryChange->second->Position = Position;
+			GeometryChange->second->Size = Size;
+		}
 	}
 }

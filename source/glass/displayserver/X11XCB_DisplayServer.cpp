@@ -259,6 +259,7 @@ X11XCB_DisplayServer::~X11XCB_DisplayServer()
 	// Destroy event handler
 	delete this->Data->Handler;
 
+	xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_POINTER_ROOT, XCB_NONE, XCB_CURRENT_TIME);
 
 	// Disconnect from the server
 	xcb_disconnect(this->Data->XConnection);
@@ -304,27 +305,48 @@ void X11XCB_DisplayServer::Sync()
 	{
 		Implementation::GeometryChange const *ChangeData = GeometryChange.second;
 
-		Glass::Window	   &Window =	ChangeData->Window;
-		xcb_window_t const	WindowID =	ChangeData->WindowID;
-		Vector const	   &Position =	ChangeData->Position;
-		Vector const	   &Size =		ChangeData->Size;
+		Vector const &Position = ChangeData->Position;
+		Vector const &Size =	 ChangeData->Size;
 
-		ConfigureWindow(this->Data->XConnection, Window, WindowID, Position, Size);
-
-		if (AuxiliaryWindow const * const WindowCast = dynamic_cast<AuxiliaryWindow const *>(&Window))
+		if (ClientWindowData * const WindowDataCast = dynamic_cast<ClientWindowData *>(ChangeData->WindowData))
 		{
-			auto WindowDataAccessor = this->Data->GetWindowData();
-
-			auto WindowData = WindowDataAccessor->find(WindowID);
-			if (WindowData != WindowDataAccessor->end())
+			if (WindowDataCast->ParentID != XCB_NONE)
 			{
-				AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
+				auto WindowDataAccessor = this->Data->GetWindowData();
 
-				Vector const Size = WindowCast->GetSize();
-				cairo_xcb_surface_set_size(WindowDataCast->CairoSurface, Size.x, Size.y);
+				auto FrameWindowData = WindowDataAccessor->find(WindowDataCast->ParentID);
+				if (FrameWindowData != WindowDataAccessor->end())
+				{
+					FrameWindow * const Frame = static_cast<FrameWindow *>(&(*FrameWindowData)->Window);
 
-				WindowDataCast->ReplayDrawOperations();
+					Vector const ULOffset = Frame->GetULOffset();
+					Vector const LROffset = Frame->GetLROffset();
+
+					Vector const FramePosition = Position + ULOffset;
+					Vector const FrameSize =	 Size - ULOffset + LROffset;
+
+					ConfigureWindow(this->Data->XConnection, WindowDataCast->Window, WindowDataCast->ID, ULOffset * -1, Size);
+					ConfigureWindow(this->Data->XConnection, *Frame, WindowDataCast->ParentID, FramePosition, FrameSize);
+
+					AuxiliaryWindowData * const FrameWindowDataCast = static_cast<AuxiliaryWindowData *>(*FrameWindowData);
+
+					cairo_xcb_surface_set_size(FrameWindowDataCast->CairoSurface, FrameSize.x, FrameSize.y);
+
+					FrameWindowDataCast->ReplayDrawOperations();
+				}
+				else
+					LOG_DEBUG_ERROR << "Could not find a frame window for the current client." << std::endl;
 			}
+			else
+				ConfigureWindow(this->Data->XConnection, WindowDataCast->Window, WindowDataCast->ID, Position, Size);
+		}
+		else if (AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(ChangeData->WindowData))
+		{
+			ConfigureWindow(this->Data->XConnection, WindowDataCast->Window, WindowDataCast->ID, Position, Size);
+
+			cairo_xcb_surface_set_size(WindowDataCast->CairoSurface, Size.x, Size.y);
+
+			WindowDataCast->ReplayDrawOperations();
 		}
 
 		delete ChangeData;
@@ -360,19 +382,7 @@ void X11XCB_DisplayServer::SetWindowGeometry(Window &Window, Vector const &Posit
 	auto WindowData = WindowDataAccessor->find(&Window);
 	if (WindowData != WindowDataAccessor->end())
 	{
-		this->Data->SetWindowGeometry((*WindowData)->ID, Window, Position, Size);
-
-		if (FrameWindow const * const WindowCast = dynamic_cast<FrameWindow const *>(&Window))
-		{
-			Glass::PrimaryWindow * const PrimaryWindow = &WindowCast->GetPrimaryWindow();
-
-			auto WindowData = WindowDataAccessor->find(PrimaryWindow);
-			if (WindowData != WindowDataAccessor->end())
-			{
-				this->Data->SetWindowGeometry((*WindowData)->ID, *PrimaryWindow, PrimaryWindow->GetPosition(),
-																				 PrimaryWindow->GetSize());
-			}
-		}
+		this->Data->SetWindowGeometry(*WindowData, Position, Size);
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set window geometry." << std::endl;
@@ -464,62 +474,6 @@ bool WindowSupportsProtocol(xcb_connection_t *XConnection, xcb_window_t WindowID
 }
 
 
-void X11XCB_DisplayServer::FocusWindow(Window const &Window)
-{
-	auto WindowDataAccessor = this->Data->GetWindowData();
-
-	auto WindowData = WindowDataAccessor->find(&Window);
-	if (WindowData != WindowDataAccessor->end())
-	{
-		// Focus the window
-		xcb_window_t WindowID = (*WindowData)->ID;
-
-		xcb_get_window_attributes_cookie_t const WindowAttributesCookie = xcb_get_window_attributes(this->Data->XConnection, WindowID);
-		xcb_get_window_attributes_reply_t *WindowAttributes = xcb_get_window_attributes_reply(this->Data->XConnection, WindowAttributesCookie, nullptr);
-
-		if (WindowAttributes != nullptr && WindowAttributes->map_state == XCB_MAP_STATE_VIEWABLE)
-		{
-			if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
-			{
-				if (WindowDataCast->NeverFocus)
-					WindowID = WindowDataCast->RootID;
-
-				if (WindowSupportsProtocol(this->Data->XConnection, WindowDataCast->ID, Atoms::WM_TAKE_FOCUS))
-				{
-					xcb_client_message_event_t ClientMessage;
-
-					memset(&ClientMessage, 0, sizeof(ClientMessage));
-
-					ClientMessage.response_type = XCB_CLIENT_MESSAGE;
-					ClientMessage.format = 32;
-					ClientMessage.window = WindowID;
-					ClientMessage.type = Atoms::WM_PROTOCOLS;
-					ClientMessage.data.data32[0] = Atoms::WM_TAKE_FOCUS;
-					ClientMessage.data.data32[1] = XCB_CURRENT_TIME;
-
-					xcb_send_event(this->Data->XConnection, false, WindowDataCast->ID, XCB_EVENT_MASK_NO_EVENT, (char *)&ClientMessage);
-				}
-			}
-
-			xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_POINTER_ROOT, WindowID, XCB_CURRENT_TIME);
-
-			// XXX Set EWMH active window and add to the EWMH focus stack
-		}
-
-		free(WindowAttributes);
-
-		// Keep track of which window has the input focus so we can detect unauthorized changes to the focus and revert them
-		{
-			auto ActiveWindowAccessor = this->Data->GetActiveWindow();
-
-			*ActiveWindowAccessor = WindowID;
-		}
-	}
-	else
-		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot focus window." << std::endl;
-}
-
-
 void Raise(xcb_connection_t *XConnection, xcb_window_t WindowID)
 {
 	uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_STACK_MODE;
@@ -583,8 +537,8 @@ void X11XCB_DisplayServer::DeleteWindow(Window &Window)
 	{
 		auto ActiveWindowAccessor = this->Data->GetActiveWindow();
 
-		if (*ActiveWindowAccessor == (*WindowData)->ID)
-			*ActiveWindowAccessor = XCB_NONE;
+		if (*ActiveWindowAccessor == *WindowData)
+			*ActiveWindowAccessor = nullptr;
 
 		if (dynamic_cast<ClientWindow *>(&Window))
 		{
@@ -596,6 +550,61 @@ void X11XCB_DisplayServer::DeleteWindow(Window &Window)
 	}
 
 	WindowDataAccessor->erase(&Window);
+}
+
+
+void X11XCB_DisplayServer::FocusClientWindow(ClientWindow const &ClientWindow)
+{
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&ClientWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		ClientWindowData * const WindowDataCast = static_cast<ClientWindowData *>(*WindowData);
+
+		// Focus the window
+		xcb_window_t WindowID = WindowDataCast->ID;
+
+		xcb_get_window_attributes_cookie_t const WindowAttributesCookie = xcb_get_window_attributes(this->Data->XConnection, WindowID);
+		xcb_get_window_attributes_reply_t *WindowAttributes = xcb_get_window_attributes_reply(this->Data->XConnection, WindowAttributesCookie, nullptr);
+
+		if (WindowAttributes != nullptr && WindowAttributes->map_state == XCB_MAP_STATE_VIEWABLE)
+		{
+			if (WindowDataCast->NeverFocus)
+				WindowID = WindowDataCast->RootID;
+
+			if (WindowSupportsProtocol(this->Data->XConnection, WindowDataCast->ID, Atoms::WM_TAKE_FOCUS))
+			{
+				xcb_client_message_event_t ClientMessage;
+
+				memset(&ClientMessage, 0, sizeof(ClientMessage));
+
+				ClientMessage.response_type = XCB_CLIENT_MESSAGE;
+				ClientMessage.format = 32;
+				ClientMessage.window = WindowID;
+				ClientMessage.type = Atoms::WM_PROTOCOLS;
+				ClientMessage.data.data32[0] = Atoms::WM_TAKE_FOCUS;
+				ClientMessage.data.data32[1] = XCB_CURRENT_TIME;
+
+				xcb_send_event(this->Data->XConnection, false, WindowDataCast->ID, XCB_EVENT_MASK_NO_EVENT, (char *)&ClientMessage);
+			}
+
+			xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_POINTER_ROOT, WindowID, XCB_CURRENT_TIME);
+
+			// XXX Set EWMH active window and add to the EWMH focus stack
+		}
+
+		free(WindowAttributes);
+
+		// Keep track of which window has the input focus so we can detect unauthorized changes to the focus and revert them
+		{
+			auto ActiveWindowAccessor = this->Data->GetActiveWindow();
+
+			*ActiveWindowAccessor = WindowDataCast;
+		}
+	}
+	else
+		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot focus window." << std::endl;
 }
 
 
@@ -661,8 +670,8 @@ void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow,
 
 				if (RootWindow const * const ClientRoot = ClientWindow.GetRootWindow())
 				{
-					this->Data->SetWindowGeometry(WindowID, ClientWindow, ClientRoot->GetPosition(),
-												  ClientRoot->GetSize());
+					this->Data->SetWindowGeometry(ClientWindowData, ClientRoot->GetPosition(),
+																	ClientRoot->GetSize());
 				}
 				else
 					LOG_DEBUG_ERROR << "Client doesn't have a root!  Cannot set fullscreen size." << std::endl;
@@ -672,8 +681,8 @@ void X11XCB_DisplayServer::SetClientWindowFullscreen(ClientWindow &ClientWindow,
 				ClientWindowData->_NET_WM_STATE.erase(Atoms::_NET_WM_STATE_FULLSCREEN);
 				Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
 
-				this->Data->SetWindowGeometry(WindowID, ClientWindow, ClientWindow.GetPosition(),
-											  ClientWindow.GetSize());
+				this->Data->SetWindowGeometry(ClientWindowData, ClientWindow.GetPosition(),
+																ClientWindow.GetSize());
 			}
 		}
 		else
@@ -884,9 +893,9 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 	if (WindowData == WindowDataAccessor->end())
 	{
 		// Get the primary window data
-		xcb_window_t			PrimaryWindowID = XCB_NONE;
-		Glass::WindowData	   *PrimaryWindowData =	nullptr;
-		Glass::PrimaryWindow   &PrimaryWindow = AuxiliaryWindow.GetPrimaryWindow();
+		xcb_window_t		  PrimaryWindowID = XCB_NONE;
+		Glass::WindowData	 *PrimaryWindowData = nullptr;
+		Glass::PrimaryWindow &PrimaryWindow = AuxiliaryWindow.GetPrimaryWindow();
 		{
 			auto WindowData = WindowDataAccessor->find(&PrimaryWindow);
 			if (WindowData != WindowDataAccessor->end())
@@ -903,7 +912,7 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 
 
 		// Get the root window data
-		xcb_window_t	RootWindowID =		XCB_NONE;
+		xcb_window_t RootWindowID = XCB_NONE;
 		{
 			Window *RootWindow = nullptr;
 
@@ -951,7 +960,6 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 								   XCB_EVENT_MASK_PROPERTY_CHANGE |
 								   XCB_EVENT_MASK_STRUCTURE_NOTIFY |
 								   XCB_EVENT_MASK_POINTER_MOTION |
-								   XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE |
 								   XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
 
 		uint32_t const Values[] = {
@@ -981,16 +989,39 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 		// Apply the auxiliary window
 		if (FrameWindow const * const WindowCast = dynamic_cast<FrameWindow const *>(&AuxiliaryWindow))
 		{
-			if (PrimaryWindow.GetVisibility() == true)
-			{
+			if (WindowCast->GetVisibility() == true)
 				xcb_map_window(this->Data->XConnection, AuxiliaryWindowID);
 
+			bool TrueParent = true;
+			{
+				xcb_get_property_cookie_t PropertyCookie = xcb_get_property_unchecked(this->Data->XConnection, false, PrimaryWindowID, Atoms::_MOTIF_WM_HINTS, XCB_GET_PROPERTY_TYPE_ANY, 0, 5 * sizeof(uint32_t));
+				xcb_get_property_reply_t *PropertyReply = xcb_get_property_reply(this->Data->XConnection, PropertyCookie, nullptr);
+
+				if (PropertyReply != nullptr && PropertyReply->type == Atoms::_MOTIF_WM_HINTS)
+				{
+					uint32_t const *Values = (uint32_t const *)xcb_get_property_value(PropertyReply);
+
+					// If the Motif decorations hint is set, and the client border bit is not set
+					if ((Values[0] & 0x02) && !(Values[2] && 0x02) )
+						TrueParent = false;
+				}
+
+				free(PropertyReply);
+			}
+
+			if (TrueParent)
+			{
+				Vector const Position = WindowCast->GetULOffset() * -1;
+				xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, AuxiliaryWindowID, Position.x, Position.y);
+
+				static_cast<ClientWindowData *>(PrimaryWindowData)->ParentID = AuxiliaryWindowID;
+				PrimaryWindowData->EventMask &= ~XCB_EVENT_MASK_ENTER_WINDOW;
+			}
+			else
+			{
 				// Ensure the frame and the client are together in the stack
 				Raise(this->Data->XConnection, AuxiliaryWindowID);
 				Raise(this->Data->XConnection, PrimaryWindowID);
-
-				// Note: The frame window isn't a true X parent window of the client.  This helps prevent ICCCM-non-conformant
-				// clients from misbehaving. *cough*Steam*cough*
 			}
 		}
 
@@ -1037,15 +1068,13 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 		// Disable events
 		xcb_grab_server(this->Data->XConnection);
 
-		uint32_t const NoEvent = 0;
-
 		if (ClientWindowData * const PrimaryWindowDataCast = dynamic_cast<ClientWindowData *>(PrimaryWindowData))
 		{
 			if (!PrimaryWindowDataCast->Destroyed)
-				xcb_change_window_attributes(this->Data->XConnection, PrimaryWindowID, XCB_CW_EVENT_MASK, &NoEvent);
+				DisableEvents(this->Data->XConnection, PrimaryWindowID);
 		}
 
-		xcb_change_window_attributes(this->Data->XConnection, AuxiliaryWindowData->ID, XCB_CW_EVENT_MASK, &NoEvent);
+		DisableEvents(this->Data->XConnection, AuxiliaryWindowData->ID);
 
 
 		// Destroy the drawing surfaces
@@ -1058,10 +1087,33 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 		{
 			ClientWindowData * const PrimaryWindowDataCast = static_cast<ClientWindowData *>(PrimaryWindowData); // Only client windows have frames
 
-			if (!PrimaryWindowDataCast->Destroyed)
+			bool TrueParent = true;
 			{
-				Vector const Position = PrimaryWindow.GetPosition();
-				xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, RootWindowID, Position.x, Position.y);
+				xcb_get_property_cookie_t PropertyCookie = xcb_get_property_unchecked(this->Data->XConnection, false, PrimaryWindowID, Atoms::_MOTIF_WM_HINTS, XCB_GET_PROPERTY_TYPE_ANY, 0, 5 * sizeof(uint32_t));
+				xcb_get_property_reply_t *PropertyReply = xcb_get_property_reply(this->Data->XConnection, PropertyCookie, nullptr);
+
+				if (PropertyReply != nullptr && PropertyReply->type == Atoms::_MOTIF_WM_HINTS)
+				{
+					uint32_t const *Values = (uint32_t const *)xcb_get_property_value(PropertyReply);
+
+					// If the Motif decorations hint is set, and the client border bit is not set
+					if ((Values[0] & 0x02) && !(Values[2] && 0x02) )
+						TrueParent = false;
+				}
+
+				free(PropertyReply);
+			}
+
+			if (TrueParent)
+			{
+				if (!PrimaryWindowDataCast->Destroyed)
+				{
+					Vector const Position = PrimaryWindow.GetPosition();
+					xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, RootWindowID, Position.x, Position.y);
+				}
+
+				PrimaryWindowDataCast->ParentID = XCB_NONE;
+				PrimaryWindowDataCast->EventMask |= XCB_EVENT_MASK_ENTER_WINDOW;
 			}
 		}
 
@@ -1072,7 +1124,7 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 		if (ClientWindowData * const PrimaryWindowDataCast = dynamic_cast<ClientWindowData *>(PrimaryWindowData))
 		{
 			if (!PrimaryWindowDataCast->Destroyed)
-				xcb_change_window_attributes(this->Data->XConnection, PrimaryWindowID, XCB_CW_EVENT_MASK, &PrimaryWindowData->EventMask);
+				EnableEvents(this->Data->XConnection, PrimaryWindowID, PrimaryWindowData->EventMask);
 		}
 
 		xcb_ungrab_server(this->Data->XConnection);

@@ -28,15 +28,13 @@ namespace Glass
 	struct X11XCB_DisplayServer::Implementation::GeometryChange
 	{
 	public:
-		GeometryChange(Glass::Window &Window, xcb_window_t WindowID, Vector const &Position, Vector const &Size) :
-			Window(Window),
-			WindowID(WindowID),
+		GeometryChange(Glass::WindowData *WindowData, Vector const &Position, Vector const &Size) :
+			WindowData(WindowData),
 			Position(Position),
 			Size(Size)
 		{ }
 
-		Glass::Window &Window;
-		xcb_window_t const WindowID;
+		Glass::WindowData * const WindowData;
 		Vector Position;
 		Vector Size;
 	};

@@ -54,9 +54,9 @@ namespace Glass
 
 
 		// Active window
-		xcb_window_t ActiveWindowID;
+		ClientWindowData *ActiveWindowData;
 		mutable std::mutex	ActiveWindowMutex;
-		locked_accessor<xcb_window_t> GetActiveWindow();
+		locked_accessor<ClientWindowData *> GetActiveWindow();
 
 
 		// Window data
@@ -84,7 +84,7 @@ namespace Glass
 		ClientWindowList	CreateClientWindows(WindowIDList const &WindowIDs);
 
 		// Window manipulation
-		void SetWindowGeometry(xcb_window_t WindowID, Window &Window, Vector const &Position, Vector const &Size);
+		void SetWindowGeometry(Glass::WindowData *WindowData, Vector const &Position, Vector const &Size);
 	};
 }
 
