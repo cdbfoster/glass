@@ -95,11 +95,11 @@ void Dummy_WindowLayout::Refresh()
 
 void Dummy_WindowLayout::AddClientWindow(ClientWindow &ClientWindow)
 {
-
+	this->Refresh();
 }
 
 
 void Dummy_WindowLayout::RemoveClientWindow(ClientWindow &ClientWindow)
 {
-
+	this->Refresh();
 }
