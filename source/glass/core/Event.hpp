@@ -54,7 +54,8 @@ namespace Glass
 						  LEVEL_TOGGLE,
 						  LAYOUT_CYCLE,
 						  SPAWN_COMMAND,
-						  TAG_DISPLAY };
+						  TAG_DISPLAY,
+						  MANAGER_QUIT };
 
 		virtual ~Event() { }
 
@@ -400,6 +401,16 @@ namespace Glass
 		Target const  EventTarget;
 		Mode const	  EventMode;
 		TagMask const EventTagMask;
+	};
+
+
+	struct ManagerQuit_Event : public UserCommand_Event
+	{
+		ManagerQuit_Event() :
+			UserCommand_Event(Event::Type::MANAGER_QUIT)
+		{ }
+
+		Event *Copy() const { return new ManagerQuit_Event; }
 	};
 }
 
