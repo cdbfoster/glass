@@ -103,7 +103,7 @@ void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, unsigne
 
 	if (Frame == nullptr)
 	{
-		Frame = new Default_FrameWindow(ClientWindow, "Frame", this->DisplayServer, FrameThickness * -1, FrameThickness, true, *this);
+		Frame = new Default_FrameWindow(ClientWindow, "Frame", this->DisplayServer, FrameThickness * -1, FrameThickness, ClientWindow.GetVisibility(), *this);
 
 		AuxiliaryWindowsAccessor->push_back(Frame);
 
