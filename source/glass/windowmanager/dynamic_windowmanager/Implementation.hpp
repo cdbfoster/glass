@@ -39,6 +39,8 @@ namespace Glass
 		class EventHandler; // Defined in EventHandler.hpp
 		EventHandler *Handler;
 
+		bool Quit;
+
 
 		// Window decoration
 		Glass::WindowDecorator *WindowDecorator;

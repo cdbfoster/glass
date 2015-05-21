@@ -576,15 +576,19 @@ void TagManager::TagContainer::Tag::insert(ClientWindow &ClientWindow, bool Exem
 				Layout->push_back(&ClientWindow);
 		}
 		else
+		{
 			this->ExemptClientWindows.insert(&ClientWindow);
+
+			if (this->Activated)
+			{
+				if (ClientWindow.GetVisibility() == false)
+					ClientWindow.SetVisibility(true);
+			}
+		}
 
 		this->ClientOrder.push_back(&ClientWindow);
 
-		if (this->Activated)
-		{
-			if (ClientWindow.GetVisibility() == false)
-				ClientWindow.SetVisibility(true);
-		}
+
 	}
 }
 

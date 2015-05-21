@@ -45,6 +45,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Listen()
 		this->Handle(Event);
 
 		delete Event;
+
+		if (this->Owner.Quit)
+			return;
 	}
 }
 
@@ -137,6 +140,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 		break;
 	case Glass::Event::Type::TAG_DISPLAY:
 		LOG_DEBUG_INFO << "Tag Display event!" << std::endl;
+		break;
+	case Glass::Event::Type::MANAGER_QUIT:
+		LOG_DEBUG_INFO << "Manager Quit event!" << std::endl;
 		break;
 	default:
 		LOG_DEBUG_INFO << "Some other type of event received!" << std::endl;
@@ -419,10 +425,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			else if (AuxiliaryWindow * const WindowCast = dynamic_cast<AuxiliaryWindow *>(&EventCast->Window))
 			{
 				LOG_DEBUG_INFO << "  Auxiliary: " << WindowCast->GetPosition() << ", " << WindowCast->GetSize() << std::endl;
-				WindowCast->Focus();
+				if (ClientWindow * const PrimaryWindowCast = dynamic_cast<ClientWindow *>(&WindowCast->GetPrimaryWindow()))
+					this->Owner.ActivateClient(*PrimaryWindowCast);
 			}
-			else
-				LOG_DEBUG_INFO << "  Root"  << std::endl;
 		}
 		break;
 
@@ -680,6 +685,11 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 					this->Owner.ActiveClient = nullptr;
 			}
 		}
+		break;
+
+
+	case Glass::Event::Type::MANAGER_QUIT:
+		this->Owner.Quit = true;
 		break;
 	}
 

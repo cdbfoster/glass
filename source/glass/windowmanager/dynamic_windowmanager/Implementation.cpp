@@ -25,6 +25,7 @@ using namespace Glass;
 
 Dynamic_WindowManager::Implementation::Implementation(Dynamic_WindowManager &WindowManager) :
 	WindowManager(WindowManager),
+	Quit(false),
 	ActiveRoot(nullptr),
 	ActiveClient(nullptr)
 {
