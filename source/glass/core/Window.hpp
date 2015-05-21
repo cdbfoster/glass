@@ -52,7 +52,6 @@ namespace Glass
 
 		virtual void SetVisibility(bool Visible);
 
-		virtual void Focus();
 		virtual void Raise();
 		virtual void Lower();
 
@@ -89,7 +88,6 @@ namespace Glass
 
 		void SetVisibility(bool Visible);
 
-		void Focus();
 		void Raise();
 		void Lower();
 
@@ -138,6 +136,8 @@ namespace Glass
 		Glass::RootWindow  *GetRootWindow() const;
 
 		void SetVisibility(bool Visible);
+
+		void Focus();
 
 		void SetName(std::string const &Name);
 

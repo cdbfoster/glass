@@ -87,7 +87,6 @@ void Window::SetVisibility(bool Visible)
 }
 
 
-void Window::Focus() { this->DisplayServer.FocusWindow(*this); }
 void Window::Raise() { this->DisplayServer.RaiseWindow(*this); }
 void Window::Lower() { this->DisplayServer.LowerWindow(*this); }
 
@@ -170,14 +169,6 @@ void PrimaryWindow::SetVisibility(bool Visible)
 				AuxiliaryWindow->SetVisibility(Visible);
 		}
 	}
-
-	this->UpdateAuxiliaryWindows();
-}
-
-
-void PrimaryWindow::Focus()
-{
-	Window::Focus();
 
 	this->UpdateAuxiliaryWindows();
 }
@@ -334,6 +325,12 @@ void ClientWindow::SetVisibility(bool Visible)
 		this->DisplayServer.SetClientWindowIconified(*this, false);
 		this->Iconified = false;
 	}
+}
+
+
+void ClientWindow::Focus()
+{
+	this->DisplayServer.FocusClientWindow(*this);
 }
 
 

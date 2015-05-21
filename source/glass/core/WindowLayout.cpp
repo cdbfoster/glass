@@ -51,9 +51,9 @@ WindowLayout::size_type	WindowLayout::size() const	{ return this->ClientWindows.
 
 void WindowLayout::push_back(value_type const &val)
 {
-	this->AddClientWindow(*val);
-
 	this->ClientWindows.push_back(val);
+
+	this->AddClientWindow(*val);
 }
 
 

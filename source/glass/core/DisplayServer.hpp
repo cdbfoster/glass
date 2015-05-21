@@ -80,10 +80,11 @@ namespace Glass
 		virtual void SetWindowGeometry(Window &Window, Vector const &Position, Vector const &Size) = 0;
 		virtual void SetWindowVisibility(Window &Window, bool Visible) = 0;
 
-		virtual void FocusWindow(Window const &Window) = 0;
 		virtual void RaiseWindow(Window const &Window) = 0;
 		virtual void LowerWindow(Window const &Window) = 0;
 		virtual void DeleteWindow(Window &Window);
+
+		virtual void FocusClientWindow(ClientWindow const &ClientWindow) = 0;
 
 		virtual void SetClientWindowIconified(ClientWindow &ClientWindow, bool Value) = 0;
 		virtual void SetClientWindowFullscreen(ClientWindow &ClientWindow, bool Value) = 0;
