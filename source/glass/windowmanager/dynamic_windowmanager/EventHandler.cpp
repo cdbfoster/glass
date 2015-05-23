@@ -601,6 +601,21 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 
 	case Glass::Event::Type::LEVEL_TOGGLE:
+		{
+			if (this->Owner.ActiveClient == nullptr)
+				break;
+
+			LevelToggle_Event const * const EventCast = static_cast<LevelToggle_Event const *>(Event);
+
+			if (EventCast->EventMode == LevelToggle_Event::Mode::RAISE)
+			{
+				this->Owner.SetClientRaised(*this->Owner.ActiveClient, !this->Owner.IsClientRaised(*this->Owner.ActiveClient));
+			}
+			else
+			{
+				this->Owner.SetClientLowered(*this->Owner.ActiveClient, !this->Owner.IsClientLowered(*this->Owner.ActiveClient));
+			}
+		}
 		break;
 
 
