@@ -31,14 +31,44 @@ DisplayServer::DisplayServer(EventQueue &OutgoingEventQueue) :
 
 DisplayServer::~DisplayServer()
 {
-	for (auto &RootWindow : this->RootWindows)
-		delete RootWindow;
 
-	for (auto &ClientWindow : this->ClientWindows)
-		delete ClientWindow;
+}
 
-	for (auto &AuxiliaryWindow : this->AuxiliaryWindows)
-		delete AuxiliaryWindow;
+
+void DisplayServer::DeleteWindows()
+{
+	{
+		RootWindowList RootWindows;
+		{
+			auto RootWindowsAccessor = this->GetRootWindows();
+			RootWindows = *RootWindowsAccessor;
+		}
+
+		for (auto RootWindow : RootWindows)
+			delete RootWindow;
+	}
+
+	{
+		ClientWindowList ClientWindows;
+		{
+			auto ClientWindowsAccessor = this->GetClientWindows();
+			ClientWindows = *ClientWindowsAccessor;
+		}
+
+		for (auto ClientWindow : ClientWindows)
+			delete ClientWindow;
+	}
+
+	{
+		AuxiliaryWindowList AuxiliaryWindows(*this);
+		{
+			auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+			AuxiliaryWindows = *AuxiliaryWindowsAccessor;
+		}
+
+		for (auto AuxiliaryWindow : AuxiliaryWindows)
+			delete AuxiliaryWindow;
+	}
 }
 
 
@@ -183,4 +213,11 @@ void DisplayServer::AuxiliaryWindowList::remove(value_type const &val)
 {
 	this->Owner.DeactivateAuxiliaryWindow(*val);
 	this->AuxiliaryWindows.remove(val);
+}
+
+
+DisplayServer::AuxiliaryWindowList &DisplayServer::AuxiliaryWindowList::operator=(DisplayServer::AuxiliaryWindowList const &Other)
+{
+	this->AuxiliaryWindows = Other.AuxiliaryWindows;
+	return *this;
 }

@@ -126,12 +126,6 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 
 		for (auto &RootWindow : RootWindows)
 			this->OutgoingEventQueue.AddEvent(*(new RootCreate_Event(*RootWindow)));
-
-		{
-			auto RootWindowsAccessor = this->GetRootWindows();
-
-			RootWindowsAccessor->insert(RootWindowsAccessor->end(), RootWindows.begin(), RootWindows.end());
-		}
 	}
 
 
@@ -235,12 +229,6 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 
 		for (auto &ClientWindow : ClientWindows)
 			this->OutgoingEventQueue.AddEvent(*(new ClientCreate_Event(*ClientWindow)));
-
-		{
-			auto ClientWindowsAccessor = this->GetClientWindows();
-
-			ClientWindowsAccessor->insert(ClientWindowsAccessor->end(), ClientWindows.begin(), ClientWindows.end());
-		}
 	}
 
 
@@ -256,13 +244,19 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 
 X11XCB_DisplayServer::~X11XCB_DisplayServer()
 {
+	LOG_DEBUG_INFO << "Closing X11XCB_DisplayServer..." << std::endl;
+
 	// Destroy event handler
 	delete this->Data->Handler;
+
+	this->DeleteWindows();
 
 	xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_POINTER_ROOT, XCB_NONE, XCB_CURRENT_TIME);
 
 	// Disconnect from the server
 	xcb_disconnect(this->Data->XConnection);
+
+	LOG_DEBUG_INFO << "Done." << std::endl;
 }
 
 

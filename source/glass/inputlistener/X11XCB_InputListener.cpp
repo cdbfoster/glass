@@ -43,12 +43,19 @@ X11XCB_InputListener::X11XCB_InputListener(EventQueue &OutgoingEventQueue) :
 
 X11XCB_InputListener::~X11XCB_InputListener()
 {
+	LOG_DEBUG_INFO << "Closing X11XCB_InputListener..." << std::endl;
+
 	this->Worker.interrupt();
-	this->Worker->detach();
+	this->Worker->join();
 
 	InputTranslator::Terminate();
+
+	LOG_DEBUG_INFO << "Done." << std::endl;
 }
 
+
+// Defined in displayserver/x11xcb_displayserver/EventHandler.cpp
+scoped_free<xcb_generic_event_t *> WaitForEvent(xcb_connection_t *XConnection);
 
 void X11XCB_InputListener::Listen()
 {
@@ -87,10 +94,8 @@ void X11XCB_InputListener::Listen()
 	// Wait for events
 	try
 	{
-		while (scoped_free<xcb_generic_event_t *> Event = xcb_wait_for_event(XConnection))
+		while (scoped_free<xcb_generic_event_t *> Event = WaitForEvent(XConnection))
 		{
-			interruptible<std::thread>::check();
-
 			switch (XCB_EVENT_RESPONSE_TYPE(Event))
 			{
 			case XCB_BUTTON_PRESS:
@@ -127,12 +132,8 @@ void X11XCB_InputListener::Listen()
 			}
 
 			xcb_flush(XConnection);
-
-			interruptible<std::thread>::check();
 		}
 	}
 	catch (interrupted_exception const &e)
-	{
-		LOG_DEBUG_INFO << "X11XCB_InputListener::Listen caught interruption.  Exiting." << std::endl;
-	}
+	{ }
 }

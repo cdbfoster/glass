@@ -17,6 +17,7 @@
 * Copyright 2014-2015 Chris Foster
 */
 
+#include <sys/select.h>
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_event.h>
@@ -43,9 +44,38 @@ X11XCB_DisplayServer::Implementation::EventHandler::EventHandler(X11XCB_DisplayS
 X11XCB_DisplayServer::Implementation::EventHandler::~EventHandler()
 {
 	this->Worker.interrupt();
-	this->Worker->detach();
+	this->Worker->join();
 
 	InputTranslator::Terminate();
+}
+
+
+scoped_free<xcb_generic_event_t *> WaitForEvent(xcb_connection_t *XConnection)
+{
+	xcb_generic_event_t *Event = nullptr;
+
+	int XCBFileDescriptor = xcb_get_file_descriptor(XConnection);
+	fd_set FileDescriptors;
+
+	struct timespec Timeout = { 0, 250000000 }; // Check for interruptions every 0.25 seconds
+
+	while (true)
+	{
+		interruptible<std::thread>::check();
+
+		FD_ZERO(&FileDescriptors);
+		FD_SET(XCBFileDescriptor, &FileDescriptors);
+
+		if (pselect(XCBFileDescriptor + 1, &FileDescriptors, nullptr, nullptr, &Timeout, nullptr) > 0)
+		{
+			if ((Event = xcb_poll_for_event(XConnection)))
+				break;
+		}
+	}
+
+	interruptible<std::thread>::check();
+
+	return Event;
 }
 
 
@@ -53,19 +83,11 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Listen()
 {
 	try
 	{
-		while (scoped_free<xcb_generic_event_t *> Event = xcb_wait_for_event(this->Owner.XConnection))
-		{
-			interruptible<std::thread>::check();
-
+		while (scoped_free<xcb_generic_event_t *> Event = WaitForEvent(this->Owner.XConnection))
 			this->Handle(*Event);
-
-			interruptible<std::thread>::check();
-		}
 	}
 	catch (interrupted_exception const &e)
-	{
-		LOG_DEBUG_INFO << "X11XCB_DisplayServer::Implementation::EventHandler::Listen caught interruption.  Exiting." << std::endl;
-	}
+	{ }
 }
 
 

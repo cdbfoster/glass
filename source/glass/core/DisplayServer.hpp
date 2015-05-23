@@ -50,9 +50,11 @@ namespace Glass
 
 		virtual Vector	GetMousePosition() = 0;
 
-	protected: // For internal, locked access
-		locked_accessor<RootWindowList>		GetRootWindows();
-		locked_accessor<ClientWindowList>	GetClientWindows();
+	protected:
+		void DeleteWindows(); // Call this from the destructor of implementations
+
+		locked_accessor<RootWindowList>		GetRootWindows();   // For internal, locked access
+		locked_accessor<ClientWindowList>	GetClientWindows(); //
 
 	protected: // WindowDecorator is allowed to make changes to the server's auxiliary window list
 		friend class WindowDecorator;
@@ -125,6 +127,8 @@ namespace Glass
 			iterator	erase(iterator position);
 			iterator	erase(iterator first, iterator last);
 			void		remove(value_type const &val);
+
+			AuxiliaryWindowList &operator=(AuxiliaryWindowList const &Other);
 
 		private:
 			DisplayServer			   &Owner;

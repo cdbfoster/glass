@@ -114,7 +114,10 @@ void InputTranslator::Initialize(xcb_connection_t *XConnection)
 void InputTranslator::Terminate()
 {
 	if (InputTranslator::KeySymbols != nullptr)
+	{
 		xcb_key_symbols_free(InputTranslator::KeySymbols);
+		InputTranslator::KeySymbols = nullptr;
+	}
 }
 
 
