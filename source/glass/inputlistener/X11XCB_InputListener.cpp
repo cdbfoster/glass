@@ -57,6 +57,7 @@ X11XCB_InputListener::~X11XCB_InputListener()
 // Defined in displayserver/x11xcb_displayserver/EventHandler.cpp
 scoped_free<xcb_generic_event_t *> WaitForEvent(xcb_connection_t *XConnection);
 
+
 void X11XCB_InputListener::Listen()
 {
 	// Connect to X and get the root window
