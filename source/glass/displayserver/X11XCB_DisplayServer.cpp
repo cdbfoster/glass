@@ -336,6 +336,19 @@ void X11XCB_DisplayServer::Sync()
 		}
 		else if (AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(ChangeData->WindowData))
 		{
+			{
+				FrameWindow *Frame;
+				ClientWindowData *ClientData;
+				if ((Frame = dynamic_cast<FrameWindow *>(&WindowDataCast->Window)) &&
+					((ClientData = static_cast<ClientWindowData *>(WindowDataCast->PrimaryWindowData))->ParentID != XCB_NONE))
+				{
+					Vector const ClientPosition = Frame->GetULOffset() * -1;
+					Vector const ClientSize = Size + Frame->GetULOffset() - Frame->GetLROffset();
+
+					ConfigureWindow(this->Data->XConnection, ClientData->Window, ClientData->ID, ClientPosition, ClientSize);
+				}
+			}
+
 			ConfigureWindow(this->Data->XConnection, WindowDataCast->Window, WindowDataCast->ID, Position, Size);
 
 			cairo_xcb_surface_set_size(WindowDataCast->CairoSurface, Size.x, Size.y);

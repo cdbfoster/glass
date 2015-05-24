@@ -507,13 +507,23 @@ void X11XCB_DisplayServer::Implementation::SetWindowGeometry(Glass::WindowData *
 			}
 		}
 	}
-	else
+	else if (ClientWindowData * const WindowDataCast = static_cast<ClientWindowData *>(WindowData)) // A client is the only other possibility
 	{
-		auto GeometryChange = GeometryChangesAccessor->find(WindowData->ID);
+		// If there's already a geometry change for the frame, delete it.
+		// The frame will be positioned when this client's geometry change is processed.
+		if (WindowDataCast->ParentID != XCB_NONE)
+		{
+			auto GeometryChange = GeometryChangesAccessor->find(WindowDataCast->ParentID);
+			if (GeometryChange != GeometryChangesAccessor->end())
+				GeometryChangesAccessor->erase(GeometryChange);
+		}
+
+
+		auto GeometryChange = GeometryChangesAccessor->find(WindowDataCast->ID);
 		if (GeometryChange == GeometryChangesAccessor->end())
 		{
-			GeometryChangesAccessor->insert(std::make_pair(WindowData->ID,
-														   new Implementation::GeometryChange(WindowData, Position, Size)));
+			GeometryChangesAccessor->insert(std::make_pair(WindowDataCast->ID,
+														   new Implementation::GeometryChange(WindowDataCast, Position, Size)));
 		}
 		else
 		{
