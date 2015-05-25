@@ -115,6 +115,9 @@ namespace Config
 	// Window decorator - Set to nullptr to disable all decorations
 	Glass::WindowDecorator * (* const WindowDecorator)(DisplayServer &, WindowManager &) = Default_WindowDecorator::Create;
 
+	unsigned short FrameThicknessMinimal = 3;
+	unsigned short FrameThicknessNormal =  5;
+
 	Color const FrameColorNormal(0.3f, 0.3f, 0.3f, 0.55f);
 	Color const FrameColorActive(0.5f, 0.5f, 0.5f, 0.6f);
 	Color const FrameColorUrgent(0.8f, 0.8f, 0.8f, 0.9f);

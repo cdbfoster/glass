@@ -107,7 +107,7 @@ unsigned char Dynamic_WindowManager::Implementation::GetDecorationHint(ClientWin
 		Hint |= Glass::WindowDecorator::Hint::MINIMAL;
 
 	if (ClientWindow.GetUrgent())
-		Hint |= Glass::WindowDecorator::Hint::SPECIAL;
+		Hint |= Glass::WindowDecorator::Hint::URGENT;
 
 	if (&ClientWindow == this->ActiveClient)
 		Hint |= Glass::WindowDecorator::Hint::ACTIVE;

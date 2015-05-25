@@ -70,7 +70,10 @@ namespace Glass
 void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, unsigned char HintMask)
 {
 	FrameWindow *Frame = nullptr;
-	Vector const FrameThickness = (HintMask & Hint::MINIMAL ? Vector(3, 3) : Vector(5, 5));
+	Vector const FrameThickness = (HintMask & Hint::MINIMAL ? Vector(Config::FrameThicknessMinimal,
+																	 Config::FrameThicknessMinimal) :
+															  Vector(Config::FrameColorNormal,
+																	 Config::FrameThicknessNormal));
 
 	// Find the frame if it already exists
 	auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows(ClientWindow);
@@ -191,7 +194,7 @@ void Default_WindowDecorator::PaintFrame(Default_FrameWindow &FrameWindow)
 	this->ClearWindow(FrameWindow);
 
 	this->DrawRoundedRectangle(FrameWindow, Vector(0, 0), FrameWindow.GetSize(), 2.0f, (ClientHintMask & Hint::ACTIVE ? Config::FrameColorActive :
-																					   (ClientHintMask & Hint::SPECIAL ? Config::FrameColorUrgent :
+																					   (ClientHintMask & Hint::URGENT ? Config::FrameColorUrgent :
 																														 Config::FrameColorNormal)));
 
 	this->DrawRectangle(FrameWindow, FrameWindow.GetULOffset() * -1, FrameWindow.GetPrimaryWindow().GetSize(), Color(0.0f, 0.0f, 0.0f, 0.0f), DrawMode::REPLACE);
