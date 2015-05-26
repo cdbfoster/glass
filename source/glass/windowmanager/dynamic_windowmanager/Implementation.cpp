@@ -164,9 +164,29 @@ void Dynamic_WindowManager::Implementation::SetClientFloating(ClientWindow &Clie
 }
 
 
+void Dynamic_WindowManager::Implementation::SetClientFullscreen(ClientWindow &ClientWindow, bool Fullscreen)
+{
+	ClientWindow.SetFullscreen(Fullscreen);
+
+	if (Fullscreen)
+		this->SetClientRaised(ClientWindow, true);
+	else
+	{
+		if (!this->ClientData[ClientWindow]->Floating)
+			this->SetClientRaised(ClientWindow, false);
+
+		this->SetClientLowered(ClientWindow, false);
+	}
+}
+
+
 void Dynamic_WindowManager::Implementation::SetClientLowered(ClientWindow &ClientWindow, bool Lowered)
 {
-	this->LoweredClients.remove(&ClientWindow);
+	auto LowerClient = std::find(this->LoweredClients.begin(), this->LoweredClients.end(), &ClientWindow);
+	bool const NeedsRefresh = LowerClient != this->LoweredClients.end();
+
+	if (NeedsRefresh)
+		this->LoweredClients.erase(LowerClient);
 
 	if (Lowered == true)
 	{
@@ -175,14 +195,18 @@ void Dynamic_WindowManager::Implementation::SetClientLowered(ClientWindow &Clien
 
 		ClientWindow.Lower();
 	}
-	else
+	else if (NeedsRefresh)
 		this->RefreshStackingOrder();
 }
 
 
 void Dynamic_WindowManager::Implementation::SetClientRaised(ClientWindow &ClientWindow, bool Raised)
 {
-	this->RaisedClients.remove(&ClientWindow);
+	auto RaiseClient = std::find(this->RaisedClients.begin(), this->RaisedClients.end(), &ClientWindow);
+	bool const NeedsRefresh = RaiseClient != this->RaisedClients.end();
+
+	if (NeedsRefresh)
+		this->RaisedClients.erase(RaiseClient);
 
 	if (Raised == true)
 	{
@@ -191,6 +215,6 @@ void Dynamic_WindowManager::Implementation::SetClientRaised(ClientWindow &Client
 
 		ClientWindow.Raise();
 	}
-	else
+	else if (NeedsRefresh)
 		this->RefreshStackingOrder();
 }

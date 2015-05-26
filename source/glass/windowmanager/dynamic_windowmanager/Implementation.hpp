@@ -71,6 +71,7 @@ namespace Glass
 		bool		  IsClientRaised(ClientWindow &ClientWindow) const;
 		void		  RefreshStackingOrder();
 		void		  SetClientFloating(ClientWindow &ClientWindow, bool Floating);
+		void		  SetClientFullscreen(ClientWindow &ClientWindow, bool Fullscreen);
 		void		  SetClientLowered(ClientWindow &ClientWindow, bool Lowered);
 		void		  SetClientRaised(ClientWindow &ClientWindow, bool Raised);
 	};

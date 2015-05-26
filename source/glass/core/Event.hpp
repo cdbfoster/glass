@@ -54,6 +54,7 @@ namespace Glass
 						  LEVEL_TOGGLE,
 						  LAYOUT_CYCLE,
 						  SPAWN_COMMAND,
+						  FULLSCREEN_TOGGLE,
 						  TAG_DISPLAY,
 						  MANAGER_QUIT };
 
@@ -376,6 +377,16 @@ namespace Glass
 		Event *Copy() const { return new SpawnCommand_Event(this->Command); }
 
 		std::vector<std::string> const Command;
+	};
+
+
+	struct FullscreenToggle_Event : public UserCommand_Event
+	{
+		FullscreenToggle_Event() :
+			UserCommand_Event(Event::Type::FULLSCREEN_TOGGLE)
+		{ }
+
+		Event *Copy() const { return new FullscreenToggle_Event; }
 	};
 
 

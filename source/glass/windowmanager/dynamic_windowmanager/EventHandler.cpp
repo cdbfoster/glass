@@ -138,6 +138,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	case Glass::Event::Type::SPAWN_COMMAND:
 		LOG_DEBUG_INFO << "Spawn Command event!" << std::endl;
 		break;
+	case Glass::Event::Type::FULLSCREEN_TOGGLE:
+		LOG_DEBUG_INFO << "Fullscreen Toggle event!" << std::endl;
+		break;
 	case Glass::Event::Type::TAG_DISPLAY:
 		LOG_DEBUG_INFO << "Tag Display event!" << std::endl;
 		break;
@@ -230,6 +233,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 				this->Owner.ActivateClient(EventCast->ClientWindow);
 			}
 
+			if (EventCast->ClientWindow.GetFullscreen())
+				this->Owner.SetClientFullscreen(EventCast->ClientWindow, true);
+
 			this->Owner.RefreshStackingOrder();
 		}
 		break;
@@ -253,8 +259,8 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 					auto ClientWindowsAccessor = this->Owner.WindowManager.GetClientWindows();
 
 					ClientWindowsAccessor->remove(&EventCast->ClientWindow);
-					this->Owner.RaisedClients.remove(&EventCast->ClientWindow);
-					this->Owner.LoweredClients.remove(&EventCast->ClientWindow);
+					this->Owner.SetClientRaised(EventCast->ClientWindow, false);
+					this->Owner.SetClientLowered(EventCast->ClientWindow, false);
 				}
 
 				if (&EventCast->ClientWindow == this->Owner.ActiveClient)
@@ -358,13 +364,7 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 							   (EventCast->EventMode == ClientFullscreenRequest_Event::Mode::FALSE ? false :
 																									 !EventCast->ClientWindow.GetFullscreen()));
 
-			if (Value == EventCast->ClientWindow.GetFullscreen())
-				break;
-
-			EventCast->ClientWindow.SetFullscreen(Value);
-
-			if (Value == false)
-				this->Owner.SetClientLowered(EventCast->ClientWindow, false);
+			this->Owner.SetClientFullscreen(EventCast->ClientWindow, Value);
 		}
 		break;
 
@@ -650,6 +650,16 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 				exit(EXIT_SUCCESS);
 			}
+		}
+		break;
+
+
+	case Glass::Event::Type::FULLSCREEN_TOGGLE:
+		{
+			if (this->Owner.ActiveClient == nullptr)
+				break;
+
+			this->Owner.SetClientFullscreen(*this->Owner.ActiveClient, !this->Owner.ActiveClient->GetFullscreen());
 		}
 		break;
 
