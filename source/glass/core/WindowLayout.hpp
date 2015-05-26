@@ -35,27 +35,27 @@ namespace Glass
 
 		virtual ~WindowLayout();
 
-		typedef ClientWindowList::size_type			size_type;
-		typedef ClientWindowList::value_type		value_type;
-		typedef ClientWindowList::reference			reference;
-		typedef ClientWindowList::iterator			iterator;
-		typedef ClientWindowList::const_iterator	const_iterator;
+		typedef ClientWindowList::size_type		 size_type;
+		typedef ClientWindowList::value_type	 value_type;
+		typedef ClientWindowList::reference		 reference;
+		typedef ClientWindowList::iterator		 iterator;
+		typedef ClientWindowList::const_iterator const_iterator;
 
-		iterator		begin();
-		const_iterator	begin() const;
-		const_iterator	cbegin() const;
+		iterator	   begin();
+		const_iterator begin() const;
+		const_iterator cbegin() const;
 
-		iterator		end();
-		const_iterator	end() const;
-		const_iterator	cend() const;
+		iterator	   end();
+		const_iterator end() const;
+		const_iterator cend() const;
 
-		bool		empty() const;
-		size_type	size() const;
+		bool	  empty() const;
+		size_type size() const;
 
-		void		push_back(value_type const &val);
-		iterator	erase(iterator position);
-		iterator	erase(iterator first, iterator last);
-		void		remove(value_type const &val);
+		void	  push_back(value_type const &val);
+		iterator  erase(iterator position);
+		iterator  erase(iterator first, iterator last);
+		void	  remove(value_type const &val);
 
 		Vector GetPosition() const;
 		Vector GetSize() const;
@@ -74,10 +74,10 @@ namespace Glass
 		virtual void AddClientWindow(ClientWindow &ClientWindow) = 0;
 		virtual void RemoveClientWindow(ClientWindow &ClientWindow) = 0;
 
-		Vector const		Position;
-		Vector const		Size;
+		Vector const	 Position;
+		Vector const	 Size;
 
-		ClientWindowList	ClientWindows;
+		ClientWindowList ClientWindows;
 	};
 }
 

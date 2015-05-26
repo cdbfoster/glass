@@ -35,18 +35,18 @@ WindowLayout::~WindowLayout()
 }
 
 
-WindowLayout::iterator			WindowLayout::begin()			{ return this->ClientWindows.begin(); }
-WindowLayout::const_iterator	WindowLayout::begin() const		{ return this->ClientWindows.begin(); }
-WindowLayout::const_iterator	WindowLayout::cbegin() const	{ return this->ClientWindows.cbegin(); }
+WindowLayout::iterator		 WindowLayout::begin()		  { return this->ClientWindows.begin(); }
+WindowLayout::const_iterator WindowLayout::begin() const  { return this->ClientWindows.begin(); }
+WindowLayout::const_iterator WindowLayout::cbegin() const { return this->ClientWindows.cbegin(); }
 
 
-WindowLayout::iterator			WindowLayout::end()			{ return this->ClientWindows.end(); }
-WindowLayout::const_iterator	WindowLayout::end() const	{ return this->ClientWindows.end(); }
-WindowLayout::const_iterator	WindowLayout::cend() const	{ return this->ClientWindows.cend(); }
+WindowLayout::iterator		 WindowLayout::end()		{ return this->ClientWindows.end(); }
+WindowLayout::const_iterator WindowLayout::end() const	{ return this->ClientWindows.end(); }
+WindowLayout::const_iterator WindowLayout::cend() const { return this->ClientWindows.cend(); }
 
 
-bool					WindowLayout::empty() const	{ return this->ClientWindows.empty(); }
-WindowLayout::size_type	WindowLayout::size() const	{ return this->ClientWindows.size(); }
+bool					WindowLayout::empty() const { return this->ClientWindows.empty(); }
+WindowLayout::size_type WindowLayout::size() const	{ return this->ClientWindows.size(); }
 
 
 void WindowLayout::push_back(value_type const &val)
@@ -82,5 +82,5 @@ void WindowLayout::remove(value_type const &val)
 }
 
 
-Vector WindowLayout::GetPosition() const	{ return this->Position; }
-Vector WindowLayout::GetSize() const		{ return this->Size; }
+Vector WindowLayout::GetPosition() const { return this->Position; }
+Vector WindowLayout::GetSize() const	 { return this->Size; }

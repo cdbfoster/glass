@@ -21,7 +21,6 @@
 
 using namespace Glass;
 
-
 WindowLayout *Dummy_WindowLayout::Create(Vector const &Position, Vector const &Size)
 {
 	return new Dummy_WindowLayout(Position, Size);
