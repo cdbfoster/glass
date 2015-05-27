@@ -521,18 +521,21 @@ TagManager::TagContainer::Tag::Tag(TagContainer const &Container, std::string co
 	Name(Name),
 	Activated(false)
 {
+	Vector const LayoutPadding = Vector(Config::LayoutPaddingOuter,
+										Config::LayoutPaddingOuter);
+
 	if (!Config::WindowLayouts.empty())
 	{
 		for (auto Layout : Config::WindowLayouts)
 		{
-			this->WindowLayouts.push_back(Layout(this->Container.RootWindow.GetPosition(),
-												 this->Container.RootWindow.GetSize()));
+			this->WindowLayouts.push_back(Layout(this->Container.RootWindow.GetPosition() + LayoutPadding,
+												 this->Container.RootWindow.GetSize() - LayoutPadding * 2));
 		}
 	}
 	else
 	{
-		this->WindowLayouts.push_back(new Dummy_WindowLayout(this->Container.RootWindow.GetPosition(),
-															 this->Container.RootWindow.GetSize()));
+		this->WindowLayouts.push_back(new Dummy_WindowLayout(this->Container.RootWindow.GetPosition() + LayoutPadding,
+															 this->Container.RootWindow.GetSize() - LayoutPadding * 2));
 	}
 
 	// Set ActiveWindowLayout to the right position in the layout list

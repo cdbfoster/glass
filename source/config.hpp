@@ -26,6 +26,7 @@
 #include "glass/core/Event.hpp"
 #include "glass/core/Input.hpp"
 #include "glass/windowdecorator/Default_WindowDecorator.hpp"
+#include "glass/windowlayout/BSP_WindowLayout.hpp"
 
 namespace Glass
 {
@@ -77,7 +78,7 @@ namespace Config
 		{ new SpawnCommand_Event({ "xterm" }), Input(Input::Type::KEYBOARD, Input::Value::KEY_T, Keys::CommandModifier) },
 		{ new SpawnCommand_Event({ "gedit" }), Input(Input::Type::KEYBOARD, Input::Value::KEY_E, Keys::CommandModifier) },
 
-		{ new ManagerQuit_Event, Input(Input::Type::KEYBOARD, Input::Value::KEY_Q, Keys::CommandModifier | Input::Modifier::SHIFT) },
+		{ new FullscreenToggle_Event, Input(Input::Type::KEYBOARD, Input::Value::KEY_M, Keys::CommandModifier) },
 
 
 		#define TAG_MODIFIER		Keys::CommandModifier
@@ -99,28 +100,36 @@ namespace Config
 		TAG_KEY(6, Input::Type::KEYBOARD, Input::Value::KEY_7),
 		TAG_KEY(7, Input::Type::KEYBOARD, Input::Value::KEY_8),
 		TAG_KEY(8, Input::Type::KEYBOARD, Input::Value::KEY_9),
-		TAG_KEY(9, Input::Type::KEYBOARD, Input::Value::KEY_0)
+		TAG_KEY(9, Input::Type::KEYBOARD, Input::Value::KEY_0),
 
 		#undef TAG_KEY
 		#undef TAG_CLIENT_MODIFIER
 		#undef TAG_TOGGLE_MODIFIER
 		#undef TAG_MODIFIER
+
+
+		{ new ManagerQuit_Event, Input(Input::Type::KEYBOARD, Input::Value::KEY_Q, Keys::CommandModifier | Input::Modifier::SHIFT) }
 	};
-
-
-	// Window layouts - Leave the list empty to use a dummy layout
-	std::vector<WindowLayout *(*)(Vector const &, Vector const &)> const WindowLayouts = { };
 
 
 	// Window decorator - Set to nullptr to disable all decorations
 	Glass::WindowDecorator * (* const WindowDecorator)(DisplayServer &, WindowManager &) = Default_WindowDecorator::Create;
 
-	unsigned short FrameThicknessMinimal = 3;
-	unsigned short FrameThicknessNormal =  5;
+	unsigned short const FrameThicknessMinimal = 3;
+	unsigned short const FrameThicknessNormal =  5;
 
 	Color const FrameColorNormal(0.3f, 0.3f, 0.3f, 0.55f);
 	Color const FrameColorActive(0.5f, 0.5f, 0.5f, 0.6f);
 	Color const FrameColorUrgent(0.8f, 0.8f, 0.8f, 0.9f);
+
+
+	// Window layouts - Leave the list empty to use a dummy layout
+	std::vector<WindowLayout *(*)(Vector const &, Vector const &)> const WindowLayouts = {
+		BSP_WindowLayout::Create
+	};
+
+	unsigned short const LayoutPaddingInner = 6;
+	unsigned short const LayoutPaddingOuter = LayoutPaddingInner - FrameThicknessMinimal;
 
 
 	// Tag names

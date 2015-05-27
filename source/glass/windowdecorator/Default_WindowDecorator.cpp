@@ -72,7 +72,7 @@ void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, unsigne
 	FrameWindow *Frame = nullptr;
 	Vector const FrameThickness = (HintMask & Hint::MINIMAL ? Vector(Config::FrameThicknessMinimal,
 																	 Config::FrameThicknessMinimal) :
-															  Vector(Config::FrameColorNormal,
+															  Vector(Config::FrameThicknessNormal,
 																	 Config::FrameThicknessNormal));
 
 	// Find the frame if it already exists

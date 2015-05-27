@@ -15,14 +15,22 @@
 #
 # Copyright 2014-2015 Chris Foster
 
-add_subdirectory(bsp_windowlayout)
+set(bsp_windowlayout_include
+	bsp_windowlayout/Implementation.hpp
+	bsp_windowlayout/Node.hpp
+)
+
+set(bsp_windowlayout_source
+	bsp_windowlayout/Node.cpp
+)
+
+prefix_list(bsp_windowlayout_include "windowlayout/")
+prefix_list(bsp_windowlayout_source "windowlayout/")
 
 set(glass_include ${glass_include}
-	windowlayout/BSP_WindowLayout.hpp
-	windowlayout/Dummy_WindowLayout.hpp
+	${bsp_windowlayout_include}
 PARENT_SCOPE)
 
 set(glass_source ${glass_source}
-	windowlayout/BSP_WindowLayout.cpp
-	windowlayout/Dummy_WindowLayout.cpp
+	${bsp_windowlayout_source}
 PARENT_SCOPE)
