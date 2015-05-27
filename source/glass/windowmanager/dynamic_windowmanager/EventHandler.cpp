@@ -173,6 +173,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			if (this->Owner.ActiveRoot == nullptr)
 				this->Owner.ActiveRoot = &EventCast->RootWindow;
 
+			if (this->Owner.WindowDecorator != nullptr)
+				this->Owner.WindowDecorator->DecorateWindow(EventCast->RootWindow);
+
 			this->Owner.RootTags.insert(EventCast->RootWindow);
 
 			auto TagContainer = this->Owner.RootTags[EventCast->RootWindow];
