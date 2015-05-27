@@ -333,12 +333,6 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 				for (auto &ClientWindow : ClientWindows)
 					this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*(new ClientCreate_Event(*ClientWindow)));
-
-				{
-					auto ClientWindowsAccessor = this->Owner.GetClientWindows();
-
-					ClientWindowsAccessor->insert(ClientWindowsAccessor->end(), ClientWindows.begin(), ClientWindows.end());
-				}
 			}
 			else if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
 			{
