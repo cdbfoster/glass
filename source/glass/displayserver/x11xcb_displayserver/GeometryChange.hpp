@@ -38,9 +38,6 @@ namespace Glass
 		Vector Position;
 		Vector Size;
 	};
-
-
-
 }
 
 #endif
