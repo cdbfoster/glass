@@ -379,12 +379,10 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 				if (!PositionOffset.IsZero())
 				{
-					Vector const OldPosition = ModalMove->GetPosition();
-
 					if (!this->Owner.ClientData[*ModalMove]->Floating)
 						this->Owner.RootTags[*ModalMove->GetRootWindow()]->GetWindowLayout().MoveClientWindow(*ModalMove, ModalOldPosition, PositionOffset);
 
-					ModalMove->SetPosition(OldPosition + PositionOffset);
+					ModalMove->SetPosition(EventCast->Position - ModalMove->GetSize() / 2);
 
 					ModalOldPosition = EventCast->Position;
 				}
@@ -446,7 +444,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			if (EventCast->EventMode == WindowModal_Event::Mode::BEGIN && !ModalMove)
 			{
 				ModalMove = this->Owner.ActiveClient;
-				ModalOldPosition = this->Owner.WindowManager.DisplayServer.GetMousePosition();
+
+				ModalOldPosition = ModalMove->GetPosition() + ModalMove->GetSize() / 2;
+				this->Owner.WindowManager.DisplayServer.SetMousePosition(ModalOldPosition);
 
 				if (!this->Owner.ClientData[*ModalMove]->Floating)
 				{
