@@ -126,8 +126,6 @@ float CalculateRatio(int Numerator, unsigned short Denominator)
 }
 
 
-#include "glass/core/Log.hpp"
-
 void BSP_WindowLayout::ResizeClientWindow(ClientWindow &ClientWindow, Vector const &ResizeMask, Vector const &SizeOffset)
 {
 	LeafNode * const Leaf = this->Data->RootNode->FindLeafContainingClient(ClientWindow);
