@@ -260,7 +260,55 @@ X11XCB_DisplayServer::~X11XCB_DisplayServer()
 }
 
 
-void ConfigureWindow(xcb_connection_t *XConnection, Window const &Window, xcb_window_t WindowID,
+void DisableEvents(xcb_connection_t *XConnection, xcb_window_t WindowID)
+{
+	uint32_t const NoEvents = 0;
+	xcb_change_window_attributes(XConnection, WindowID, XCB_CW_EVENT_MASK, &NoEvents);
+}
+
+
+void EnableEvents(xcb_connection_t *XConnection, xcb_window_t WindowID, uint32_t EventMask)
+{
+	xcb_change_window_attributes(XConnection, WindowID, XCB_CW_EVENT_MASK, &EventMask);
+}
+
+
+void ConfigureWindow(xcb_connection_t *XConnection, ClientWindowData *WindowData,
+					 Vector const &Position, Vector const &Size)
+{
+	xcb_window_t const WindowID = WindowData->ID;
+
+	DisableEvents(XConnection, WindowID);
+
+	uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_X |
+								   XCB_CONFIG_WINDOW_Y |
+								   XCB_CONFIG_WINDOW_WIDTH |
+								   XCB_CONFIG_WINDOW_HEIGHT;
+
+	uint32_t const ConfigureValues[] = { (unsigned int)Position.x,
+										 (unsigned int)Position.y,
+										 (unsigned int)Size.x,
+										 (unsigned int)Size.y };
+
+	xcb_configure_window(XConnection, WindowID, ConfigureMask, ConfigureValues);
+
+	scoped_free<xcb_configure_notify_event_t *> ConfigureNotify = (xcb_configure_notify_event_t *)calloc(32, 1);
+
+	ConfigureNotify->event = WindowID;
+	ConfigureNotify->window = WindowID;
+	ConfigureNotify->response_type = XCB_CONFIGURE_NOTIFY;
+	ConfigureNotify->x = Position.x;
+	ConfigureNotify->y = Position.y;
+	ConfigureNotify->width = Size.x;
+	ConfigureNotify->height = Size.y;
+
+	xcb_send_event(XConnection, false, WindowID, XCB_EVENT_MASK_STRUCTURE_NOTIFY, (char *)(*ConfigureNotify));
+
+	EnableEvents(XConnection, WindowID, WindowData->EventMask);
+}
+
+
+void ConfigureWindow(xcb_connection_t *XConnection, xcb_window_t WindowID,
 					 Vector const &Position, Vector const &Size)
 {
 	uint16_t const ConfigureMask = XCB_CONFIG_WINDOW_X |
@@ -274,21 +322,6 @@ void ConfigureWindow(xcb_connection_t *XConnection, Window const &Window, xcb_wi
 										 (unsigned int)Size.y };
 
 	xcb_configure_window(XConnection, WindowID, ConfigureMask, ConfigureValues);
-
-	if (dynamic_cast<ClientWindow const *>(&Window))
-	{
-		scoped_free<xcb_configure_notify_event_t *> ConfigureNotify = (xcb_configure_notify_event_t *)calloc(32, 1);
-
-		ConfigureNotify->event = WindowID;
-		ConfigureNotify->window = WindowID;
-		ConfigureNotify->response_type = XCB_CONFIGURE_NOTIFY;
-		ConfigureNotify->x = Position.x;
-		ConfigureNotify->y = Position.y;
-		ConfigureNotify->width = Size.x;
-		ConfigureNotify->height = Size.y;
-
-		xcb_send_event(XConnection, false, WindowID, XCB_EVENT_MASK_STRUCTURE_NOTIFY, (char *)(*ConfigureNotify));
-	}
 }
 
 
@@ -319,8 +352,8 @@ void X11XCB_DisplayServer::Sync()
 					Vector const FramePosition = Position + ULOffset;
 					Vector const FrameSize =	 Size - ULOffset + LROffset;
 
-					ConfigureWindow(this->Data->XConnection, WindowDataCast->Window, WindowDataCast->ID, ULOffset * -1, Size);
-					ConfigureWindow(this->Data->XConnection, *Frame, WindowDataCast->ParentID, FramePosition, FrameSize);
+					ConfigureWindow(this->Data->XConnection, WindowDataCast, ULOffset * -1, Size);
+					ConfigureWindow(this->Data->XConnection, WindowDataCast->ParentID, FramePosition, FrameSize);
 
 					AuxiliaryWindowData * const FrameWindowDataCast = static_cast<AuxiliaryWindowData *>(*FrameWindowData);
 
@@ -332,7 +365,7 @@ void X11XCB_DisplayServer::Sync()
 					LOG_DEBUG_ERROR << "Could not find a frame window for the current client." << std::endl;
 			}
 			else
-				ConfigureWindow(this->Data->XConnection, WindowDataCast->Window, WindowDataCast->ID, Position, Size);
+				ConfigureWindow(this->Data->XConnection, WindowDataCast, Position, Size);
 		}
 		else if (AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(ChangeData->WindowData))
 		{
@@ -345,11 +378,11 @@ void X11XCB_DisplayServer::Sync()
 					Vector const ClientPosition = Frame->GetULOffset() * -1;
 					Vector const ClientSize = Size + Frame->GetULOffset() - Frame->GetLROffset();
 
-					ConfigureWindow(this->Data->XConnection, ClientData->Window, ClientData->ID, ClientPosition, ClientSize);
+					ConfigureWindow(this->Data->XConnection, ClientData, ClientPosition, ClientSize);
 				}
 			}
 
-			ConfigureWindow(this->Data->XConnection, WindowDataCast->Window, WindowDataCast->ID, Position, Size);
+			ConfigureWindow(this->Data->XConnection, WindowDataCast->ID, Position, Size);
 
 			cairo_xcb_surface_set_size(WindowDataCast->CairoSurface, Size.x, Size.y);
 
@@ -393,19 +426,6 @@ void X11XCB_DisplayServer::SetWindowGeometry(Window &Window, Vector const &Posit
 	}
 	else
 		LOG_DEBUG_ERROR << "Could not find a window ID for the provided window!  Cannot set window geometry." << std::endl;
-}
-
-
-void DisableEvents(xcb_connection_t *XConnection, xcb_window_t WindowID)
-{
-	uint32_t const NoEvents = 0;
-	xcb_change_window_attributes(XConnection, WindowID, XCB_CW_EVENT_MASK, &NoEvents);
-}
-
-
-void EnableEvents(xcb_connection_t *XConnection, xcb_window_t WindowID, uint32_t EventMask)
-{
-	xcb_change_window_attributes(XConnection, WindowID, XCB_CW_EVENT_MASK, &EventMask);
 }
 
 
