@@ -110,11 +110,11 @@ locked_accessor<DisplayServer::AuxiliaryWindowList> DisplayServer::GetAuxiliaryW
 
 void DisplayServer::DeleteWindow(Window &Window)
 {
-	if (RootWindow * const WindowCast = dynamic_cast<RootWindow *>(&Window))
+	if (AuxiliaryWindow * const WindowCast = dynamic_cast<AuxiliaryWindow *>(&Window))
 	{
-		auto RootWindowsAccessor = this->GetRootWindows();
+		auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
 
-		RootWindowsAccessor->remove(WindowCast);
+		AuxiliaryWindowsAccessor->remove(WindowCast);
 	}
 	else if (ClientWindow * const WindowCast = dynamic_cast<ClientWindow *>(&Window))
 	{
@@ -122,11 +122,11 @@ void DisplayServer::DeleteWindow(Window &Window)
 
 		ClientWindowsAccessor->remove(WindowCast);
 	}
-	else if (AuxiliaryWindow * const WindowCast = dynamic_cast<AuxiliaryWindow *>(&Window))
+	else if (RootWindow * const WindowCast = dynamic_cast<RootWindow *>(&Window))
 	{
-		auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+		auto RootWindowsAccessor = this->GetRootWindows();
 
-		AuxiliaryWindowsAccessor->remove(WindowCast);
+		RootWindowsAccessor->remove(WindowCast);
 	}
 }
 
