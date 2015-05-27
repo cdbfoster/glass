@@ -53,24 +53,39 @@ X11XCB_DisplayServer::Implementation::EventHandler::~EventHandler()
 
 scoped_free<xcb_generic_event_t *> WaitForEvent(xcb_connection_t *XConnection)
 {
+	thread_local bool DescriptorOpen = false;
+
 	xcb_generic_event_t *Event = nullptr;
 
-	int XCBFileDescriptor = xcb_get_file_descriptor(XConnection);
-	fd_set FileDescriptors;
-
-	struct timespec Timeout = { 0, 250000000 }; // Check for interruptions every 0.25 seconds
-
-	while (true)
+	if (!DescriptorOpen)
 	{
-		interruptible<std::thread>::check();
+		int XCBFileDescriptor = xcb_get_file_descriptor(XConnection);
+		fd_set FileDescriptors;
 
-		FD_ZERO(&FileDescriptors);
-		FD_SET(XCBFileDescriptor, &FileDescriptors);
+		struct timespec Timeout = { 0, 250000000 }; // Check for interruptions every 0.25 seconds
 
-		if (pselect(XCBFileDescriptor + 1, &FileDescriptors, nullptr, nullptr, &Timeout, nullptr) > 0)
+		while (true)
 		{
-			if ((Event = xcb_poll_for_event(XConnection)))
-				break;
+			interruptible<std::thread>::check();
+
+			FD_ZERO(&FileDescriptors);
+			FD_SET(XCBFileDescriptor, &FileDescriptors);
+
+			if (pselect(XCBFileDescriptor + 1, &FileDescriptors, nullptr, nullptr, &Timeout, nullptr) > 0)
+			{
+				DescriptorOpen = true;
+
+				if ((Event = xcb_poll_for_event(XConnection)))
+					break;
+			}
+		}
+	}
+	else
+	{
+		if ((Event = xcb_poll_for_event(XConnection)) == nullptr)
+		{
+			DescriptorOpen = false;
+			return WaitForEvent(XConnection);
 		}
 	}
 
