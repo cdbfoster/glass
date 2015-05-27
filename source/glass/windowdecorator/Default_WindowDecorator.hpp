@@ -41,12 +41,6 @@ namespace Glass
 		void DecorateWindow(RootWindow &RootWindow);
 		void StripWindow(PrimaryWindow &PrimaryWindow);
 
-		Vector GetDecoratedPosition(ClientWindow &ClientWindow);
-		Vector GetDecoratedSize(ClientWindow& ClientWindow);
-
-		Vector GetDecoratedActiveAreaPosition(RootWindow &RootWindow);
-		Vector GetDecoratedActiveAreaSize(RootWindow &RootWindow);
-
 	private:
 		friend class Default_FrameWindow;
 

@@ -48,6 +48,18 @@ locked_accessor<AuxiliaryWindowList> WindowDecorator::GetAuxiliaryWindows(Primar
 }
 
 
+void WindowDecorator::SetDecoratedPosition(PrimaryWindow &PrimaryWindow, Vector const &Position) const
+{
+	PrimaryWindow.SetDecoratedPosition(Position);
+}
+
+
+void WindowDecorator::SetDecoratedSize(PrimaryWindow &PrimaryWindow, Vector const &Size) const
+{
+	PrimaryWindow.SetDecoratedSize(Size);
+}
+
+
 void WindowDecorator::ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor)
 {
 	this->DisplayServer.ClearWindow(AuxiliaryWindow, ClearColor);

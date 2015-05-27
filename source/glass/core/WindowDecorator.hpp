@@ -44,16 +44,13 @@ namespace Glass
 		virtual void DecorateWindow(RootWindow &RootWindow) = 0;
 		virtual void StripWindow(PrimaryWindow &PrimaryWindow) = 0;
 
-		virtual Vector GetDecoratedPosition(ClientWindow &ClientWindow) = 0;
-		virtual Vector GetDecoratedSize(ClientWindow& ClientWindow) = 0;
-
-		virtual Vector GetDecoratedActiveAreaPosition(RootWindow &RootWindow) = 0;
-		virtual Vector GetDecoratedActiveAreaSize(RootWindow &RootWindow) = 0;
-
 	protected:
 		// Internal, locked access to the display server's and a primary window's auxiliary windows, respectively
 		locked_accessor<Glass::DisplayServer::AuxiliaryWindowList> GetAuxiliaryWindows() const;
 		locked_accessor<AuxiliaryWindowList>					   GetAuxiliaryWindows(PrimaryWindow &PrimaryWindow) const;
+
+		void SetDecoratedPosition(PrimaryWindow &PrimaryWindow, Vector const &Position) const;
+		void SetDecoratedSize(PrimaryWindow &PrimaryWindow, Vector const &Size) const;
 
 		// A mirror of DisplayServer's AuxiliaryWindow drawing interface.  WindowDecorator implementations will use this to
 		// draw on AuxiliaryWindows.

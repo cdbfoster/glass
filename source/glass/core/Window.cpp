@@ -104,7 +104,9 @@ bool Window::ContainsPoint(Vector const &Point) const
 
 
 PrimaryWindow::PrimaryWindow(Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible) :
-	Window(DisplayServer, Position, Size, Visible)
+	Window(DisplayServer, Position, Size, Visible),
+	DecoratedPosition(Position),
+	DecoratedSize(Size)
 {
 
 }
@@ -230,9 +232,33 @@ void PrimaryWindow::Lower()
 }
 
 
+Vector PrimaryWindow::GetDecoratedPosition() const
+{
+	return this->DecoratedPosition;
+}
+
+
+Vector PrimaryWindow::GetDecoratedSize() const
+{
+	return this->DecoratedSize;
+}
+
+
 locked_accessor<AuxiliaryWindowList> PrimaryWindow::GetAuxiliaryWindows()
 {
 	return { this->AuxiliaryWindows, this->AuxiliaryWindowsMutex };
+}
+
+
+void PrimaryWindow::SetDecoratedPosition(Vector const &Position)
+{
+	this->DecoratedPosition = Position;
+}
+
+
+void PrimaryWindow::SetDecoratedSize(Vector const &Size)
+{
+	this->DecoratedSize = Size;
 }
 
 

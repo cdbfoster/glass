@@ -91,10 +91,19 @@ namespace Glass
 		void Raise();
 		void Lower();
 
+		Vector GetDecoratedPosition() const;
+		Vector GetDecoratedSize() const;
+
 	private:
 		friend class WindowDecorator;
 
 		locked_accessor<AuxiliaryWindowList> GetAuxiliaryWindows();
+
+		void SetDecoratedPosition(Vector const &Position);
+		void SetDecoratedSize(Vector const &Size);
+
+		Vector DecoratedPosition;
+		Vector DecoratedSize;
 
 	protected:
 		void UpdateAuxiliaryWindows();

@@ -123,12 +123,16 @@ void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, unsigne
 		Frame->SetULOffset(FrameThickness * -1);
 		Frame->SetLROffset(FrameThickness);
 	}
+
+	this->SetDecoratedPosition(ClientWindow, Frame->GetPosition());
+	this->SetDecoratedSize(ClientWindow, Frame->GetSize());
 }
 
 
 void Default_WindowDecorator::DecorateWindow(RootWindow &RootWindow)
 {
-
+	this->SetDecoratedPosition(RootWindow, RootWindow.GetPosition());
+	this->SetDecoratedSize(RootWindow, RootWindow.GetSize() - Vector(0, 20));
 }
 
 
@@ -163,37 +167,13 @@ void Default_WindowDecorator::StripWindow(PrimaryWindow &PrimaryWindow)
 }
 
 
-Vector Default_WindowDecorator::GetDecoratedPosition(ClientWindow &ClientWindow)
-{
-	return Vector();
-}
-
-
-Vector Default_WindowDecorator::GetDecoratedSize(ClientWindow& ClientWindow)
-{
-	return Vector();
-}
-
-
-Vector Default_WindowDecorator::GetDecoratedActiveAreaPosition(RootWindow &RootWindow)
-{
-	return Vector();
-}
-
-
-Vector Default_WindowDecorator::GetDecoratedActiveAreaSize(RootWindow &RootWindow)
-{
-	return Vector();
-}
-
-
 void Default_WindowDecorator::PaintFrame(Default_FrameWindow &FrameWindow)
 {
 	unsigned int const ClientHintMask = this->ClientHints[static_cast<ClientWindow *>(&FrameWindow.GetPrimaryWindow())];
 
 	this->ClearWindow(FrameWindow);
 
-	this->DrawRoundedRectangle(FrameWindow, Vector(0, 0), FrameWindow.GetSize(), 2.0f, (ClientHintMask & Hint::ACTIVE ? Config::FrameColorActive :
+	this->DrawRoundedRectangle(FrameWindow, Vector(0, 0), FrameWindow.GetSize(), 2.5f, (ClientHintMask & Hint::ACTIVE ? Config::FrameColorActive :
 																					   (ClientHintMask & Hint::URGENT ? Config::FrameColorUrgent :
 																														 Config::FrameColorNormal)));
 
