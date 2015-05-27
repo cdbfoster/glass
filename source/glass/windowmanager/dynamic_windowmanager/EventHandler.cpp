@@ -663,6 +663,13 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 
 	case Glass::Event::Type::LAYOUT_CYCLE:
+		{
+			LayoutCycle_Event const * const EventCast = static_cast<LayoutCycle_Event const *>(Event);
+
+			auto TagContainer = this->Owner.RootTags[*this->Owner.ActiveRoot];
+
+			TagContainer->CycleTagLayouts((TagManager::TagContainer::LayoutCycle)EventCast->CycleDirection);
+		}
 		break;
 
 
