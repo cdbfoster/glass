@@ -964,8 +964,6 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 		Vector const Size =		AuxiliaryWindow.GetSize();
 
 		uint32_t const EventMask = XCB_EVENT_MASK_ENTER_WINDOW |
-								   XCB_EVENT_MASK_PROPERTY_CHANGE |
-								   XCB_EVENT_MASK_STRUCTURE_NOTIFY |
 								   XCB_EVENT_MASK_POINTER_MOTION |
 								   XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
 
