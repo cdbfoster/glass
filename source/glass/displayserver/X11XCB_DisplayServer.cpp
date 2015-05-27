@@ -1095,6 +1095,7 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 			ClientWindowData * const PrimaryWindowDataCast = static_cast<ClientWindowData *>(PrimaryWindowData); // Only client windows have frames
 
 			bool TrueParent = true;
+			if (!PrimaryWindowDataCast->Destroyed)
 			{
 				xcb_get_property_cookie_t PropertyCookie = xcb_get_property_unchecked(this->Data->XConnection, false, PrimaryWindowID, Atoms::_MOTIF_WM_HINTS, XCB_GET_PROPERTY_TYPE_ANY, 0, 5 * sizeof(uint32_t));
 				xcb_get_property_reply_t *PropertyReply = xcb_get_property_reply(this->Data->XConnection, PropertyCookie, nullptr);
