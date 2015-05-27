@@ -31,9 +31,10 @@ namespace Glass
 
 		~X11XCB_DisplayServer();
 
-		void	Sync();
+		void Sync();
 
-		Vector	GetMousePosition();
+		Vector GetMousePosition();
+		void   SetMousePosition(Vector const &Position);
 
 	protected:
 		// XXX Make it safe to call these on windows that have not been deleted but that no longer exist on the server

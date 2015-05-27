@@ -407,6 +407,12 @@ Vector X11XCB_DisplayServer::GetMousePosition()
 }
 
 
+void X11XCB_DisplayServer::SetMousePosition(Vector const &Position)
+{
+	xcb_warp_pointer(this->Data->XConnection, XCB_NONE, this->Data->XScreen->root, 0, 0, 0, 0, Position.x, Position.y);
+}
+
+
 void X11XCB_DisplayServer::SetWindowGeometry(Window &Window, Vector const &Position, Vector const &Size)
 {
 	// If the window is a client that is fullscreen, effect no actual change.  The new dimensions have already been recorded.

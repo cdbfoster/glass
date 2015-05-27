@@ -42,19 +42,20 @@ namespace Glass
 
 		virtual ~DisplayServer();
 
-		locked_accessor<RootWindowList const>		GetRootWindows() const;
-		locked_accessor<ClientWindowList const>		GetClientWindows() const;
-		locked_accessor<AuxiliaryWindowList const>	GetAuxiliaryWindows() const;
+		locked_accessor<RootWindowList const>	   GetRootWindows() const;
+		locked_accessor<ClientWindowList const>	   GetClientWindows() const;
+		locked_accessor<AuxiliaryWindowList const> GetAuxiliaryWindows() const;
 
-		virtual void	Sync() = 0;
+		virtual void Sync() = 0;
 
-		virtual Vector	GetMousePosition() = 0;
+		virtual Vector GetMousePosition() = 0;
+		virtual void   SetMousePosition(Vector const &Position) = 0;
 
 	protected:
 		void DeleteWindows(); // Call this from the destructor of implementations
 
-		locked_accessor<RootWindowList>		GetRootWindows();   // For internal, locked access
-		locked_accessor<ClientWindowList>	GetClientWindows(); //
+		locked_accessor<RootWindowList>	  GetRootWindows();   // For internal, locked access
+		locked_accessor<ClientWindowList> GetClientWindows(); //
 
 	protected: // WindowDecorator is allowed to make changes to the server's auxiliary window list
 		friend class WindowDecorator;
@@ -106,33 +107,33 @@ namespace Glass
 		public:
 			AuxiliaryWindowList(DisplayServer &Owner);
 
-			typedef Glass::AuxiliaryWindowList::size_type		size_type;
-			typedef Glass::AuxiliaryWindowList::value_type		value_type;
-			typedef Glass::AuxiliaryWindowList::reference		reference;
-			typedef Glass::AuxiliaryWindowList::iterator		iterator;
-			typedef Glass::AuxiliaryWindowList::const_iterator	const_iterator;
+			typedef Glass::AuxiliaryWindowList::size_type	   size_type;
+			typedef Glass::AuxiliaryWindowList::value_type	   value_type;
+			typedef Glass::AuxiliaryWindowList::reference	   reference;
+			typedef Glass::AuxiliaryWindowList::iterator	   iterator;
+			typedef Glass::AuxiliaryWindowList::const_iterator const_iterator;
 
-			iterator		begin();
-			const_iterator	begin() const;
-			const_iterator	cbegin() const;
+			iterator	   begin();
+			const_iterator begin() const;
+			const_iterator cbegin() const;
 
-			iterator		end();
-			const_iterator	end() const;
-			const_iterator	cend() const;
+			iterator	   end();
+			const_iterator end() const;
+			const_iterator cend() const;
 
-			bool		empty() const;
-			size_type	size() const;
+			bool	  empty() const;
+			size_type size() const;
 
-			void		push_back(value_type const &val);
-			iterator	erase(iterator position);
-			iterator	erase(iterator first, iterator last);
-			void		remove(value_type const &val);
+			void	 push_back(value_type const &val);
+			iterator erase(iterator position);
+			iterator erase(iterator first, iterator last);
+			void	 remove(value_type const &val);
 
 			AuxiliaryWindowList &operator=(AuxiliaryWindowList const &Other);
 
 		private:
-			DisplayServer			   &Owner;
-			Glass::AuxiliaryWindowList	AuxiliaryWindows;
+			DisplayServer			  &Owner;
+			Glass::AuxiliaryWindowList AuxiliaryWindows;
 		};
 
 	protected:
@@ -141,7 +142,7 @@ namespace Glass
 	private:
 		RootWindowList		RootWindows;
 		ClientWindowList	ClientWindows;
-		AuxiliaryWindowList	AuxiliaryWindows;
+		AuxiliaryWindowList AuxiliaryWindows;
 
 		mutable std::mutex	RootWindowsMutex;
 		mutable std::mutex	ClientWindowsMutex;
