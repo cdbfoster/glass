@@ -597,6 +597,49 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 
 	case Glass::Event::Type::FOCUS_CYCLE:
+		{
+			FocusCycle_Event const * const EventCast = static_cast<FocusCycle_Event const *>(Event);
+
+			auto const TagContainer = this->Owner.RootTags[*this->Owner.ActiveRoot];
+			auto	   Tag = TagContainer->GetActiveTag();
+
+			if (Tag->size() <= 1)
+				break;
+
+			ClientWindowList const TagOrder(Tag->rbegin(), Tag->rend());
+
+			auto CurrentPosition = (this->Owner.ActiveClient != nullptr ? Tag->find(*this->Owner.ActiveClient) :
+																		  Tag->begin());
+
+			if (EventCast->CycleDirection == FocusCycle_Event::Direction::LEFT)
+			{
+				if (CurrentPosition == Tag->begin())
+				{
+					CurrentPosition = Tag->end();
+					std::advance(CurrentPosition, -1);
+				}
+				else
+					--CurrentPosition;
+			}
+			else
+			{
+				if (CurrentPosition == Tag->end())
+					CurrentPosition = Tag->begin();
+				else
+				{
+					++CurrentPosition;
+
+					if (CurrentPosition == Tag->end())
+						CurrentPosition = Tag->begin();
+				}
+			}
+
+			this->Owner.ActivateClient(**CurrentPosition);
+
+			// Restore tag order
+			for (auto Client : TagOrder)
+				Tag->SetActiveClient(*Client);
+		}
 		break;
 
 

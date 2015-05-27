@@ -42,23 +42,23 @@ namespace Glass
 		typedef std::map<RootWindow *, TagContainer *>::iterator	   iterator;
 		typedef std::map<RootWindow *, TagContainer *>::const_iterator const_iterator;
 
-		iterator		begin();
-		const_iterator	begin() const;
-		const_iterator	cbegin() const;
+		iterator	   begin();
+		const_iterator begin() const;
+		const_iterator cbegin() const;
 
-		iterator		end();
-		const_iterator	end() const;
-		const_iterator	cend() const;
+		iterator	   end();
+		const_iterator end() const;
+		const_iterator cend() const;
 
-		size_type	size() const;
+		size_type size() const;
 
-		void		insert(RootWindow &RootWindow);
-		void		erase(iterator position);
-		void		erase(iterator first, iterator last);
-		size_type	erase(RootWindow &RootWindow);
+		void	  insert(RootWindow &RootWindow);
+		void	  erase(iterator position);
+		void	  erase(iterator first, iterator last);
+		size_type erase(RootWindow &RootWindow);
 
-		iterator		find(RootWindow &RootWindow);
-		const_iterator	find(RootWindow &RootWindow) const;
+		iterator	   find(RootWindow &RootWindow);
+		const_iterator find(RootWindow &RootWindow) const;
 
 		TagContainer *operator[](RootWindow &RootWindow) const;
 
@@ -80,15 +80,15 @@ namespace Glass
 			typedef std::list<Tag *>::iterator		 iterator;
 			typedef std::list<Tag *>::const_iterator const_iterator;
 
-			iterator		begin();
-			const_iterator	begin() const;
-			const_iterator	cbegin() const;
+			iterator	   begin();
+			const_iterator begin() const;
+			const_iterator cbegin() const;
 
-			iterator		end();
-			const_iterator	end() const;
-			const_iterator	cend() const;
+			iterator	   end();
+			const_iterator end() const;
+			const_iterator cend() const;
 
-			size_type	size() const;
+			size_type size() const;
 
 			void CreateTag(std::string const &Name);
 
@@ -98,30 +98,30 @@ namespace Glass
 			void SetClientWindowExempt(ClientWindow &ClientWindow, bool Exempt);
 			bool GetClientWindowExempt(ClientWindow &ClientWindow);
 
-			iterator	erase(iterator position);
-			iterator	erase(iterator first, iterator last);
-			void		remove(value_type const &val);
+			iterator erase(iterator position);
+			iterator erase(iterator first, iterator last);
+			void	 remove(value_type const &val);
 
 			typedef unsigned int TagMask;
 			void	SetActiveTagMask(TagMask ActiveMask);
-			TagMask	GetActiveTagMask() const;
+			TagMask GetActiveTagMask() const;
 			Tag	   *GetActiveTag() const;
 
 			void			SetClientWindowTagMask(ClientWindow &ClientWindow, TagMask ClientMask);
 			TagMask			GetClientWindowTagMask(ClientWindow &ClientWindow) const;
-			std::set<Tag *>	GetClientWindowTags(ClientWindow &ClientWindow) const;
+			std::set<Tag *> GetClientWindowTags(ClientWindow &ClientWindow) const;
 
 			enum class LayoutCycle { FORWARD,
 									 BACKWARD };
-			void			CycleTagLayouts(LayoutCycle Direction);
-			WindowLayout   &GetWindowLayout() const;
+			void		  CycleTagLayouts(LayoutCycle Direction);
+			WindowLayout &GetWindowLayout() const;
 
 		private:
 			Glass::RootWindow &RootWindow;
 
-			std::list<Tag *>	Tags;
-			Tag				   *ActiveTag;
-			TagMask				ActiveTagMask;
+			std::list<Tag *> Tags;
+			Tag				*ActiveTag;
+			TagMask			 ActiveTagMask;
 
 			std::map<ClientWindow *, TagMask> ClientTagMasks;
 
@@ -134,27 +134,35 @@ namespace Glass
 				Tag(TagContainer const &Container, std::string const &Name);
 				~Tag();
 
-				typedef ClientWindowList::size_type		 size_type;
-				typedef ClientWindowList::iterator		 iterator;
-				typedef ClientWindowList::const_iterator const_iterator;
+				typedef ClientWindowList::size_type				 size_type;
+				typedef ClientWindowList::iterator				 iterator;
+				typedef ClientWindowList::const_iterator		 const_iterator;
+				typedef ClientWindowList::reverse_iterator		 reverse_iterator;
+				typedef ClientWindowList::const_reverse_iterator const_reverse_iterator;
 
-				iterator		begin();
-				const_iterator	begin() const;
-				const_iterator	cbegin() const;
+				iterator	   begin();
+				const_iterator begin() const;
+				const_iterator cbegin() const;
 
-				iterator		end();
-				const_iterator	end() const;
-				const_iterator	cend() const;
+				iterator	   end();
+				const_iterator end() const;
+				const_iterator cend() const;
 
-				size_type	size() const;
+				reverse_iterator	   rbegin();
+				const_reverse_iterator rbegin() const;
 
-				void		insert(ClientWindow &ClientWindow, bool Exempt = false);
-				void		erase(iterator position);
-				void		erase(iterator first, iterator last);
-				size_type	erase(ClientWindow &ClientWindow);
+				reverse_iterator	   rend();
+				const_reverse_iterator rend() const;
 
-				iterator		find(ClientWindow &ClientWindow);
-				const_iterator	find(ClientWindow &ClientWindow) const;
+				size_type size() const;
+
+				void	  insert(ClientWindow &ClientWindow, bool Exempt = false);
+				void	  erase(iterator position);
+				void	  erase(iterator first, iterator last);
+				size_type erase(ClientWindow &ClientWindow);
+
+				iterator	   find(ClientWindow &ClientWindow);
+				const_iterator find(ClientWindow &ClientWindow) const;
 
 				WindowLayout &GetWindowLayout() const;
 
@@ -184,7 +192,7 @@ namespace Glass
 				void Deactivate();
 
 				std::vector<WindowLayout *>					WindowLayouts;
-				std::vector<WindowLayout *>::const_iterator	ActiveWindowLayout;
+				std::vector<WindowLayout *>::const_iterator ActiveWindowLayout;
 				void CycleLayout(LayoutCycle Direction);
 			};
 		};

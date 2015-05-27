@@ -34,17 +34,17 @@ TagManager::~TagManager()
 }
 
 
-TagManager::iterator		TagManager::begin()			{ return this->TagContainers.begin(); }
-TagManager::const_iterator	TagManager::begin() const	{ return this->TagContainers.begin(); }
-TagManager::const_iterator	TagManager::cbegin() const	{ return this->TagContainers.cbegin(); }
+TagManager::iterator	   TagManager::begin()		  { return this->TagContainers.begin(); }
+TagManager::const_iterator TagManager::begin() const  { return this->TagContainers.begin(); }
+TagManager::const_iterator TagManager::cbegin() const { return this->TagContainers.cbegin(); }
 
 
-TagManager::iterator		TagManager::end()			{ return this->TagContainers.end(); }
-TagManager::const_iterator	TagManager::end() const		{ return this->TagContainers.end(); }
-TagManager::const_iterator	TagManager::cend() const	{ return this->TagContainers.cend(); }
+TagManager::iterator	   TagManager::end()		{ return this->TagContainers.end(); }
+TagManager::const_iterator TagManager::end() const	{ return this->TagContainers.end(); }
+TagManager::const_iterator TagManager::cend() const { return this->TagContainers.cend(); }
 
 
-TagManager::size_type		TagManager::size() const	{ return this->TagContainers.size(); }
+TagManager::size_type TagManager::size() const { return this->TagContainers.size(); }
 
 
 void TagManager::insert(RootWindow &RootWindow)
@@ -82,8 +82,8 @@ TagManager::size_type TagManager::erase(RootWindow &RootWindow)
 }
 
 
-TagManager::iterator		TagManager::find(RootWindow &RootWindow)		{ return this->TagContainers.find(&RootWindow); }
-TagManager::const_iterator	TagManager::find(RootWindow &RootWindow) const	{ return this->TagContainers.find(&RootWindow); }
+TagManager::iterator	   TagManager::find(RootWindow &RootWindow)		  { return this->TagContainers.find(&RootWindow); }
+TagManager::const_iterator TagManager::find(RootWindow &RootWindow) const { return this->TagContainers.find(&RootWindow); }
 
 
 TagManager::TagContainer *TagManager::operator[](RootWindow &RootWindow) const
@@ -113,17 +113,17 @@ TagManager::TagContainer::~TagContainer()
 }
 
 
-TagManager::TagContainer::iterator			TagManager::TagContainer::begin()			{ return this->Tags.begin(); }
-TagManager::TagContainer::const_iterator	TagManager::TagContainer::begin() const		{ return this->Tags.begin(); }
-TagManager::TagContainer::const_iterator	TagManager::TagContainer::cbegin() const	{ return this->Tags.cbegin(); }
+TagManager::TagContainer::iterator		 TagManager::TagContainer::begin()		  { return this->Tags.begin(); }
+TagManager::TagContainer::const_iterator TagManager::TagContainer::begin() const  { return this->Tags.begin(); }
+TagManager::TagContainer::const_iterator TagManager::TagContainer::cbegin() const { return this->Tags.cbegin(); }
 
 
-TagManager::TagContainer::iterator			TagManager::TagContainer::end()				{ return this->Tags.end(); }
-TagManager::TagContainer::const_iterator	TagManager::TagContainer::end() const		{ return this->Tags.end(); }
-TagManager::TagContainer::const_iterator	TagManager::TagContainer::cend() const		{ return this->Tags.cend(); }
+TagManager::TagContainer::iterator		 TagManager::TagContainer::end()		{ return this->Tags.end(); }
+TagManager::TagContainer::const_iterator TagManager::TagContainer::end() const	{ return this->Tags.end(); }
+TagManager::TagContainer::const_iterator TagManager::TagContainer::cend() const { return this->Tags.cend(); }
 
 
-TagManager::TagContainer::size_type			TagManager::TagContainer::size() const		{ return this->Tags.size(); }
+TagManager::TagContainer::size_type TagManager::TagContainer::size() const { return this->Tags.size(); }
 
 
 void TagManager::TagContainer::CreateTag(std::string const &Name)
@@ -556,17 +556,25 @@ TagManager::TagContainer::Tag::~Tag()
 }
 
 
-TagManager::TagContainer::Tag::iterator			TagManager::TagContainer::Tag::begin()			{ return this->ClientOrder.begin(); }
-TagManager::TagContainer::Tag::const_iterator	TagManager::TagContainer::Tag::begin() const	{ return this->ClientOrder.begin(); }
-TagManager::TagContainer::Tag::const_iterator	TagManager::TagContainer::Tag::cbegin() const	{ return this->ClientOrder.cbegin(); }
+TagManager::TagContainer::Tag::iterator		  TagManager::TagContainer::Tag::begin()		{ return this->ClientOrder.begin(); }
+TagManager::TagContainer::Tag::const_iterator TagManager::TagContainer::Tag::begin() const	{ return this->ClientOrder.begin(); }
+TagManager::TagContainer::Tag::const_iterator TagManager::TagContainer::Tag::cbegin() const { return this->ClientOrder.cbegin(); }
 
 
-TagManager::TagContainer::Tag::iterator			TagManager::TagContainer::Tag::end()			{ return this->ClientOrder.end(); }
-TagManager::TagContainer::Tag::const_iterator	TagManager::TagContainer::Tag::end() const		{ return this->ClientOrder.end(); }
-TagManager::TagContainer::Tag::const_iterator	TagManager::TagContainer::Tag::cend() const		{ return this->ClientOrder.cend(); }
+TagManager::TagContainer::Tag::iterator		  TagManager::TagContainer::Tag::end()		  { return this->ClientOrder.end(); }
+TagManager::TagContainer::Tag::const_iterator TagManager::TagContainer::Tag::end() const  { return this->ClientOrder.end(); }
+TagManager::TagContainer::Tag::const_iterator TagManager::TagContainer::Tag::cend() const { return this->ClientOrder.cend(); }
 
 
-TagManager::TagContainer::Tag::size_type		TagManager::TagContainer::Tag::size() const		{ return this->ClientOrder.size(); }
+TagManager::TagContainer::Tag::reverse_iterator		  TagManager::TagContainer::Tag::rbegin()		{ return this->ClientOrder.rbegin(); }
+TagManager::TagContainer::Tag::const_reverse_iterator TagManager::TagContainer::Tag::rbegin() const { return this->ClientOrder.rbegin(); }
+
+
+TagManager::TagContainer::Tag::reverse_iterator		  TagManager::TagContainer::Tag::rend()		  { return this->ClientOrder.rend(); }
+TagManager::TagContainer::Tag::const_reverse_iterator TagManager::TagContainer::Tag::rend() const { return this->ClientOrder.rend(); }
+
+
+TagManager::TagContainer::Tag::size_type TagManager::TagContainer::Tag::size() const { return this->ClientOrder.size(); }
 
 
 void TagManager::TagContainer::Tag::insert(ClientWindow &ClientWindow, bool Exempt)
