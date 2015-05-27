@@ -528,14 +528,14 @@ TagManager::TagContainer::Tag::Tag(TagContainer const &Container, std::string co
 	{
 		for (auto Layout : Config::WindowLayouts)
 		{
-			this->WindowLayouts.push_back(Layout(this->Container.RootWindow.GetPosition() + LayoutPadding,
-												 this->Container.RootWindow.GetSize() - LayoutPadding * 2));
+			this->WindowLayouts.push_back(Layout(this->Container.RootWindow.GetDecoratedPosition() + LayoutPadding,
+												 this->Container.RootWindow.GetDecoratedSize() - LayoutPadding * 2));
 		}
 	}
 	else
 	{
-		this->WindowLayouts.push_back(new Dummy_WindowLayout(this->Container.RootWindow.GetPosition() + LayoutPadding,
-															 this->Container.RootWindow.GetSize() - LayoutPadding * 2));
+		this->WindowLayouts.push_back(new Dummy_WindowLayout(this->Container.RootWindow.GetDecoratedPosition() + LayoutPadding,
+															 this->Container.RootWindow.GetDecoratedSize() - LayoutPadding * 2));
 	}
 
 	// Set ActiveWindowLayout to the right position in the layout list
