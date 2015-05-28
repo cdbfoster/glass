@@ -78,6 +78,7 @@ namespace Glass
 		friend class FrameWindow;
 		friend class PrimaryWindow;
 		friend class RootWindow;
+		friend class UtilityWindow;
 		friend class Window;
 
 		virtual void SetWindowGeometry(Window &Window, Vector const &Position, Vector const &Size) = 0;

@@ -28,6 +28,7 @@ namespace Glass
 {
 	class DisplayServer;
 	class Default_FrameWindow;
+	class StatusBar_UtilityWindow;
 
 	class Default_WindowDecorator : public WindowDecorator
 	{
@@ -43,8 +44,10 @@ namespace Glass
 
 	private:
 		friend class Default_FrameWindow;
+		friend class StatusBar_UtilityWindow;
 
 		void PaintFrame(Default_FrameWindow &FrameWindow);
+		void PaintStatusBar(StatusBar_UtilityWindow &StatusBar);
 
 		std::map<ClientWindow *, unsigned char> ClientHints;
 	};

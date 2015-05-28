@@ -666,3 +666,65 @@ void FrameWindow::Update()
 		}
 	}
 }
+
+
+UtilityWindow::UtilityWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
+							 Glass::DisplayServer &DisplayServer, Vector const &LocalPosition, Vector const &Size, bool Visible) :
+	AuxiliaryWindow(PrimaryWindow, Name, DisplayServer, PrimaryWindow.GetPosition() + LocalPosition, Size, Visible),
+	LocalPosition(LocalPosition)
+{
+
+}
+
+
+UtilityWindow::~UtilityWindow()
+{
+	this->DisplayServer.DeleteWindow(*this);
+}
+
+
+Vector UtilityWindow::GetLocalPosition() const
+{
+	return this->LocalPosition;
+}
+
+
+void UtilityWindow::SetLocalPosition(Vector const &LocalPosition)
+{
+	this->LocalPosition = LocalPosition;
+
+	this->Update();
+}
+
+
+void UtilityWindow::HandleEvent(Event const &Event)
+{
+
+}
+
+
+void UtilityWindow::Update()
+{
+	if (ClientWindow *PrimaryWindowCast = dynamic_cast<ClientWindow *>(&this->GetPrimaryWindow()))
+	{
+		if (PrimaryWindowCast->GetFullscreen() == true)
+			AuxiliaryWindow::SetVisibility(false);
+	}
+
+	Vector const Position = this->GetPrimaryWindow().GetPosition() + this->LocalPosition;
+
+	if (this->GetPosition() != Position)
+		AuxiliaryWindow::SetPosition(Position);
+}
+
+
+void UtilityWindow::SetVisibility(bool Visible)
+{
+	if (ClientWindow *PrimaryWindowCast = dynamic_cast<ClientWindow *>(&this->GetPrimaryWindow()))
+	{
+		if (Visible && PrimaryWindowCast->GetFullscreen() == true)
+			return;
+	}
+
+	AuxiliaryWindow::SetVisibility(Visible);
+}

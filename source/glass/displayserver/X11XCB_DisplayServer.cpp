@@ -382,7 +382,13 @@ void X11XCB_DisplayServer::Sync()
 				}
 			}
 
-			ConfigureWindow(this->Data->XConnection, WindowDataCast->ID, Position, Size);
+			if (UtilityWindow * const WindowCast = dynamic_cast<UtilityWindow *>(&WindowDataCast->Window))
+			{
+				ConfigureWindow(this->Data->XConnection, WindowDataCast->ID, Position - WindowCast->GetPrimaryWindow().GetPosition(),
+																			 Size);
+			}
+			else
+				ConfigureWindow(this->Data->XConnection, WindowDataCast->ID, Position, Size);
 
 			cairo_xcb_surface_set_size(WindowDataCast->CairoSurface, Size.x, Size.y);
 
@@ -1054,6 +1060,14 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 				Raise(this->Data->XConnection, AuxiliaryWindowID);
 				Raise(this->Data->XConnection, PrimaryWindowID);
 			}
+		}
+		else if (UtilityWindow const * const WindowCast = static_cast<UtilityWindow const *>(&AuxiliaryWindow))
+		{
+			if (WindowCast->GetVisibility() == true)
+				xcb_map_window(this->Data->XConnection, AuxiliaryWindowID);
+
+			Vector const Position = WindowCast->GetLocalPosition();
+			xcb_reparent_window(this->Data->XConnection, AuxiliaryWindowID, PrimaryWindowID, Position.x, Position.y);
 		}
 
 

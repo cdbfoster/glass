@@ -188,6 +188,7 @@ namespace Glass
 	public:
 		RootWindow(Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size);
 		RootWindow(RootWindow const &Other) = delete;
+
 		~RootWindow();
 
 		locked_accessor<ClientWindowList>		GetClientWindows();
@@ -297,6 +298,27 @@ namespace Glass
 
 		Vector CurrentULOffset;
 		Vector CurrentLROffset;
+	};
+
+
+	class UtilityWindow : public AuxiliaryWindow
+	{
+	public:
+		UtilityWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
+					  Glass::DisplayServer &DisplayServer, Vector const &LocalPosition, Vector const &Size, bool Visible);
+		~UtilityWindow();
+
+		Vector GetLocalPosition() const;
+
+		void SetLocalPosition(Vector const &LocalPosition);
+
+		void HandleEvent(Event const &Event);
+		void Update();
+
+		void SetVisibility(bool Visible);
+
+	private:
+		Vector LocalPosition;
 	};
 }
 

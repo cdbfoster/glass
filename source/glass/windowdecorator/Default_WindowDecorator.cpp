@@ -64,6 +64,28 @@ namespace Glass
 	private:
 		Default_WindowDecorator &WindowDecorator;
 	};
+
+
+	class StatusBar_UtilityWindow : public UtilityWindow
+	{
+	public:
+		StatusBar_UtilityWindow(Glass::PrimaryWindow &PrimaryWindow, std::string const &Name,
+								Glass::DisplayServer &DisplayServer, Vector const &LocalPosition, Vector const &Size, bool Visible,
+								Default_WindowDecorator &WindowDecorator) :
+			UtilityWindow(PrimaryWindow, Name, DisplayServer, LocalPosition, Size, Visible),
+			WindowDecorator(WindowDecorator)
+		{ }
+
+		void Update()
+		{
+			UtilityWindow::Update();
+
+			this->WindowDecorator.PaintStatusBar(*this);
+		}
+
+	private:
+		Default_WindowDecorator &WindowDecorator;
+	};
 }
 
 
@@ -131,8 +153,36 @@ void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, unsigne
 
 void Default_WindowDecorator::DecorateWindow(RootWindow &RootWindow)
 {
+	StatusBar_UtilityWindow *StatusBar = nullptr;
+
+	auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows(RootWindow);
+
+	for (auto AuxiliaryWindow : *AuxiliaryWindowsAccessor)
+	{
+		if ((StatusBar = dynamic_cast<StatusBar_UtilityWindow *>(AuxiliaryWindow)))
+			break;
+	}
+
+	if (StatusBar == nullptr)
+	{
+		Vector const Size = Vector(500, 20);
+
+		StatusBar = new StatusBar_UtilityWindow(RootWindow, "Status Bar", this->DisplayServer, RootWindow.GetSize() - Size,
+																							   Size, true, *this);
+
+		AuxiliaryWindowsAccessor->push_back(StatusBar);
+
+		{
+			auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
+
+			AuxiliaryWindowsAccessor->push_back(StatusBar);
+		}
+
+		StatusBar->Update();
+	}
+
 	this->SetDecoratedPosition(RootWindow, RootWindow.GetPosition());
-	this->SetDecoratedSize(RootWindow, RootWindow.GetSize() - Vector(0, 20));
+	this->SetDecoratedSize(RootWindow, RootWindow.GetSize() - Vector(0, StatusBar->GetSize().y));
 }
 
 
@@ -162,7 +212,23 @@ void Default_WindowDecorator::StripWindow(PrimaryWindow &PrimaryWindow)
 	}
 	else // PrimaryWindow is a RootWindow
 	{
+		for (auto AuxiliaryWindow = AuxiliaryWindowsAccessor->begin();
+				  AuxiliaryWindow != AuxiliaryWindowsAccessor->end();
+				  ++AuxiliaryWindow)
+		{
+			if (dynamic_cast<StatusBar_UtilityWindow *>(*AuxiliaryWindow))
+			{
+				{
+					auto AuxiliaryWindowsAccessor = this->GetAuxiliaryWindows();
 
+					AuxiliaryWindowsAccessor->remove(*AuxiliaryWindow);
+				}
+
+				delete *AuxiliaryWindow;
+
+				AuxiliaryWindow = AuxiliaryWindowsAccessor->erase(AuxiliaryWindow);
+			}
+		}
 	}
 }
 
@@ -180,4 +246,11 @@ void Default_WindowDecorator::PaintFrame(Default_FrameWindow &FrameWindow)
 	this->DrawRectangle(FrameWindow, FrameWindow.GetULOffset() * -1, FrameWindow.GetPrimaryWindow().GetSize(), Color(0.0f, 0.0f, 0.0f, 0.0f), DrawMode::REPLACE);
 
 	this->FlushWindow(FrameWindow);
+}
+
+
+void Default_WindowDecorator::PaintStatusBar(StatusBar_UtilityWindow &StatusBar)
+{
+	this->ClearWindow(StatusBar, Config::FrameColorActive);
+	this->FlushWindow(StatusBar);
 }
