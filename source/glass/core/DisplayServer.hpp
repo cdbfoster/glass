@@ -22,13 +22,14 @@
 
 #include <mutex>
 
-#include "glass/core/Color.hpp"
 #include "glass/core/Window.hpp"
 #include "util/locked_accessor.hpp"
 
 namespace Glass
 {
+	class Color;
 	class EventQueue;
+	class Shape;
 	class WindowDecorator;
 
 	class DisplayServer
@@ -69,8 +70,18 @@ namespace Glass
 		virtual void ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor) = 0;
 		virtual void FlushWindow(AuxiliaryWindow &AuxiliaryWindow) = 0;
 
-		virtual void DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode) = 0;
-		virtual void DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode) = 0;
+		virtual void DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float LineWidth, Color const &Color, DrawMode Mode) = 0;
+		virtual void FillRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode) = 0;
+
+		virtual void DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, float LineWidth, Color const &Color, DrawMode Mode) = 0;
+		virtual void FillRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode) = 0;
+
+		virtual void DrawShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, float LineWidth, Color const &Color, bool CloseShape, DrawMode Mode) = 0;
+		virtual void FillShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, Color const &Color, DrawMode Mode) = 0;
+
+		virtual void  DrawText(AuxiliaryWindow &AuxiliaryWindow, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode) = 0;
+		virtual float GetTextWidth(std::string const &Text, float Size) = 0;
+		virtual float GetTextHeight(std::string const &Text, float Size) = 0;
 
 	protected: // Window manipulation interface, used by the Window interfaces
 		friend class AuxiliaryWindow;

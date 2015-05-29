@@ -20,7 +20,9 @@
 #ifndef GLASS_CORE_WINDOWDECORATOR
 #define GLASS_CORE_WINDOWDECORATOR
 
+#include "glass/core/Color.hpp"
 #include "glass/core/DisplayServer.hpp"
+#include "glass/core/Shape.hpp"
 #include "glass/core/Vector.hpp"
 #include "glass/core/Window.hpp"
 
@@ -60,8 +62,18 @@ namespace Glass
 		void ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor = Color(0.0f, 0.0f, 0.0f, 0.0f));
 		void FlushWindow(AuxiliaryWindow &AuxiliaryWindow);
 
-		void DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode = DrawMode::OVERLAY);
-		void DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode = DrawMode::OVERLAY);
+		void DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float LineWidth, Color const &Color, DrawMode Mode = DrawMode::OVERLAY);
+		void FillRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode = DrawMode::OVERLAY);
+
+		void DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, float LineWidth, Color const &Color, DrawMode Mode = DrawMode::OVERLAY);
+		void FillRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode = DrawMode::OVERLAY);
+
+		void DrawShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, float LineWidth, Color const &Color, bool CloseShape = true, DrawMode Mode = DrawMode::OVERLAY);
+		void FillShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, Color const &Color, DrawMode Mode = DrawMode::OVERLAY);
+
+		void  DrawText(AuxiliaryWindow &AuxiliaryWindow, std::string const &Text, Vector const &Position, Color const &Color, float Size = 10.0f, DrawMode Mode = DrawMode::OVERLAY);
+		float GetTextWidth(std::string const &Text, float Size = 10.0f);
+		float GetTextHeight(std::string const &Text, float Size = 10.0f);
 
 		EventQueue &GetEventQueue() const;
 

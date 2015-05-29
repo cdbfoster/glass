@@ -122,6 +122,9 @@ namespace Config
 	Color const FrameColorActive(0.5f, 0.5f, 0.5f, 0.6f);
 	Color const FrameColorUrgent(0.8f, 0.8f, 0.8f, 0.9f);
 
+	std::string const FontFamily = "sans-serif";
+	float const		  FontSize = 11.0f;
+
 
 	// Window layouts - Leave the list empty to use a dummy layout
 	std::vector<WindowLayout *(*)(Vector const &, Vector const &)> const WindowLayouts = {

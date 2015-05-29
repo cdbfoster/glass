@@ -23,6 +23,7 @@ set(glass_include ${glass_include}
 	core/Input.hpp
 	core/InputListener.hpp
 	core/Log.hpp
+	core/Shape.hpp
 	core/Vector.hpp
 	core/Window.hpp
 	core/WindowDecorator.hpp

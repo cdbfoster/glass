@@ -59,8 +59,18 @@ namespace Glass
 		void ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color const &ClearColor);
 		void FlushWindow(AuxiliaryWindow &AuxiliaryWindow);
 
-		void DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode);
-		void DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode);
+		void DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float LineWidth, Color const &Color, DrawMode Mode);
+		void FillRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode);
+
+		void DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, float LineWidth, Color const &Color, DrawMode Mode);
+		void FillRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode);
+
+		void DrawShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, float LineWidth, Color const &Color, bool CloseShape, DrawMode Mode);
+		void FillShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, Color const &Color, DrawMode Mode);
+
+		void  DrawText(AuxiliaryWindow &AuxiliaryWindow, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode);
+		float GetTextWidth(std::string const &Text, float Size);
+		float GetTextHeight(std::string const &Text, float Size);
 
 	protected:
 		void ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow);

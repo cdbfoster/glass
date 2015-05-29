@@ -72,15 +72,57 @@ void WindowDecorator::FlushWindow(AuxiliaryWindow &AuxiliaryWindow)
 }
 
 
-void WindowDecorator::DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode)
+void WindowDecorator::DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float LineWidth, Color const &Color, DrawMode Mode)
 {
-	this->DisplayServer.DrawRectangle(AuxiliaryWindow, Position, Size, Color, (Glass::DisplayServer::DrawMode)Mode);
+	this->DisplayServer.DrawRectangle(AuxiliaryWindow, Position, Size, LineWidth, Color, (Glass::DisplayServer::DrawMode)Mode);
 }
 
 
-void WindowDecorator::DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode)
+void WindowDecorator::FillRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode)
 {
-	this->DisplayServer.DrawRoundedRectangle(AuxiliaryWindow, Position, Size, Radius, Color, (Glass::DisplayServer::DrawMode)Mode);
+	this->DisplayServer.FillRectangle(AuxiliaryWindow, Position, Size, Color, (Glass::DisplayServer::DrawMode)Mode);
+}
+
+
+void WindowDecorator::DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, float LineWidth, Color const &Color, DrawMode Mode)
+{
+	this->DisplayServer.DrawRoundedRectangle(AuxiliaryWindow, Position, Size, Radius, LineWidth, Color, (Glass::DisplayServer::DrawMode)Mode);
+}
+
+
+void WindowDecorator::FillRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode)
+{
+	this->DisplayServer.FillRoundedRectangle(AuxiliaryWindow, Position, Size, Radius, Color, (Glass::DisplayServer::DrawMode)Mode);
+}
+
+
+void WindowDecorator::DrawShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, float LineWidth, Color const &Color, bool CloseShape, DrawMode Mode)
+{
+	this->DisplayServer.DrawShape(AuxiliaryWindow, Shape, LineWidth, Color, CloseShape, (Glass::DisplayServer::DrawMode)Mode);
+}
+
+
+void WindowDecorator::FillShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, Color const &Color, DrawMode Mode)
+{
+	this->DisplayServer.FillShape(AuxiliaryWindow, Shape, Color, (Glass::DisplayServer::DrawMode)Mode);
+}
+
+
+void WindowDecorator::DrawText(AuxiliaryWindow &AuxiliaryWindow, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode)
+{
+	this->DisplayServer.DrawText(AuxiliaryWindow, Text, Position, Color, Size, (Glass::DisplayServer::DrawMode)Mode);
+}
+
+
+float WindowDecorator::GetTextWidth(std::string const &Text, float Size)
+{
+	return this->DisplayServer.GetTextWidth(Text, Size);
+}
+
+
+float WindowDecorator::GetTextHeight(std::string const &Text, float Size)
+{
+	return this->DisplayServer.GetTextHeight(Text, Size);
 }
 
 

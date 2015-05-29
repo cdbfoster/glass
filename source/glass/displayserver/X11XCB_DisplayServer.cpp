@@ -27,9 +27,11 @@
 #include <xcb/xcb_event.h>
 #include <xcb/xcb_icccm.h>
 
+#include "config.hpp"
 #include "glass/core/Event.hpp"
 #include "glass/core/EventQueue.hpp"
 #include "glass/core/Log.hpp"
+#include "glass/core/Shape.hpp"
 #include "glass/displayserver/X11XCB_DisplayServer.hpp"
 #include "glass/displayserver/x11xcb_displayserver/Atoms.hpp"
 #include "glass/displayserver/x11xcb_displayserver/EventHandler.hpp"
@@ -840,16 +842,49 @@ namespace Cairo
 	}
 
 
-	void DrawRectangle(cairo_t *Context, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode)
+	void DrawRectangle(cairo_t *Context, Vector const &Position, Vector const &Size, float LineWidth, Color const &Color, DrawMode Mode)
 	{
 		cairo_set_operator(Context, Mode == DrawMode::OVERLAY ? CAIRO_OPERATOR_OVER : CAIRO_OPERATOR_SOURCE);
 		cairo_set_source_rgba(Context, Color.R, Color.B, Color.G, Color.A);
+
+		cairo_set_line_width(Context, LineWidth);
+
 		cairo_rectangle(Context, Position.x, Position.y, Size.x, Size.y);
+
+		cairo_stroke(Context);
+	}
+
+
+	void FillRectangle(cairo_t *Context, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode)
+	{
+		cairo_set_operator(Context, Mode == DrawMode::OVERLAY ? CAIRO_OPERATOR_OVER : CAIRO_OPERATOR_SOURCE);
+		cairo_set_source_rgba(Context, Color.R, Color.B, Color.G, Color.A);
+
+		cairo_rectangle(Context, Position.x, Position.y, Size.x, Size.y);
+
 		cairo_fill(Context);
 	}
 
 
-	void DrawRoundedRectangle(cairo_t *Context, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode)
+	void DrawRoundedRectangle(cairo_t *Context, Vector const &Position, Vector const &Size, float Radius, float LineWidth, Color const &Color, DrawMode Mode)
+	{
+		cairo_set_operator(Context, Mode == DrawMode::OVERLAY ? CAIRO_OPERATOR_OVER : CAIRO_OPERATOR_SOURCE);
+		cairo_set_source_rgba(Context, Color.R, Color.B, Color.G, Color.A);
+
+		cairo_set_line_width(Context, LineWidth);
+
+		cairo_new_sub_path(Context);
+		cairo_arc(Context, Position.x + Size.x - Radius, Position.y + Radius, Radius, -M_PI_2, 0);
+		cairo_arc(Context, Position.x + Size.x - Radius, Position.y + Size.y - Radius, Radius, 0, M_PI_2);
+		cairo_arc(Context, Position.x + Radius, Position.y + Size.y - Radius, Radius, M_PI_2, M_PI);
+		cairo_arc(Context, Position.x + Radius, Position.y + Radius, Radius, M_PI, M_PI + M_PI_2);
+		cairo_close_path(Context);
+
+		cairo_stroke(Context);
+	}
+
+
+	void FillRoundedRectangle(cairo_t *Context, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode)
 	{
 		cairo_set_operator(Context, Mode == DrawMode::OVERLAY ? CAIRO_OPERATOR_OVER : CAIRO_OPERATOR_SOURCE);
 		cairo_set_source_rgba(Context, Color.R, Color.B, Color.G, Color.A);
@@ -862,6 +897,102 @@ namespace Cairo
 		cairo_close_path(Context);
 
 		cairo_fill(Context);
+	}
+
+
+	void RealizeShape(cairo_t *Context, Shape const &Shape)
+	{
+		bool FirstElement = true;
+		for (auto Element : Shape)
+		{
+			if (Element->GetType() == Glass::Shape::Element::Type::POINT)
+			{
+				Shape::Point const &Point = static_cast<Shape::Point const &>(*Element);
+
+				if (FirstElement)
+					cairo_move_to(Context, Point.X, Point.Y);
+				else
+					cairo_line_to(Context, Point.X, Point.Y);
+			}
+			else if (Element->GetType() == Glass::Shape::Element::Type::ARC)
+			{
+				Shape::Arc const &Arc = static_cast<Shape::Arc const &>(*Element);
+
+				cairo_arc(Context, Arc.CenterX, Arc.CenterY, Arc.Radius, Arc.StartAngle, Arc.EndAngle);
+			}
+
+			FirstElement = false;
+		}
+	}
+
+
+	void DrawShape(cairo_t *Context, Shape const &Shape, float LineWidth, Color const &Color, bool CloseShape, DrawMode Mode)
+	{
+		if (Shape.empty())
+			return;
+
+		cairo_set_operator(Context, Mode == DrawMode::OVERLAY ? CAIRO_OPERATOR_OVER : CAIRO_OPERATOR_SOURCE);
+		cairo_set_source_rgba(Context, Color.R, Color.B, Color.G, Color.A);
+
+		cairo_set_line_width(Context, LineWidth);
+
+		cairo_new_sub_path(Context);
+		RealizeShape(Context, Shape);
+
+		if (CloseShape)
+			cairo_close_path(Context);
+
+		cairo_stroke(Context);
+	}
+
+
+	void FillShape(cairo_t *Context, Shape const &Shape, Color const &Color, DrawMode Mode)
+	{
+		if (Shape.empty())
+			return;
+
+		cairo_set_operator(Context, Mode == DrawMode::OVERLAY ? CAIRO_OPERATOR_OVER : CAIRO_OPERATOR_SOURCE);
+		cairo_set_source_rgba(Context, Color.R, Color.B, Color.G, Color.A);
+
+		cairo_new_sub_path(Context);
+		RealizeShape(Context, Shape);
+		cairo_close_path(Context);
+
+		cairo_fill(Context);
+	}
+
+
+	void  DrawText(cairo_t *Context, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode)
+	{
+		cairo_set_operator(Context, Mode == DrawMode::OVERLAY ? CAIRO_OPERATOR_OVER : CAIRO_OPERATOR_SOURCE);
+		cairo_set_source_rgba(Context, Color.R, Color.B, Color.G, Color.A);
+
+		cairo_move_to(Context, Position.x, Position.y);
+
+		cairo_set_font_size(Context, Size);
+		cairo_show_text(Context, Text.c_str());
+	}
+
+
+	float GetTextWidth(cairo_t *Context, std::string const &Text, float Size)
+	{
+		cairo_text_extents_t Extents;
+
+		cairo_set_font_size(Context, Size);
+		cairo_text_extents(Context, Text.c_str(), &Extents);
+
+		return Extents.width;
+	}
+
+
+	float GetTextHeight(cairo_t *Context, std::string const &Text, float Size)
+	{
+		cairo_text_extents_t Extents;
+
+		cairo_set_font_size(Context, Size);
+		cairo_text_extents(Context, Text.c_str(), &Extents);
+
+		return Extents.height;
 	}
 }
 
@@ -896,7 +1027,7 @@ void X11XCB_DisplayServer::FlushWindow(AuxiliaryWindow &AuxiliaryWindow)
 }
 
 
-void X11XCB_DisplayServer::DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode)
+void X11XCB_DisplayServer::DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float LineWidth, Color const &Color, DrawMode Mode)
 {
 	auto WindowDataAccessor = this->Data->GetWindowData();
 
@@ -905,12 +1036,12 @@ void X11XCB_DisplayServer::DrawRectangle(AuxiliaryWindow &AuxiliaryWindow, Vecto
 	{
 		AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
 
-		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::DrawRectangle, WindowDataCast->CairoContext, Position, Size, Color, (Cairo::DrawMode)Mode));
+		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::DrawRectangle, WindowDataCast->CairoContext, Position, Size, LineWidth, Color, (Cairo::DrawMode)Mode));
 	}
 }
 
 
-void X11XCB_DisplayServer::DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode)
+void X11XCB_DisplayServer::FillRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, Color const &Color, DrawMode Mode)
 {
 	auto WindowDataAccessor = this->Data->GetWindowData();
 
@@ -919,8 +1050,108 @@ void X11XCB_DisplayServer::DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow
 	{
 		AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
 
-		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::DrawRoundedRectangle, WindowDataCast->CairoContext, Position, Size, Radius, Color, (Cairo::DrawMode)Mode));
+		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::FillRectangle, WindowDataCast->CairoContext, Position, Size, Color, (Cairo::DrawMode)Mode));
 	}
+}
+
+
+void X11XCB_DisplayServer::DrawRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, float LineWidth, Color const &Color, DrawMode Mode)
+{
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&AuxiliaryWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
+
+		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::DrawRoundedRectangle, WindowDataCast->CairoContext, Position, Size, Radius, LineWidth, Color, (Cairo::DrawMode)Mode));
+	}
+}
+
+
+void X11XCB_DisplayServer::FillRoundedRectangle(AuxiliaryWindow &AuxiliaryWindow, Vector const &Position, Vector const &Size, float Radius, Color const &Color, DrawMode Mode)
+{
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&AuxiliaryWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
+
+		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::FillRoundedRectangle, WindowDataCast->CairoContext, Position, Size, Radius, Color, (Cairo::DrawMode)Mode));
+	}
+}
+
+
+void X11XCB_DisplayServer::DrawShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, float LineWidth, Color const &Color, bool CloseShape, DrawMode Mode)
+{
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&AuxiliaryWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
+
+		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::DrawShape, WindowDataCast->CairoContext, Shape, LineWidth, Color, CloseShape, (Cairo::DrawMode)Mode));
+	}
+}
+
+
+void X11XCB_DisplayServer::FillShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, Color const &Color, DrawMode Mode)
+{
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&AuxiliaryWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
+
+		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::FillShape, WindowDataCast->CairoContext, Shape, Color, (Cairo::DrawMode)Mode));
+	}
+}
+
+
+void  X11XCB_DisplayServer::DrawText(AuxiliaryWindow &AuxiliaryWindow, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode)
+{
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	auto WindowData = WindowDataAccessor->find(&AuxiliaryWindow);
+	if (WindowData != WindowDataAccessor->end())
+	{
+		AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
+
+		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::DrawText, WindowDataCast->CairoContext, Text, Position, Color, Size, (Cairo::DrawMode)Mode));
+	}
+}
+
+
+float X11XCB_DisplayServer::GetTextWidth(std::string const &Text, float Size)
+{
+	// We need a cairo context, so grab the first auxiliary window
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	for (auto WindowData : *WindowDataAccessor)
+	{
+		if (AuxiliaryWindowData * const WindowDataCast = dynamic_cast<AuxiliaryWindowData *>(WindowData))
+			return Cairo::GetTextWidth(WindowDataCast->CairoContext, Text, Size);
+	}
+
+	return 0.0f;
+}
+
+
+float X11XCB_DisplayServer::GetTextHeight(std::string const &Text, float Size)
+{
+	// We need a cairo context, so grab the first auxiliary window
+	auto WindowDataAccessor = this->Data->GetWindowData();
+
+	for (auto WindowData : *WindowDataAccessor)
+	{
+		if (AuxiliaryWindowData * const WindowDataCast = dynamic_cast<AuxiliaryWindowData *>(WindowData))
+			return Cairo::GetTextHeight(WindowDataCast->CairoContext, Text, Size);
+	}
+
+	return 0.0f;
 }
 
 
@@ -1074,6 +1305,8 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 		// Prepare drawing surfaces
 		cairo_surface_t * const CairoSurface = cairo_xcb_surface_create(this->Data->XConnection, AuxiliaryWindowID, this->Data->XVisual, Size.x, Size.y);
 		cairo_t * const CairoContext = cairo_create(CairoSurface);
+
+		cairo_select_font_face(CairoContext, Config::FontFamily.c_str(), CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
 
 
 		// Enable events
