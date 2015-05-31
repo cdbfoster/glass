@@ -25,9 +25,22 @@ namespace Glass
 	struct Color
 	{
 		Color() : R(0.0f), G(0.0f), B(0.0f), A(1.0f) { }
-		Color(float R, float G, float B, float A = 1.0f) : R(R), G(G), B(B), A(A) { }
+		Color(float R, float G, float B, float A = 1.0f) : R(Clamp(R)), G(Clamp(G)), B(Clamp(B)), A(Clamp(A)) { }
+
+		Color operator+(float Value) const { return Color(this->R + Value, this->G + Value, this->B + Value, this->A + Value); }
+		Color operator-(float Value) const { return *this + (-Value); }
+		Color operator*(float Value) const { return Color(this->R * Value, this->G * Value, this->B * Value, this->A * Value); }
+		Color operator/(float Value) const { return *this * (1.0f / Value); }
+
+		Color operator+(Color const &Other) const { return Color(this->R + Other.R, this->G + Other.G, this->B + Other.B, this->A + Other.A); }
+		Color operator-(Color const &Other) const { return Color(this->R - Other.R, this->G - Other.G, this->B - Other.B, this->A - Other.A); }
+		Color operator*(Color const &Other) const { return Color(this->R * Other.R, this->G * Other.G, this->B * Other.B, this->A * Other.A); }
+		Color operator/(Color const &Other) const { return Color(this->R / Other.R, this->G / Other.G, this->B / Other.B, this->A / Other.A); }
 
 		float R, G, B, A;
+
+	private:
+		constexpr static float Clamp(float Value) { return (Value > 1.0f ? 1.0f : (Value < 0.0f ? 0.0f : Value)); }
 	};
 }
 
