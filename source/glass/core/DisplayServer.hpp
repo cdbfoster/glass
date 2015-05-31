@@ -79,9 +79,9 @@ namespace Glass
 		virtual void DrawShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, float LineWidth, Color const &Color, bool CloseShape, DrawMode Mode) = 0;
 		virtual void FillShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, Color const &Color, DrawMode Mode) = 0;
 
-		virtual void  DrawText(AuxiliaryWindow &AuxiliaryWindow, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode) = 0;
-		virtual float GetTextWidth(std::string const &Text, float Size) = 0;
-		virtual float GetTextHeight(std::string const &Text, float Size) = 0;
+		virtual void  DrawText(AuxiliaryWindow &AuxiliaryWindow, std::string const &FontFace, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode) = 0;
+		virtual float GetTextWidth(std::string const &FontFace, std::string const &Text, float Size) = 0;
+		virtual float GetTextHeight(std::string const &FontFace, std::string const &Text, float Size) = 0;
 
 	protected: // Window manipulation interface, used by the Window interfaces
 		friend class AuxiliaryWindow;

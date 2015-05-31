@@ -122,7 +122,8 @@ namespace Config
 	Color const FrameColorActive(0.5f, 0.5f, 0.5f, 0.6f);
 	Color const FrameColorUrgent(0.8f, 0.8f, 0.8f, 0.9f);
 
-	std::string const FontFamily = "sans-serif";
+	std::string const FontFaceSans = "sans-serif";
+	std::string const FontFaceMono = "monospace";
 	float const		  FontSize = 11.0f;
 
 

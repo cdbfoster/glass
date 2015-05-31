@@ -108,21 +108,21 @@ void WindowDecorator::FillShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &S
 }
 
 
-void WindowDecorator::DrawText(AuxiliaryWindow &AuxiliaryWindow, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode)
+void WindowDecorator::DrawText(AuxiliaryWindow &AuxiliaryWindow, std::string const &FontFace, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode)
 {
-	this->DisplayServer.DrawText(AuxiliaryWindow, Text, Position, Color, Size, (Glass::DisplayServer::DrawMode)Mode);
+	this->DisplayServer.DrawText(AuxiliaryWindow, FontFace, Text, Position, Color, Size, (Glass::DisplayServer::DrawMode)Mode);
 }
 
 
-float WindowDecorator::GetTextWidth(std::string const &Text, float Size)
+float WindowDecorator::GetTextWidth(std::string const &FontFace, std::string const &Text, float Size)
 {
-	return this->DisplayServer.GetTextWidth(Text, Size);
+	return this->DisplayServer.GetTextWidth(FontFace, Text, Size);
 }
 
 
-float WindowDecorator::GetTextHeight(std::string const &Text, float Size)
+float WindowDecorator::GetTextHeight(std::string const &FontFace, std::string const &Text, float Size)
 {
-	return this->DisplayServer.GetTextHeight(Text, Size);
+	return this->DisplayServer.GetTextHeight(FontFace, Text, Size);
 }
 
 

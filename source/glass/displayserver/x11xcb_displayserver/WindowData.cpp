@@ -58,12 +58,13 @@ ClientWindowData::ClientWindowData(Glass::ClientWindow &Window, xcb_window_t ID,
 
 
 AuxiliaryWindowData::AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, uint32_t EventMask, WindowData *PrimaryWindowData, xcb_window_t RootID,
-										 cairo_surface_t *CairoSurface, cairo_t *CairoContext) :
+										 cairo_surface_t *CairoSurface, cairo_t *CairoContext, std::string const &CairoFontFace) :
 	WindowData(Window, ID, EventMask),
 	PrimaryWindowData(PrimaryWindowData),
 	RootID(RootID),
 	CairoSurface(CairoSurface),
-	CairoContext(CairoContext)
+	CairoContext(CairoContext),
+	CairoFontFace(CairoFontFace)
 {
 
 }

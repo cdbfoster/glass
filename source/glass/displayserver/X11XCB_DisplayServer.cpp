@@ -962,7 +962,13 @@ namespace Cairo
 	}
 
 
-	void  DrawText(cairo_t *Context, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode)
+	void LoadFont(cairo_t *Context, std::string const &FontFace)
+	{
+		cairo_select_font_face(Context, FontFace.c_str(), CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+	}
+
+
+	void DrawText(cairo_t *Context, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode)
 	{
 		cairo_set_operator(Context, Mode == DrawMode::OVERLAY ? CAIRO_OPERATOR_OVER : CAIRO_OPERATOR_SOURCE);
 		cairo_set_source_rgba(Context, Color.R, Color.B, Color.G, Color.A);
@@ -1008,6 +1014,9 @@ void X11XCB_DisplayServer::ClearWindow(AuxiliaryWindow &AuxiliaryWindow, Color c
 
 		WindowDataCast->DrawOperations.clear();
 		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::ClearWindow, &AuxiliaryWindow, WindowDataCast->CairoContext, ClearColor));
+		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::LoadFont, WindowDataCast->CairoContext, Config::FontFaceSans));
+
+		WindowDataCast->CairoFontFace = Config::FontFaceSans;
 	}
 }
 
@@ -1111,7 +1120,7 @@ void X11XCB_DisplayServer::FillShape(AuxiliaryWindow &AuxiliaryWindow, Shape con
 }
 
 
-void  X11XCB_DisplayServer::DrawText(AuxiliaryWindow &AuxiliaryWindow, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode)
+void  X11XCB_DisplayServer::DrawText(AuxiliaryWindow &AuxiliaryWindow, std::string const &FontFace, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode)
 {
 	auto WindowDataAccessor = this->Data->GetWindowData();
 
@@ -1120,12 +1129,18 @@ void  X11XCB_DisplayServer::DrawText(AuxiliaryWindow &AuxiliaryWindow, std::stri
 	{
 		AuxiliaryWindowData * const WindowDataCast = static_cast<AuxiliaryWindowData *>(*WindowData);
 
+		if (WindowDataCast->CairoFontFace != FontFace)
+		{
+			WindowDataCast->DrawOperations.push_back(std::bind(Cairo::LoadFont, WindowDataCast->CairoContext, FontFace));
+			WindowDataCast->CairoFontFace = FontFace;
+		}
+
 		WindowDataCast->DrawOperations.push_back(std::bind(Cairo::DrawText, WindowDataCast->CairoContext, Text, Position, Color, Size, (Cairo::DrawMode)Mode));
 	}
 }
 
 
-float X11XCB_DisplayServer::GetTextWidth(std::string const &Text, float Size)
+float X11XCB_DisplayServer::GetTextWidth(std::string const &FontFace, std::string const &Text, float Size)
 {
 	// We need a cairo context, so grab the first auxiliary window
 	auto WindowDataAccessor = this->Data->GetWindowData();
@@ -1133,14 +1148,24 @@ float X11XCB_DisplayServer::GetTextWidth(std::string const &Text, float Size)
 	for (auto WindowData : *WindowDataAccessor)
 	{
 		if (AuxiliaryWindowData * const WindowDataCast = dynamic_cast<AuxiliaryWindowData *>(WindowData))
-			return Cairo::GetTextWidth(WindowDataCast->CairoContext, Text, Size);
+		{
+			if (WindowDataCast->CairoFontFace != FontFace)
+				Cairo::LoadFont(WindowDataCast->CairoContext, FontFace);
+
+			float const Return = Cairo::GetTextWidth(WindowDataCast->CairoContext, Text, Size);
+
+			if (WindowDataCast->CairoFontFace != FontFace)
+				Cairo::LoadFont(WindowDataCast->CairoContext, WindowDataCast->CairoFontFace);
+
+			return Return;
+		}
 	}
 
 	return 0.0f;
 }
 
 
-float X11XCB_DisplayServer::GetTextHeight(std::string const &Text, float Size)
+float X11XCB_DisplayServer::GetTextHeight(std::string const &FontFace, std::string const &Text, float Size)
 {
 	// We need a cairo context, so grab the first auxiliary window
 	auto WindowDataAccessor = this->Data->GetWindowData();
@@ -1148,7 +1173,17 @@ float X11XCB_DisplayServer::GetTextHeight(std::string const &Text, float Size)
 	for (auto WindowData : *WindowDataAccessor)
 	{
 		if (AuxiliaryWindowData * const WindowDataCast = dynamic_cast<AuxiliaryWindowData *>(WindowData))
-			return Cairo::GetTextHeight(WindowDataCast->CairoContext, Text, Size);
+		{
+			if (WindowDataCast->CairoFontFace != FontFace)
+				Cairo::LoadFont(WindowDataCast->CairoContext, FontFace);
+
+			float const Return = Cairo::GetTextHeight(WindowDataCast->CairoContext, Text, Size);
+
+			if (WindowDataCast->CairoFontFace != FontFace)
+				Cairo::LoadFont(WindowDataCast->CairoContext, WindowDataCast->CairoFontFace);
+
+			return Return;
+		}
 	}
 
 	return 0.0f;
@@ -1306,8 +1341,7 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 		cairo_surface_t * const CairoSurface = cairo_xcb_surface_create(this->Data->XConnection, AuxiliaryWindowID, this->Data->XVisual, Size.x, Size.y);
 		cairo_t * const CairoContext = cairo_create(CairoSurface);
 
-		cairo_select_font_face(CairoContext, Config::FontFamily.c_str(), CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-
+		cairo_select_font_face(CairoContext, Config::FontFaceSans.c_str(), CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
 
 		// Enable events
 		EnableEvents(this->Data->XConnection, AuxiliaryWindowID, EventMask);
@@ -1317,7 +1351,7 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 
 
 		// Store window data
-		WindowDataAccessor->push_back(new AuxiliaryWindowData(AuxiliaryWindow, AuxiliaryWindowID, EventMask, PrimaryWindowData, RootWindowID, CairoSurface, CairoContext));
+		WindowDataAccessor->push_back(new AuxiliaryWindowData(AuxiliaryWindow, AuxiliaryWindowID, EventMask, PrimaryWindowData, RootWindowID, CairoSurface, CairoContext, Config::FontFaceSans));
 	}
 	else
 		LOG_DEBUG_ERROR << "Auxiliary window already exists on the server!  Cannot activate auxiliary window." << std::endl;

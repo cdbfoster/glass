@@ -68,9 +68,9 @@ namespace Glass
 		void DrawShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, float LineWidth, Color const &Color, bool CloseShape, DrawMode Mode);
 		void FillShape(AuxiliaryWindow &AuxiliaryWindow, Shape const &Shape, Color const &Color, DrawMode Mode);
 
-		void  DrawText(AuxiliaryWindow &AuxiliaryWindow, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode);
-		float GetTextWidth(std::string const &Text, float Size);
-		float GetTextHeight(std::string const &Text, float Size);
+		void  DrawText(AuxiliaryWindow &AuxiliaryWindow, std::string const &FontFace, std::string const &Text, Vector const &Position, Color const &Color, float Size, DrawMode Mode);
+		float GetTextWidth(std::string const &FontFace, std::string const &Text, float Size);
+		float GetTextHeight(std::string const &FontFace, std::string const &Text, float Size);
 
 	protected:
 		void ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWindow);

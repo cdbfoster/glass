@@ -68,13 +68,14 @@ namespace Glass
 	struct AuxiliaryWindowData : public WindowData
 	{
 		AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_window_t ID, uint32_t EventMask, WindowData *PrimaryWindowData, xcb_window_t RootID,
-							cairo_surface_t *CairoSurface, cairo_t *CairoContext);
+							cairo_surface_t *CairoSurface, cairo_t *CairoContext, std::string const &CairoFontFace);
 
 		WindowData * const PrimaryWindowData;
 		xcb_window_t RootID;
 
 		cairo_surface_t * const CairoSurface;
 		cairo_t * const CairoContext;
+		std::string CairoFontFace;
 
 		std::vector<std::function<void()>> DrawOperations;
 		void ReplayDrawOperations();
