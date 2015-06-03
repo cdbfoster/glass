@@ -261,6 +261,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 					ClientWindowsAccessor->remove(&EventCast->ClientWindow);
 				}
 
+				if (this->Owner.WindowDecorator != nullptr)
+					this->Owner.WindowDecorator->DecorateWindow(*EventCast->ClientWindow.GetRootWindow());
+
 				{
 					auto ClientWindowsAccessor = this->Owner.WindowManager.GetClientWindows();
 

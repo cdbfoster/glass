@@ -93,7 +93,10 @@ void Dynamic_WindowManager::Implementation::ActivateClient(ClientWindow &ClientW
 		ClientWindow.SetUrgent(false);
 
 	if (this->WindowDecorator != nullptr)
+	{
 		this->WindowDecorator->DecorateWindow(ClientWindow, this->GetDecorationHint(ClientWindow));
+		this->WindowDecorator->DecorateWindow(*ClientRoot);
+	}
 
 	ClientWindow.Focus();
 }
