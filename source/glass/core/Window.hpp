@@ -75,12 +75,19 @@ namespace Glass
 	class PrimaryWindow : public Window
 	{
 	public:
-		PrimaryWindow(Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible);
+		PrimaryWindow(std::string const &Name, Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible);
 		PrimaryWindow(PrimaryWindow const &Other) = delete;
 
 		~PrimaryWindow();
 
+		std::string GetName() const;
+
+		Vector GetDecoratedPosition() const;
+		Vector GetDecoratedSize() const;
+
 		locked_accessor<AuxiliaryWindowList const> GetAuxiliaryWindows() const;
+
+		void SetName(std::string const &Name);
 
 		void SetPosition(Vector const &Position);
 		void SetSize(Vector const &Size);
@@ -91,8 +98,8 @@ namespace Glass
 		void Raise();
 		void Lower();
 
-		Vector GetDecoratedPosition() const;
-		Vector GetDecoratedSize() const;
+	protected:
+		std::string Name;
 
 	private:
 		friend class WindowDecorator;
@@ -133,7 +140,6 @@ namespace Glass
 
 		~ClientWindow();
 
-		std::string			GetName() const;
 		Type				GetType() const;
 
 		bool				GetIconified() const;
@@ -148,8 +154,6 @@ namespace Glass
 
 		void Focus();
 
-		void SetName(std::string const &Name);
-
 		void SetIconified(bool Value);
 		void SetFullscreen(bool Value);
 		void SetUrgent(bool Value);
@@ -163,8 +167,6 @@ namespace Glass
 		void SetRootWindow(Glass::RootWindow *RootWindow);
 
 	private:
-		std::string Name;
-
 		Type		TypeValue;
 
 		bool		Iconified;
@@ -186,7 +188,7 @@ namespace Glass
 		class ClientWindowList;
 
 	public:
-		RootWindow(Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size);
+		RootWindow(std::string const &Name, Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size);
 		RootWindow(RootWindow const &Other) = delete;
 
 		~RootWindow();

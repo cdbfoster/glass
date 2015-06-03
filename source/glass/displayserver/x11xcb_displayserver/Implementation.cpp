@@ -58,6 +58,41 @@ locked_accessor<X11XCB_DisplayServer::Implementation::GeometryChangeMap> X11XCB_
 }
 
 
+std::string GetWindowName(xcb_connection_t *XConnection, xcb_window_t WindowID)
+{
+	xcb_get_property_cookie_t const EWMHNameCookie = xcb_get_property_unchecked(XConnection, false, WindowID,
+																				Atoms::_NET_WM_NAME, Atoms::UTF8_STRING, 0, -1);
+
+	xcb_get_property_cookie_t const ICCCMNameCookie = xcb_get_property_unchecked(XConnection, false, WindowID,
+																				 Atoms::WM_NAME, Atoms::STRING, 0, -1);
+
+	std::string Name;
+	xcb_get_property_reply_t *NameReply;
+
+	// First check _NET_WM_NAME
+	if ((NameReply = xcb_get_property_reply(XConnection, EWMHNameCookie, NULL)))
+	{
+		size_t Length = xcb_get_property_value_length(NameReply);
+		char *Value = (char *)xcb_get_property_value(NameReply);
+
+		Name = std::string(Value, Value + Length);
+		free(NameReply);
+	}
+
+	// If nothing, check WM_NAME
+	if (Name == "" && (NameReply = xcb_get_property_reply(XConnection, ICCCMNameCookie, NULL)))
+	{
+		size_t Length = xcb_get_property_value_length(NameReply);
+		char *Value = (char *)xcb_get_property_value(NameReply);
+
+		Name = std::string(Value, Value + Length);
+		free(NameReply);
+	}
+
+	return Name;
+}
+
+
 RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDList const &WindowIDs)
 {
 	// This list is incomplete, and support may or may not be complete
@@ -130,7 +165,6 @@ RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDL
 		xcb_change_property(this->XConnection, XCB_PROP_MODE_REPLACE, RootWindowID,
 							Atoms::_NET_SUPPORTED, XCB_ATOM_ATOM, 32, SupportedEWMHAtoms.size(), &SupportedEWMHAtoms.front());
 
-
 		// Create and setup the supporting window
 		xcb_window_t const SupportingWindowID = xcb_generate_id(this->XConnection);
 
@@ -158,6 +192,11 @@ RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDL
 								Atoms::_NET_WM_PID, XCB_ATOM_CARDINAL, 32, 1, &PID);
 		}
 
+		// Get the root window's name
+		std::string Name = GetWindowName(this->XConnection, RootWindowID);
+
+		if (Name == "")
+			Name = "Glass";
 
 		// Set the proper event mask
 		uint32_t const EventMask = XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT |
@@ -168,11 +207,10 @@ RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDL
 		xcb_change_window_attributes(this->XConnection, RootWindowID, XCB_CW_EVENT_MASK, &EventMask);
 
 		// Create the root window with default dimensions, for now
-		RootWindow *NewRootWindow = new RootWindow(this->DisplayServer,
+		RootWindow *NewRootWindow = new RootWindow(Name, this->DisplayServer,
 												   Vector(0, 0),
 												   Vector(this->XScreen->width_in_pixels,
 														  this->XScreen->height_in_pixels));
-
 
 		// Store data
 		{
@@ -183,54 +221,11 @@ RootWindowList X11XCB_DisplayServer::Implementation::CreateRootWindows(WindowIDL
 
 		this->WindowData.push_back(new RootWindowData(*NewRootWindow, RootWindowID, EventMask, SupportingWindowID));
 
-
 		// Add to the return list
 		RootWindows.push_back(NewRootWindow);
 	}
 
 	return RootWindows;
-}
-
-
-std::string GetWindowName(xcb_connection_t *XConnection, xcb_window_t WindowID)
-{
-	xcb_get_property_cookie_t const EWMHNameCookie = xcb_get_property_unchecked(XConnection, false, WindowID,
-																				Atoms::_NET_WM_NAME, Atoms::UTF8_STRING, 0, -1);
-
-	xcb_get_property_cookie_t const ICCCMNameCookie = xcb_get_property_unchecked(XConnection, false, WindowID,
-																				 Atoms::WM_NAME, Atoms::STRING, 0, -1);
-
-	std::string Name;
-	xcb_get_property_reply_t *NameReply;
-
-	// First check _NET_WM_NAME
-	if ((NameReply = xcb_get_property_reply(XConnection, EWMHNameCookie, NULL)))
-	{
-		size_t Length = xcb_get_property_value_length(NameReply);
-		char *Value = (char *)xcb_get_property_value(NameReply);
-
-		Name = std::string(Value, Value + Length);
-		free(NameReply);
-	}
-
-	// If nothing, check WM_NAME
-	if (Name == "")
-	{
-		if ((NameReply = xcb_get_property_reply(XConnection, ICCCMNameCookie, NULL)))
-		{
-			size_t Length = xcb_get_property_value_length(NameReply);
-			char *Value = (char *)xcb_get_property_value(NameReply);
-
-			Name = std::string(Value, Value + Length);
-			free(NameReply);
-		}
-
-		// If still nothing, mark it as nameless
-		if (Name == "")
-			Name = "Unnamed Window";
-	}
-
-	return Name;
 }
 
 
@@ -339,7 +334,10 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 	for (auto &Index : OrderedIndices)
 	{
 		// Get the client name
-		std::string const Name = GetWindowName(this->XConnection, ManageableWindowIDs[Index]);
+		std::string Name = GetWindowName(this->XConnection, ManageableWindowIDs[Index]);
+
+		if (Name == "")
+			Name = "Unnamed Window";
 
 
 		// Get data from the geometry reply

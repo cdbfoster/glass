@@ -95,6 +95,9 @@ scoped_free<xcb_generic_event_t *> WaitForEvent(xcb_connection_t *XConnection)
 }
 
 
+std::string GetWindowName(xcb_connection_t *XConnection, xcb_window_t WindowID); // Defined in Implementation.cpp
+
+
 void X11XCB_DisplayServer::Implementation::EventHandler::Listen()
 {
 	try
@@ -228,10 +231,21 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 							this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*new ClientUrgencyChange_Event(EventWindow, WindowDataCast->Urgent));
 						}
 					}
+					else if (PropertyNotify->atom == Atoms::WM_NAME || PropertyNotify->atom == Atoms::_NET_WM_NAME)
+					{
+						this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*new PrimaryNameChange_Event(EventWindow, GetWindowName(this->Owner.XConnection, WindowID)));
+					}
 				}
-				else if (dynamic_cast<RootWindowData *>(*WindowData))
+				else if (RootWindowData * const WindowDataCast = dynamic_cast<RootWindowData *>(*WindowData))
 				{
 					// XXX Check for a root property change related to resuming from a suspend
+
+					RootWindow &EventWindow = static_cast<RootWindow &>(WindowDataCast->Window);
+
+					if (PropertyNotify->atom == Atoms::WM_NAME)
+					{
+						this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*new PrimaryNameChange_Event(EventWindow, GetWindowName(this->Owner.XConnection, WindowID)));
+					}
 				}
 			}
 		}

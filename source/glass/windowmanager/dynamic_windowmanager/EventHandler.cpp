@@ -99,6 +99,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 	case Glass::Event::Type::CLIENT_FULLSCREEN_REQUEST:
 		LOG_DEBUG_INFO << "Client Fullscreen Request event!" << std::endl;
 		break;
+	case Glass::Event::Type::PRIMARY_NAME_CHANGE:
+		LOG_DEBUG_INFO << "Primary Name Change event!" << std::endl;
+		break;
 	case Glass::Event::Type::POINTER_MOVE:
 		//LOG_DEBUG_INFO << "Pointer Move event!" << std::endl;
 		break;
@@ -368,6 +371,29 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 																									 !EventCast->ClientWindow.GetFullscreen()));
 
 			this->Owner.SetClientFullscreen(EventCast->ClientWindow, Value);
+		}
+		break;
+
+
+	case Glass::Event::Type::PRIMARY_NAME_CHANGE:
+		{
+			PrimaryNameChange_Event const * const EventCast = static_cast<PrimaryNameChange_Event const *>(Event);
+
+			if (EventCast->PrimaryWindow.GetName() == EventCast->NewName)
+				break;
+
+			EventCast->PrimaryWindow.SetName(EventCast->NewName);
+
+			if (RootWindow * const WindowCast = dynamic_cast<RootWindow *>(&EventCast->PrimaryWindow))
+			{
+				if (this->Owner.WindowDecorator != nullptr)
+					this->Owner.WindowDecorator->DecorateWindow(*WindowCast);
+			}
+			else if (ClientWindow * const WindowCast = static_cast<ClientWindow *>(&EventCast->PrimaryWindow))
+			{
+				if (this->Owner.WindowDecorator != nullptr)
+					this->Owner.WindowDecorator->DecorateWindow(*WindowCast, this->Owner.GetDecorationHint(*WindowCast));
+			}
 		}
 		break;
 

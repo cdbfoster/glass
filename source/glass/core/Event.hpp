@@ -39,6 +39,7 @@ namespace Glass
 						  CLIENT_ICONIFIED_REQUEST,
 						  CLIENT_URGENCY_CHANGE,
 						  CLIENT_FULLSCREEN_REQUEST,
+						  PRIMARY_NAME_CHANGE,
 						  POINTER_MOVE,
 						  WINDOW_ENTER,
 						  INPUT,
@@ -181,6 +182,22 @@ namespace Glass
 		Event *Copy() const { return new ClientFullscreenRequest_Event(this->ClientWindow, this->EventMode); }
 
 		Mode const EventMode;
+	};
+
+
+	struct PrimaryNameChange_Event : public Event
+	{
+		PrimaryNameChange_Event(Glass::PrimaryWindow &PrimaryWindow, std::string const &NewName) :
+			PrimaryWindow(PrimaryWindow),
+			NewName(NewName)
+		{ }
+
+		Type GetType() const { return Type::PRIMARY_NAME_CHANGE; }
+
+		Event *Copy() const { return new PrimaryNameChange_Event(this->PrimaryWindow, this->NewName); }
+
+		Glass::PrimaryWindow &PrimaryWindow;
+		std::string const NewName;
 	};
 
 

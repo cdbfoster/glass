@@ -103,8 +103,9 @@ bool Window::ContainsPoint(Vector const &Point) const
 }
 
 
-PrimaryWindow::PrimaryWindow(Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible) :
+PrimaryWindow::PrimaryWindow(std::string const &Name, Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible) :
 	Window(DisplayServer, Position, Size, Visible),
+	Name(Name),
 	DecoratedPosition(Position),
 	DecoratedSize(Size)
 {
@@ -118,9 +119,33 @@ PrimaryWindow::~PrimaryWindow()
 }
 
 
+std::string PrimaryWindow::GetName() const
+{
+	return this->Name;
+}
+
+
+Vector PrimaryWindow::GetDecoratedPosition() const
+{
+	return this->DecoratedPosition;
+}
+
+
+Vector PrimaryWindow::GetDecoratedSize() const
+{
+	return this->DecoratedSize;
+}
+
+
 locked_accessor<AuxiliaryWindowList const> PrimaryWindow::GetAuxiliaryWindows() const
 {
 	return { this->AuxiliaryWindows, this->AuxiliaryWindowsMutex };
+}
+
+
+void PrimaryWindow::SetName(std::string const &Name)
+{
+	this->Name = Name;
 }
 
 
@@ -232,18 +257,6 @@ void PrimaryWindow::Lower()
 }
 
 
-Vector PrimaryWindow::GetDecoratedPosition() const
-{
-	return this->DecoratedPosition;
-}
-
-
-Vector PrimaryWindow::GetDecoratedSize() const
-{
-	return this->DecoratedSize;
-}
-
-
 locked_accessor<AuxiliaryWindowList> PrimaryWindow::GetAuxiliaryWindows()
 {
 	return { this->AuxiliaryWindows, this->AuxiliaryWindowsMutex };
@@ -283,8 +296,7 @@ void PrimaryWindow::DeleteAuxiliaryWindows()
 ClientWindow::ClientWindow(std::string const &Name, Type TypeValue, Vector const &BaseSize,
 						   bool Iconified, bool Fullscreen, bool Urgent, ClientWindow *TransientFor,
 						   Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible) :
-	PrimaryWindow(DisplayServer, Position, Size, Visible),
-	Name(Name),
+	PrimaryWindow(Name, DisplayServer, Position, Size, Visible),
 	TypeValue(TypeValue),
 	Iconified(Iconified),
 	Fullscreen(Fullscreen),
@@ -302,12 +314,6 @@ ClientWindow::~ClientWindow()
 	this->DeleteAuxiliaryWindows();
 
 	this->DisplayServer.DeleteWindow(*this);
-}
-
-
-std::string ClientWindow::GetName() const
-{
-	return this->Name;
 }
 
 
@@ -357,12 +363,6 @@ void ClientWindow::SetVisibility(bool Visible)
 void ClientWindow::Focus()
 {
 	this->DisplayServer.FocusClientWindow(*this);
-}
-
-
-void ClientWindow::SetName(std::string const &Name)
-{
-	this->Name = Name;
 }
 
 
@@ -420,8 +420,8 @@ void ClientWindow::SetRootWindow(Glass::RootWindow *RootWindow)
 }
 
 
-RootWindow::RootWindow(Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size) :
-	PrimaryWindow(DisplayServer, Position, Size, true),
+RootWindow::RootWindow(std::string const &Name, Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size) :
+	PrimaryWindow(Name, DisplayServer, Position, Size, true),
 	ActiveClientWindow(nullptr),
 	ClientWindows(*this)
 {
