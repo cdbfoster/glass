@@ -32,6 +32,19 @@ set(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}")
 set(CMAKE_CXX_FLAGS "-Wall -std=c++11")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -DGLASS_DEBUG")
 
+# Dependencies ============================================
+
+include(FindPkgConfig)
+
+pkg_check_modules(GLASS_REQUIRED REQUIRED
+	cairo
+	x11
+	xcb
+	xcb-icccm
+	xcb-keysyms
+	xcb-util
+)
+
 # Source ==================================================
 
 add_subdirectory(source)

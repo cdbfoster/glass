@@ -27,11 +27,11 @@ add_subdirectory(util)
 
 set(SOURCE .)
 
-include_directories(${Boost_INCLUDE_DIRS}
+include_directories(${GLASS_REQUIRED_INCLUDE_DIRS}
 					${SOURCE})
 
 add_library(glass-core STATIC ${include} ${source})
-target_link_libraries(glass-core cairo pthread xcb xcb-util xcb-icccm xcb-keysyms X11)
+target_link_libraries(glass-core -lpthread ${GLASS_REQUIRED_LDFLAGS})
 
 add_executable(glass ${include} main.cpp)
 target_link_libraries(glass glass-core)
