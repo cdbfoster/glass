@@ -253,6 +253,8 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 			if (this->Owner.ClientData.erase(EventCast->ClientWindow))
 			{
+				RootWindow * const ClientRoot = EventCast->ClientWindow.GetRootWindow();
+
 				this->Owner.RootTags[*EventCast->ClientWindow.GetRootWindow()]->RemoveClientWindow(EventCast->ClientWindow);
 
 				{
@@ -260,9 +262,6 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 					ClientWindowsAccessor->remove(&EventCast->ClientWindow);
 				}
-
-				if (this->Owner.WindowDecorator != nullptr)
-					this->Owner.WindowDecorator->DecorateWindow(*EventCast->ClientWindow.GetRootWindow());
 
 				{
 					auto ClientWindowsAccessor = this->Owner.WindowManager.GetClientWindows();
@@ -274,6 +273,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 				if (&EventCast->ClientWindow == this->Owner.ActiveClient)
 					this->Owner.ActiveClient = nullptr;
+
+				if (this->Owner.WindowDecorator != nullptr)
+					this->Owner.WindowDecorator->DecorateWindow(*ClientRoot);
 
 				if (ModalMove == &EventCast->ClientWindow)
 					ModalMove = nullptr;
@@ -369,8 +371,8 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 		{
 			ClientFullscreenRequest_Event const * const EventCast = static_cast<ClientFullscreenRequest_Event const *>(Event);
 
-			bool const Value = (EventCast->EventMode == ClientFullscreenRequest_Event::Mode::TRUE ?  true :
-							   (EventCast->EventMode == ClientFullscreenRequest_Event::Mode::FALSE ? false :
+			bool const Value = (EventCast->EventMode == ClientFullscreenRequest_Event::Mode::SET ?  true :
+							   (EventCast->EventMode == ClientFullscreenRequest_Event::Mode::UNSET ? false :
 																									 !EventCast->ClientWindow.GetFullscreen()));
 
 			this->Owner.SetClientFullscreen(EventCast->ClientWindow, Value);
@@ -395,7 +397,10 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			else if (ClientWindow * const WindowCast = static_cast<ClientWindow *>(&EventCast->PrimaryWindow))
 			{
 				if (this->Owner.WindowDecorator != nullptr)
+				{
 					this->Owner.WindowDecorator->DecorateWindow(*WindowCast, this->Owner.GetDecorationHint(*WindowCast));
+					this->Owner.WindowDecorator->DecorateWindow(*WindowCast->GetRootWindow());
+				}
 			}
 		}
 		break;

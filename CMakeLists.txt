@@ -38,6 +38,8 @@ include(FindPkgConfig)
 
 pkg_check_modules(GLASS_REQUIRED REQUIRED
 	cairo
+	pango
+	pangocairo
 	x11
 	xcb
 	xcb-icccm

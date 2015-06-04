@@ -490,12 +490,12 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 				else if (ClientMessage->type == Atoms::_NET_WM_STATE &&
 						(ClientMessage->data.data32[1] == Atoms::_NET_WM_STATE_FULLSCREEN || ClientMessage->data.data32[2] == Atoms::_NET_WM_STATE_FULLSCREEN))
 				{
-					ClientFullscreenRequest_Event::Mode Value = ClientFullscreenRequest_Event::Mode::FALSE;
+					ClientFullscreenRequest_Event::Mode Value = ClientFullscreenRequest_Event::Mode::UNSET;
 
 					switch (ClientMessage->data.data32[0])
 					{
 					case XCB_EWMH_WM_STATE_ADD:
-						Value = ClientFullscreenRequest_Event::Mode::TRUE;
+						Value = ClientFullscreenRequest_Event::Mode::SET;
 						break;
 					case XCB_EWMH_WM_STATE_TOGGLE:
 						Value = ClientFullscreenRequest_Event::Mode::TOGGLE;

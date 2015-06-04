@@ -64,7 +64,8 @@ AuxiliaryWindowData::AuxiliaryWindowData(Glass::AuxiliaryWindow &Window, xcb_win
 	RootID(RootID),
 	CairoSurface(CairoSurface),
 	CairoContext(CairoContext),
-	CairoFontFace(CairoFontFace)
+	FontDescriptionString(CairoFontFace),
+	Layout(pango_cairo_create_layout(CairoContext))
 {
 
 }

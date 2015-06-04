@@ -124,7 +124,7 @@ namespace Config
 
 	std::string const FontFaceSans = "sans-serif";
 	std::string const FontFaceMono = "monospace";
-	float const		  FontSize = 11.0f;
+	float const		  FontSize = 8.0f;
 
 
 	// Window layouts - Leave the list empty to use a dummy layout
