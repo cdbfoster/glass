@@ -136,11 +136,17 @@ namespace Config
 	unsigned short const LayoutPaddingOuter = LayoutPaddingInner - FrameThicknessMinimal;
 
 
-	// Tag names
+	// Tag names - A tag will be created for each item in this list
 	std::vector<std::string> const TagNames = {
 		"1",
 		"2",
-		"3"
+		"3",
+		"4",
+		"5",
+		"6",
+		"7",
+		"8",
+		"9"
 	};
 }
 

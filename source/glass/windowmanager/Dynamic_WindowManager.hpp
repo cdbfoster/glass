@@ -20,6 +20,9 @@
 #ifndef GLASS_WINDOWMANAGER_DYNAMIC_WINDOWMANAGER
 #define GLASS_WINDOWMANAGER_DYNAMIC_WINDOWMANAGER
 
+#include <string>
+#include <vector>
+
 #include "glass/core/WindowManager.hpp"
 
 namespace Glass
@@ -31,6 +34,14 @@ namespace Glass
 		~Dynamic_WindowManager();
 
 		void Run();
+
+		typedef unsigned int TagMask;
+
+		std::vector<std::string> GetTagNames(RootWindow &RootWindow) const;
+		TagMask					 GetActiveTagMask(RootWindow &RootWindow) const;
+		TagMask					 GetPopulatedTagMask(RootWindow &RootWindow) const;
+
+		TagMask					 GetTagMask(ClientWindow &ClientWindow) const;
 
 	private:
 		struct Implementation;

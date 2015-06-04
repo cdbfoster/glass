@@ -176,14 +176,19 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			if (this->Owner.ActiveRoot == nullptr)
 				this->Owner.ActiveRoot = &EventCast->RootWindow;
 
+			this->Owner.RootTags.insert(EventCast->RootWindow);
+
+			// To set the root's decorated size for the tags' window layouts
 			if (this->Owner.WindowDecorator != nullptr)
 				this->Owner.WindowDecorator->DecorateWindow(EventCast->RootWindow);
-
-			this->Owner.RootTags.insert(EventCast->RootWindow);
 
 			auto TagContainer = this->Owner.RootTags[EventCast->RootWindow];
 			for (auto &TagName : Config::TagNames)
 				TagContainer->CreateTag(TagName);
+
+			// To get the new tag information
+			if (this->Owner.WindowDecorator != nullptr)
+				this->Owner.WindowDecorator->DecorateWindow(EventCast->RootWindow);
 		}
 		break;
 
@@ -796,6 +801,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 				else
 					this->Owner.ActiveClient = nullptr;
 			}
+
+			if (this->Owner.WindowDecorator != nullptr)
+				this->Owner.WindowDecorator->DecorateWindow(*this->Owner.ActiveRoot);
 		}
 		break;
 

@@ -54,3 +54,52 @@ void Dynamic_WindowManager::Run()
 {
 	this->Data->Handler->Listen();
 }
+
+
+std::vector<std::string> Dynamic_WindowManager::GetTagNames(RootWindow &RootWindow) const
+{
+	auto TagContainer = this->Data->RootTags[RootWindow];
+
+	std::vector<std::string> TagNames;
+	TagNames.reserve(TagContainer->size());
+
+	for (auto Tag : *TagContainer)
+		TagNames.push_back(Tag->GetName());
+
+	return TagNames;
+}
+
+
+Dynamic_WindowManager::TagMask Dynamic_WindowManager::GetActiveTagMask(RootWindow &RootWindow) const
+{
+	auto TagContainer = this->Data->RootTags[RootWindow];
+
+	return TagContainer->GetActiveTagMask();
+}
+
+
+Dynamic_WindowManager::TagMask Dynamic_WindowManager::GetPopulatedTagMask(RootWindow &RootWindow) const
+{
+	auto TagContainer = this->Data->RootTags[RootWindow];
+
+	TagMask PopulatedTagMask = 0x00;
+
+	unsigned int Bit = 0;
+	for (auto Tag : *TagContainer)
+	{
+		if (Tag->size() > 0)
+			PopulatedTagMask |= (0x01 << Bit);
+
+		Bit++;
+	}
+
+	return PopulatedTagMask;
+}
+
+
+Dynamic_WindowManager::TagMask Dynamic_WindowManager::GetTagMask(ClientWindow &ClientWindow) const
+{
+	auto TagContainer = this->Data->RootTags[*ClientWindow.GetRootWindow()];
+
+	return TagContainer->GetClientWindowTagMask(ClientWindow);
+}
