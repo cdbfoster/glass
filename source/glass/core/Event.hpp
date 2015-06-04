@@ -170,8 +170,8 @@ namespace Glass
 
 	struct ClientFullscreenRequest_Event : public Client_Event
 	{
-		enum class Mode { TRUE,
-						  FALSE,
+		enum class Mode { SET,
+						  UNSET,
 						  TOGGLE };
 
 		ClientFullscreenRequest_Event(Glass::ClientWindow &ClientWindow, Mode EventMode) :

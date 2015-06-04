@@ -507,18 +507,18 @@ RootWindow::ClientWindowList::ClientWindowList(RootWindow &Owner) :
 }
 
 
-RootWindow::ClientWindowList::iterator			RootWindow::ClientWindowList::begin()			{ return this->ClientWindows.begin(); }
-RootWindow::ClientWindowList::const_iterator	RootWindow::ClientWindowList::begin() const		{ return this->ClientWindows.begin(); }
-RootWindow::ClientWindowList::const_iterator	RootWindow::ClientWindowList::cbegin() const	{ return this->ClientWindows.cbegin(); }
+RootWindow::ClientWindowList::iterator		 RootWindow::ClientWindowList::begin()		  { return this->ClientWindows.begin(); }
+RootWindow::ClientWindowList::const_iterator RootWindow::ClientWindowList::begin() const  { return this->ClientWindows.begin(); }
+RootWindow::ClientWindowList::const_iterator RootWindow::ClientWindowList::cbegin() const { return this->ClientWindows.cbegin(); }
 
 
-RootWindow::ClientWindowList::iterator			RootWindow::ClientWindowList::end()			{ return this->ClientWindows.end(); }
-RootWindow::ClientWindowList::const_iterator	RootWindow::ClientWindowList::end() const	{ return this->ClientWindows.end(); }
-RootWindow::ClientWindowList::const_iterator	RootWindow::ClientWindowList::cend() const	{ return this->ClientWindows.cend(); }
+RootWindow::ClientWindowList::iterator		 RootWindow::ClientWindowList::end()		{ return this->ClientWindows.end(); }
+RootWindow::ClientWindowList::const_iterator RootWindow::ClientWindowList::end() const	{ return this->ClientWindows.end(); }
+RootWindow::ClientWindowList::const_iterator RootWindow::ClientWindowList::cend() const { return this->ClientWindows.cend(); }
 
 
-bool									RootWindow::ClientWindowList::empty() const	{ return this->ClientWindows.empty(); }
-RootWindow::ClientWindowList::size_type	RootWindow::ClientWindowList::size() const	{ return this->ClientWindows.size(); }
+bool									RootWindow::ClientWindowList::empty() const { return this->ClientWindows.empty(); }
+RootWindow::ClientWindowList::size_type RootWindow::ClientWindowList::size() const	{ return this->ClientWindows.size(); }
 
 
 void RootWindow::ClientWindowList::push_back(value_type const &val)

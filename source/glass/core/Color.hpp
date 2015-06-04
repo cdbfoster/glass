@@ -37,6 +37,11 @@ namespace Glass
 		Color operator*(Color const &Other) const { return Color(this->R * Other.R, this->G * Other.G, this->B * Other.B, this->A * Other.A); }
 		Color operator/(Color const &Other) const { return Color(this->R / Other.R, this->G / Other.G, this->B / Other.B, this->A / Other.A); }
 
+		Color &SetR(float R) { this->R = R; return *this; }
+		Color &SetG(float G) { this->G = G; return *this; }
+		Color &SetB(float B) { this->B = B; return *this; }
+		Color &SetA(float A) { this->A = A; return *this; }
+
 		float R, G, B, A;
 
 	private:

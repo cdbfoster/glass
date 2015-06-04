@@ -221,34 +221,34 @@ namespace Glass
 			typedef Glass::ClientWindowList::value_type		value_type;
 			typedef Glass::ClientWindowList::reference		reference;
 			typedef Glass::ClientWindowList::iterator		iterator;
-			typedef Glass::ClientWindowList::const_iterator	const_iterator;
+			typedef Glass::ClientWindowList::const_iterator const_iterator;
 
-			iterator		begin();
-			const_iterator	begin() const;
-			const_iterator	cbegin() const;
+			iterator	   begin();
+			const_iterator begin() const;
+			const_iterator cbegin() const;
 
-			iterator		end();
-			const_iterator	end() const;
-			const_iterator	cend() const;
+			iterator	   end();
+			const_iterator end() const;
+			const_iterator cend() const;
 
-			bool		empty() const;
-			size_type	size() const;
+			bool	  empty() const;
+			size_type size() const;
 
-			void		push_back(value_type const &val);
-			iterator	erase(iterator position);
-			iterator	erase(iterator first, iterator last);
-			void		remove(value_type const &val);
+			void	 push_back(value_type const &val);
+			iterator erase(iterator position);
+			iterator erase(iterator first, iterator last);
+			void	 remove(value_type const &val);
 
 		private:
 			RootWindow			   &Owner;
-			Glass::ClientWindowList	ClientWindows;
+			Glass::ClientWindowList ClientWindows;
 		};
 
 	private:
-		ClientWindow	   *ActiveClientWindow;
+		ClientWindow	  *ActiveClientWindow;
 
-		ClientWindowList	ClientWindows;
-		mutable std::mutex	ClientWindowsMutex;
+		ClientWindowList   ClientWindows;
+		mutable std::mutex ClientWindowsMutex;
 	};
 
 	typedef std::list<RootWindow *> RootWindowList;
