@@ -302,15 +302,20 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			if ((ClientData = this->Owner.ClientData.find(EventCast->ClientWindow)) != this->Owner.ClientData.end())
 			{
 				if (!ClientData->second->Floating)
-					break;
+				{
+					EventCast->ClientWindow.SetGeometry(EventCast->ClientWindow.GetPosition(),
+														EventCast->ClientWindow.GetSize());
+				}
+				else
+				{
+					Vector const Position(EventCast->ValueMask & ClientGeometryChangeRequest_Event::Values::POSITION_X ? EventCast->Position.x : EventCast->ClientWindow.GetPosition().x,
+										  EventCast->ValueMask & ClientGeometryChangeRequest_Event::Values::POSITION_Y ? EventCast->Position.y : EventCast->ClientWindow.GetPosition().y);
 
-				Vector const Position(EventCast->ValueMask & ClientGeometryChangeRequest_Event::Values::POSITION_X ? EventCast->Position.x : EventCast->ClientWindow.GetPosition().x,
-									  EventCast->ValueMask & ClientGeometryChangeRequest_Event::Values::POSITION_Y ? EventCast->Position.y : EventCast->ClientWindow.GetPosition().y);
+					Vector const Size(EventCast->ValueMask & ClientGeometryChangeRequest_Event::Values::SIZE_X ? EventCast->Size.x : EventCast->ClientWindow.GetSize().x,
+									  EventCast->ValueMask & ClientGeometryChangeRequest_Event::Values::SIZE_Y ? EventCast->Size.y : EventCast->ClientWindow.GetSize().y);
 
-				Vector const Size(EventCast->ValueMask & ClientGeometryChangeRequest_Event::Values::SIZE_X ? EventCast->Size.x : EventCast->ClientWindow.GetSize().x,
-								  EventCast->ValueMask & ClientGeometryChangeRequest_Event::Values::SIZE_Y ? EventCast->Size.y : EventCast->ClientWindow.GetSize().y);
-
-				EventCast->ClientWindow.SetGeometry(Position, Size);
+					EventCast->ClientWindow.SetGeometry(Position, Size);
+				}
 			}
 		}
 		break;
