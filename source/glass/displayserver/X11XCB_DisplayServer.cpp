@@ -1288,9 +1288,12 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 		Vector const Position =	AuxiliaryWindow.GetPosition();
 		Vector const Size =		AuxiliaryWindow.GetSize();
 
-		uint32_t const EventMask = XCB_EVENT_MASK_ENTER_WINDOW |
-								   XCB_EVENT_MASK_POINTER_MOTION |
-								   XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
+		uint32_t EventMask = XCB_EVENT_MASK_ENTER_WINDOW |
+							 XCB_EVENT_MASK_POINTER_MOTION |
+							 XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
+
+		if (dynamic_cast<FrameWindow const *>(&AuxiliaryWindow))
+			EventMask |= XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT;
 
 		uint32_t const Values[] = {
 			this->Data->XScreen->black_pixel,
@@ -1322,37 +1325,11 @@ void X11XCB_DisplayServer::ActivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryWin
 			if (WindowCast->GetVisibility() == true)
 				xcb_map_window(this->Data->XConnection, AuxiliaryWindowID);
 
-			bool TrueParent = true;
-			{
-				xcb_get_property_cookie_t PropertyCookie = xcb_get_property_unchecked(this->Data->XConnection, false, PrimaryWindowID, Atoms::_MOTIF_WM_HINTS, XCB_GET_PROPERTY_TYPE_ANY, 0, 5 * sizeof(uint32_t));
-				xcb_get_property_reply_t *PropertyReply = xcb_get_property_reply(this->Data->XConnection, PropertyCookie, nullptr);
+			Vector const Position = WindowCast->GetULOffset() * -1;
+			xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, AuxiliaryWindowID, Position.x, Position.y);
 
-				if (PropertyReply != nullptr && PropertyReply->type == Atoms::_MOTIF_WM_HINTS)
-				{
-					uint32_t const *Values = (uint32_t const *)xcb_get_property_value(PropertyReply);
-
-					// If the Motif decorations hint is set, and the client border bit is not set
-					if ((Values[0] & 0x02) && !(Values[2] && 0x02) )
-						TrueParent = false;
-				}
-
-				free(PropertyReply);
-			}
-
-			if (TrueParent)
-			{
-				Vector const Position = WindowCast->GetULOffset() * -1;
-				xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, AuxiliaryWindowID, Position.x, Position.y);
-
-				static_cast<ClientWindowData *>(PrimaryWindowData)->ParentID = AuxiliaryWindowID;
-				PrimaryWindowData->EventMask &= ~XCB_EVENT_MASK_ENTER_WINDOW;
-			}
-			else
-			{
-				// Ensure the frame and the client are together in the stack
-				Raise(this->Data->XConnection, AuxiliaryWindowID);
-				Raise(this->Data->XConnection, PrimaryWindowID);
-			}
+			static_cast<ClientWindowData *>(PrimaryWindowData)->ParentID = AuxiliaryWindowID;
+			PrimaryWindowData->EventMask &= ~XCB_EVENT_MASK_ENTER_WINDOW;
 		}
 		else if (UtilityWindow const * const WindowCast = static_cast<UtilityWindow const *>(&AuxiliaryWindow))
 		{
@@ -1425,35 +1402,14 @@ void X11XCB_DisplayServer::DeactivateAuxiliaryWindow(AuxiliaryWindow &AuxiliaryW
 		{
 			ClientWindowData * const PrimaryWindowDataCast = static_cast<ClientWindowData *>(PrimaryWindowData); // Only client windows have frames
 
-			bool TrueParent = true;
 			if (!PrimaryWindowDataCast->Destroyed)
 			{
-				xcb_get_property_cookie_t PropertyCookie = xcb_get_property_unchecked(this->Data->XConnection, false, PrimaryWindowID, Atoms::_MOTIF_WM_HINTS, XCB_GET_PROPERTY_TYPE_ANY, 0, 5 * sizeof(uint32_t));
-				xcb_get_property_reply_t *PropertyReply = xcb_get_property_reply(this->Data->XConnection, PropertyCookie, nullptr);
-
-				if (PropertyReply != nullptr && PropertyReply->type == Atoms::_MOTIF_WM_HINTS)
-				{
-					uint32_t const *Values = (uint32_t const *)xcb_get_property_value(PropertyReply);
-
-					// If the Motif decorations hint is set, and the client border bit is not set
-					if ((Values[0] & 0x02) && !(Values[2] && 0x02) )
-						TrueParent = false;
-				}
-
-				free(PropertyReply);
+				Vector const Position = PrimaryWindow.GetPosition();
+				xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, RootWindowID, Position.x, Position.y);
 			}
 
-			if (TrueParent)
-			{
-				if (!PrimaryWindowDataCast->Destroyed)
-				{
-					Vector const Position = PrimaryWindow.GetPosition();
-					xcb_reparent_window(this->Data->XConnection, PrimaryWindowID, RootWindowID, Position.x, Position.y);
-				}
-
-				PrimaryWindowDataCast->ParentID = XCB_NONE;
-				PrimaryWindowDataCast->EventMask |= XCB_EVENT_MASK_ENTER_WINDOW;
-			}
+			PrimaryWindowDataCast->ParentID = XCB_NONE;
+			PrimaryWindowDataCast->EventMask |= XCB_EVENT_MASK_ENTER_WINDOW;
 		}
 
 		xcb_destroy_window(this->Data->XConnection, AuxiliaryWindowData->ID);
