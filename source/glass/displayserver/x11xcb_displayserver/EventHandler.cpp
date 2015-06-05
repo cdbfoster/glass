@@ -207,6 +207,19 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 				xcb_window_t const WindowID = PropertyNotify->window;
 				LOG_DEBUG_INFO_NOHEADER << " on " << WindowID;
 
+				{
+					xcb_get_atom_name_cookie_t const AtomNameCookie = xcb_get_atom_name_unchecked(this->Owner.XConnection, PropertyNotify->atom);
+
+					if (xcb_get_atom_name_reply_t * const AtomNameReply = xcb_get_atom_name_reply(this->Owner.XConnection, AtomNameCookie, nullptr))
+					{
+						std::string const Name(xcb_get_atom_name_name(AtomNameReply), xcb_get_atom_name_name_length(AtomNameReply));
+
+						LOG_DEBUG_INFO_NOHEADER << ", " << Name;
+
+						free(AtomNameReply);
+					}
+				}
+
 				if (ClientWindowData * const WindowDataCast = dynamic_cast<ClientWindowData *>(*WindowData))
 				{
 					if (WindowDataCast->Destroyed)
@@ -216,8 +229,6 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 
 					if (PropertyNotify->atom == Atoms::WM_HINTS)
 					{
-						LOG_DEBUG_INFO_NOHEADER << ", WM_HINTS";
-
 						xcb_icccm_wm_hints_t	  WMHints;
 						xcb_get_property_cookie_t WMHintsCookie = xcb_icccm_get_wm_hints_unchecked(this->Owner.XConnection, WindowID);
 
