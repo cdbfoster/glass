@@ -123,6 +123,10 @@ void X11XCB_InputListener::Listen()
 																					 MotionNotify->root_y))));
 				}
 				break;
+
+			default:
+				LOG_DEBUG_WARNING << "Unexpected event in X11XCB_InputListener: " << XCB_EVENT_RESPONSE_TYPE(Event) << std::endl;
+				break;
 			}
 
 			switch (XCB_EVENT_RESPONSE_TYPE(Event))

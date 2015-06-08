@@ -518,6 +518,12 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 			}
 		}
 		break;
+
+	case XCB_MAPPING_NOTIFY:
+		{
+			LOG_DEBUG_INFO_NOHEADER << " - Mapping notify" << std::endl;
+		}
+		break;
 	}
 
 	if (XCB_EVENT_RESPONSE_TYPE(Event) != XCB_MOTION_NOTIFY)
