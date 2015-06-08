@@ -598,8 +598,6 @@ void TagManager::TagContainer::Tag::insert(ClientWindow &ClientWindow, bool Exem
 		}
 
 		this->ClientOrder.push_back(&ClientWindow);
-
-
 	}
 }
 
