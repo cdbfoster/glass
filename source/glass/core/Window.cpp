@@ -370,10 +370,14 @@ void ClientWindow::SetIconified(bool Value)
 {
 	if (this->Iconified != Value)
 	{
+		if (Value == true)
+			PrimaryWindow::SetVisibility(false);
+
 		this->DisplayServer.SetClientWindowIconified(*this, Value);
 		this->Iconified = Value;
 
-		PrimaryWindow::SetVisibility(!Value);
+		if (Value == false)
+			PrimaryWindow::SetVisibility(true);
 	}
 }
 

@@ -455,6 +455,9 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 
 		if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
 		{
+			if (WindowDataCast->ParentID != XCB_NONE)
+				return;
+
 			if (!WindowDataCast->Destroyed)
 			{
 				DisableEvents(this->Data->XConnection, WindowID);
@@ -463,19 +466,10 @@ void X11XCB_DisplayServer::SetWindowVisibility(Window &Window, bool Visible)
 		else
 			DisableEvents(this->Data->XConnection, WindowID);
 
-		// Check the window's map state
-		xcb_get_window_attributes_cookie_t const WindowAttributesCookie = xcb_get_window_attributes(this->Data->XConnection, WindowID);
-		xcb_get_window_attributes_reply_t *WindowAttributes = xcb_get_window_attributes_reply(this->Data->XConnection, WindowAttributesCookie, nullptr);
-
-		if (WindowAttributes != nullptr && WindowAttributes->map_state == (Visible ? XCB_MAP_STATE_UNMAPPED : XCB_MAP_STATE_VIEWABLE))
-		{
-			if (!Visible)
-				xcb_unmap_window(this->Data->XConnection, WindowID);
-			else
-				xcb_map_window(this->Data->XConnection, WindowID);
-		}
-
-		free(WindowAttributes);
+		if (!Visible)
+			xcb_unmap_window(this->Data->XConnection, WindowID);
+		else
+			xcb_map_window(this->Data->XConnection, WindowID);
 
 		if (ClientWindowData const * const WindowDataCast = dynamic_cast<ClientWindowData const *>(*WindowData))
 		{
@@ -668,7 +662,10 @@ void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, 
 	{
 		Glass::ClientWindowData * const ClientWindowData = static_cast<Glass::ClientWindowData *>(*WindowData);
 
-		xcb_window_t const &WindowID = (*WindowData)->ID;
+		if (ClientWindowData->Destroyed)
+			return;
+
+		xcb_window_t const &WindowID = ClientWindowData->ID;
 		if (Value)
 		{
 			uint32_t StateValues[] = { XCB_ICCCM_WM_STATE_ICONIC, XCB_NONE };
@@ -677,6 +674,15 @@ void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, 
 
 			ClientWindowData->_NET_WM_STATE.insert(Atoms::_NET_WM_STATE_HIDDEN);
 			Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
+
+			if (ClientWindowData->ParentID != XCB_NONE)
+			{
+				DisableEvents(this->Data->XConnection, WindowID);
+
+				xcb_unmap_window(this->Data->XConnection, WindowID);
+
+				EnableEvents(this->Data->XConnection, WindowID, ClientWindowData->EventMask);
+			}
 		}
 		else
 		{
@@ -686,6 +692,15 @@ void X11XCB_DisplayServer::SetClientWindowIconified(ClientWindow &ClientWindow, 
 
 			ClientWindowData->_NET_WM_STATE.erase(Atoms::_NET_WM_STATE_HIDDEN);
 			Update_NET_WM_STATE(this->Data->XConnection, WindowID, ClientWindowData->_NET_WM_STATE);
+
+			if (ClientWindowData->ParentID != XCB_NONE)
+			{
+				DisableEvents(this->Data->XConnection, WindowID);
+
+				xcb_map_window(this->Data->XConnection, WindowID);
+
+				EnableEvents(this->Data->XConnection, WindowID, ClientWindowData->EventMask);
+			}
 		}
 	}
 	else
