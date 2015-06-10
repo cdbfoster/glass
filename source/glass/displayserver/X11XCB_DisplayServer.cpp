@@ -589,54 +589,58 @@ void X11XCB_DisplayServer::DeleteWindow(Window &Window)
 }
 
 
-void X11XCB_DisplayServer::FocusClientWindow(ClientWindow const &ClientWindow)
+void X11XCB_DisplayServer::FocusPrimaryWindow(PrimaryWindow const &PrimaryWindow)
 {
 	auto WindowDataAccessor = this->Data->GetWindowData();
 
-	auto WindowData = WindowDataAccessor->find(&ClientWindow);
+	auto WindowData = WindowDataAccessor->find(&PrimaryWindow);
 	if (WindowData != WindowDataAccessor->end())
 	{
-		ClientWindowData * const WindowDataCast = static_cast<ClientWindowData *>(*WindowData);
+		xcb_window_t WindowID = (*WindowData)->ID;
 
-		// Focus the window
-		xcb_window_t WindowID = WindowDataCast->ID;
-
-		xcb_get_window_attributes_cookie_t const WindowAttributesCookie = xcb_get_window_attributes(this->Data->XConnection, WindowID);
-		xcb_get_window_attributes_reply_t *WindowAttributes = xcb_get_window_attributes_reply(this->Data->XConnection, WindowAttributesCookie, nullptr);
-
-		if (WindowAttributes != nullptr && WindowAttributes->map_state == XCB_MAP_STATE_VIEWABLE)
+		if (ClientWindowData * const WindowDataCast = dynamic_cast<ClientWindowData *>(*WindowData))
 		{
-			if (WindowDataCast->NeverFocus)
-				WindowID = WindowDataCast->RootID;
+			xcb_get_window_attributes_cookie_t const WindowAttributesCookie = xcb_get_window_attributes(this->Data->XConnection, WindowID);
+			xcb_get_window_attributes_reply_t *WindowAttributes = xcb_get_window_attributes_reply(this->Data->XConnection, WindowAttributesCookie, nullptr);
 
-			if (WindowSupportsProtocol(this->Data->XConnection, WindowDataCast->ID, Atoms::WM_TAKE_FOCUS))
+			if (WindowAttributes != nullptr && WindowAttributes->map_state == XCB_MAP_STATE_VIEWABLE)
 			{
-				xcb_client_message_event_t ClientMessage;
+				if (WindowDataCast->NeverFocus)
+					WindowID = WindowDataCast->RootID;
 
-				memset(&ClientMessage, 0, sizeof(ClientMessage));
+				if (WindowSupportsProtocol(this->Data->XConnection, WindowDataCast->ID, Atoms::WM_TAKE_FOCUS))
+				{
+					xcb_client_message_event_t ClientMessage;
 
-				ClientMessage.response_type = XCB_CLIENT_MESSAGE;
-				ClientMessage.format = 32;
-				ClientMessage.window = WindowID;
-				ClientMessage.type = Atoms::WM_PROTOCOLS;
-				ClientMessage.data.data32[0] = Atoms::WM_TAKE_FOCUS;
-				ClientMessage.data.data32[1] = XCB_CURRENT_TIME;
+					memset(&ClientMessage, 0, sizeof(ClientMessage));
 
-				xcb_send_event(this->Data->XConnection, false, WindowDataCast->ID, XCB_EVENT_MASK_NO_EVENT, (char *)&ClientMessage);
+					ClientMessage.response_type = XCB_CLIENT_MESSAGE;
+					ClientMessage.format = 32;
+					ClientMessage.window = WindowID;
+					ClientMessage.type = Atoms::WM_PROTOCOLS;
+					ClientMessage.data.data32[0] = Atoms::WM_TAKE_FOCUS;
+					ClientMessage.data.data32[1] = XCB_CURRENT_TIME;
+
+					xcb_send_event(this->Data->XConnection, false, WindowDataCast->ID, XCB_EVENT_MASK_NO_EVENT, (char *)&ClientMessage);
+				}
+
+				xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_POINTER_ROOT, WindowID, XCB_CURRENT_TIME);
+
+				// XXX Set EWMH active window and add to the EWMH focus stack
 			}
 
-			xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_POINTER_ROOT, WindowID, XCB_CURRENT_TIME);
+			free(WindowAttributes);
 
-			// XXX Set EWMH active window and add to the EWMH focus stack
+			// Keep track of which window has the input focus so we can detect unauthorized changes to the focus and revert them
+			{
+				auto ActiveWindowAccessor = this->Data->GetActiveWindow();
+
+				*ActiveWindowAccessor = WindowDataCast;
+			}
 		}
-
-		free(WindowAttributes);
-
-		// Keep track of which window has the input focus so we can detect unauthorized changes to the focus and revert them
+		else // This is a root window
 		{
-			auto ActiveWindowAccessor = this->Data->GetActiveWindow();
-
-			*ActiveWindowAccessor = WindowDataCast;
+			xcb_set_input_focus(this->Data->XConnection, XCB_INPUT_FOCUS_POINTER_ROOT, WindowID, XCB_CURRENT_TIME);
 		}
 	}
 	else

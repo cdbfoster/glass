@@ -46,7 +46,7 @@ namespace Glass
 		void LowerWindow(Window const &Window);
 		void DeleteWindow(Window &Window);
 
-		void FocusClientWindow(ClientWindow const &ClientWindow);
+		void FocusPrimaryWindow(PrimaryWindow const &PrimaryWindow);
 
 		void SetClientWindowIconified(ClientWindow &ClientWindow, bool Value);
 		void SetClientWindowFullscreen(ClientWindow &ClientWindow, bool Value);

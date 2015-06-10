@@ -119,6 +119,12 @@ PrimaryWindow::~PrimaryWindow()
 }
 
 
+void PrimaryWindow::Focus()
+{
+	this->DisplayServer.FocusPrimaryWindow(*this);
+}
+
+
 std::string PrimaryWindow::GetName() const
 {
 	return this->Name;
@@ -357,12 +363,6 @@ void ClientWindow::SetVisibility(bool Visible)
 		this->DisplayServer.SetClientWindowIconified(*this, false);
 		this->Iconified = false;
 	}
-}
-
-
-void ClientWindow::Focus()
-{
-	this->DisplayServer.FocusClientWindow(*this);
 }
 
 

@@ -80,6 +80,8 @@ namespace Glass
 
 		~PrimaryWindow();
 
+		void Focus();
+
 		std::string GetName() const;
 
 		Vector GetDecoratedPosition() const;
@@ -151,8 +153,6 @@ namespace Glass
 		Glass::RootWindow  *GetRootWindow() const;
 
 		void SetVisibility(bool Visible);
-
-		void Focus();
 
 		void SetIconified(bool Value);
 		void SetFullscreen(bool Value);

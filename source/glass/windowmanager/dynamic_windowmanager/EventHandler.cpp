@@ -260,7 +260,14 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			{
 				RootWindow * const ClientRoot = EventCast->ClientWindow.GetRootWindow();
 
-				this->Owner.RootTags[*EventCast->ClientWindow.GetRootWindow()]->RemoveClientWindow(EventCast->ClientWindow);
+				// Focus the next client, if there is one
+				{
+					auto TagContainer = this->Owner.RootTags[*ClientRoot];
+
+					TagContainer->RemoveClientWindow(EventCast->ClientWindow);
+					if (TagContainer->GetActiveTag()->size() > 0)
+						(*TagContainer->GetActiveTag()->begin())->Focus();
+				}
 
 				{
 					auto ClientWindowsAccessor = EventCast->ClientWindow.GetRootWindow()->GetClientWindows();
@@ -465,13 +472,23 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			if (ClientWindow * const WindowCast = dynamic_cast<ClientWindow *>(&EventCast->Window))
 			{
 				LOG_DEBUG_INFO << "  Client: " << WindowCast->GetPosition() << ", " << WindowCast->GetSize() << std::endl;
+
 				this->Owner.ActivateClient(*WindowCast);
 			}
 			else if (AuxiliaryWindow * const WindowCast = dynamic_cast<AuxiliaryWindow *>(&EventCast->Window))
 			{
 				LOG_DEBUG_INFO << "  Auxiliary: " << WindowCast->GetPosition() << ", " << WindowCast->GetSize() << std::endl;
+
 				if (ClientWindow * const PrimaryWindowCast = dynamic_cast<ClientWindow *>(&WindowCast->GetPrimaryWindow()))
 					this->Owner.ActivateClient(*PrimaryWindowCast);
+			}
+			else if (RootWindow * const WindowCast = static_cast<RootWindow *>(&EventCast->Window))
+			{
+				LOG_DEBUG_INFO << "  Root" << std::endl;
+
+				// Focus the root if there are no other clients
+				if (this->Owner.RootTags[*WindowCast]->GetActiveTag()->size() == 0)
+					WindowCast->Focus();
 			}
 		}
 		break;

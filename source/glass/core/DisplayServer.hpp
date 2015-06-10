@@ -99,7 +99,7 @@ namespace Glass
 		virtual void LowerWindow(Window const &Window) = 0;
 		virtual void DeleteWindow(Window &Window);
 
-		virtual void FocusClientWindow(ClientWindow const &ClientWindow) = 0;
+		virtual void FocusPrimaryWindow(PrimaryWindow const &PrimaryWindow) = 0;
 
 		virtual void SetClientWindowIconified(ClientWindow &ClientWindow, bool Value) = 0;
 		virtual void SetClientWindowFullscreen(ClientWindow &ClientWindow, bool Value) = 0;
