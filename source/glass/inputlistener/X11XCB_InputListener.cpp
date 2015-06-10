@@ -58,6 +58,32 @@ X11XCB_InputListener::~X11XCB_InputListener()
 scoped_free<xcb_generic_event_t *> WaitForEvent(xcb_connection_t *XConnection);
 
 
+void GrabBindings(xcb_connection_t *XConnection, xcb_window_t RootWindow, std::map<Input, Event const *> &BindingMap)
+{
+	BindingMap.clear();
+
+	for (auto &Binding : Config::InputBindings)
+	{
+		XInput Condition = InputTranslator::ToX(Binding.second);
+
+		if (Condition.Type == Input::Type::KEYBOARD)
+			xcb_grab_key(XConnection, true, RootWindow, Condition.ModifierState, Condition.Value.KeyCode, XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
+		else
+			xcb_grab_button(XConnection, true, RootWindow, XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION,
+							XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_SYNC, XCB_NONE, XCB_NONE, Condition.Value.Button, Condition.ModifierState);
+
+		BindingMap.insert(std::make_pair(Binding.second, Binding.first));
+	}
+}
+
+
+void UngrabBindings(xcb_connection_t *XConnection, xcb_window_t RootWindow)
+{
+	xcb_ungrab_key(XConnection, XCB_GRAB_ANY, RootWindow, XCB_BUTTON_MASK_ANY);
+	xcb_ungrab_button(XConnection, XCB_BUTTON_INDEX_ANY, RootWindow, XCB_MOD_MASK_ANY);
+}
+
+
 void X11XCB_InputListener::Listen()
 {
 	// Connect to X and get the root window
@@ -77,18 +103,7 @@ void X11XCB_InputListener::Listen()
 
 	// Translate Glass input into X input and grab the bindings
 	std::map<Input, Event const *> BindingMap;
-	for (auto &Binding : Config::InputBindings)
-	{
-		XInput Condition = InputTranslator::ToX(Binding.second);
-
-		if (Condition.Type == Input::Type::KEYBOARD)
-			xcb_grab_key(XConnection, true, RootWindow, Condition.ModifierState, Condition.Value.KeyCode, XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
-		else
-			xcb_grab_button(XConnection, true, RootWindow, XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION,
-							XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_SYNC, XCB_NONE, XCB_NONE, Condition.Value.Button, Condition.ModifierState);
-
-		BindingMap.insert(std::make_pair(Binding.second, Binding.first));
-	}
+	GrabBindings(XConnection, RootWindow, BindingMap);
 
 	xcb_flush(XConnection);
 
@@ -121,6 +136,20 @@ void X11XCB_InputListener::Listen()
 
 					this->OutgoingEventQueue.AddEvent(*(new PointerMove_Event(Vector(MotionNotify->root_x,
 																					 MotionNotify->root_y))));
+				}
+				break;
+
+			case XCB_MAPPING_NOTIFY:
+				{
+					xcb_mapping_notify_event_t * const MappingNotify = (xcb_mapping_notify_event_t *)*Event;
+
+					if (MappingNotify->request == XCB_MAPPING_KEYBOARD)
+					{
+						InputTranslator::Refresh(MappingNotify);
+
+						UngrabBindings(XConnection, RootWindow);
+						GrabBindings(XConnection, RootWindow, BindingMap);
+					}
 				}
 				break;
 
