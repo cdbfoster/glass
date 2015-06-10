@@ -198,9 +198,6 @@ XInput InputTranslator::ToX(Input const &GlassInput)
 		{
 			TranslatedInput.Type = Input::Type::KEYBOARD;
 
-			// Cache any key codes we successfully translate for fast recall
-			static std::map<std::string, xcb_keycode_t> KeyCodes;
-
 			auto FindValue = InputTranslator::Keys_GlassToX.find(GlassInput.GetValue());
 			if (FindValue == InputTranslator::Keys_GlassToX.end())
 			{
@@ -210,9 +207,9 @@ XInput InputTranslator::ToX(Input const &GlassInput)
 
 			// Check the cache before translating
 			std::string const &KeyCharacter = FindValue->second;
-			auto KeyCodeEntry = KeyCodes.find(KeyCharacter);
+			auto KeyCodeEntry = InputTranslator::KeyCodeCache.find(KeyCharacter);
 
-			if (KeyCodeEntry != KeyCodes.end())
+			if (KeyCodeEntry != InputTranslator::KeyCodeCache.end())
 				TranslatedInput.Value.KeyCode = KeyCodeEntry->second;
 			else
 			{
@@ -223,7 +220,7 @@ XInput InputTranslator::ToX(Input const &GlassInput)
 					xcb_keycode_t *KeyCode = xcb_key_symbols_get_keycode(InputTranslator::KeySymbols, KeySymbol);
 
 					// Cache and use what we found
-					KeyCodes[KeyCharacter] = *KeyCode;
+					InputTranslator::KeyCodeCache[KeyCharacter] = *KeyCode;
 					TranslatedInput.Value.KeyCode = *KeyCode;
 
 					free(KeyCode);
@@ -267,10 +264,20 @@ XInput InputTranslator::ToX(Input const &GlassInput)
 }
 
 
-std::map<Input::Value, xcb_button_t>	InputTranslator::Buttons_GlassToX;
-std::map<xcb_button_t, Input::Value>	InputTranslator::Buttons_XToGlass;
+void InputTranslator::Refresh(xcb_mapping_notify_event_t *MappingNotify)
+{
+	xcb_refresh_keyboard_mapping(InputTranslator::KeySymbols, MappingNotify);
 
-std::map<Input::Value, std::string>		InputTranslator::Keys_GlassToX;
-std::map<std::string, Input::Value>		InputTranslator::Keys_XToGlass;
+	InputTranslator::KeyCodeCache.clear();
+}
 
-xcb_key_symbols_t *InputTranslator::KeySymbols;
+
+
+thread_local std::map<Input::Value, xcb_button_t> InputTranslator::Buttons_GlassToX;
+thread_local std::map<xcb_button_t, Input::Value> InputTranslator::Buttons_XToGlass;
+
+thread_local std::map<Input::Value, std::string>  InputTranslator::Keys_GlassToX;
+thread_local std::map<std::string, Input::Value>  InputTranslator::Keys_XToGlass;
+
+thread_local xcb_key_symbols_t					 *InputTranslator::KeySymbols;
+thread_local std::map<std::string, xcb_keycode_t> InputTranslator::KeyCodeCache;

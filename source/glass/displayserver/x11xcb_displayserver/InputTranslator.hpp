@@ -36,31 +36,33 @@ namespace Glass
 
 		union
 		{
-			xcb_keycode_t	KeyCode;
-			xcb_button_t	Button;
+			xcb_keycode_t KeyCode;
+			xcb_button_t  Button;
 		} Value;
 
 		uint16_t ModifierState;
 	};
 
 
-	class InputTranslator
+	struct InputTranslator
 	{
-	public:
-		static void		Initialize(xcb_connection_t *XConnection);
-		static void		Terminate();
+		static void	  Initialize(xcb_connection_t *XConnection);
+		static void	  Terminate();
 
-		static Input	ToGlass(xcb_generic_event_t const *InputEvent);
-		static XInput	ToX(Input const &GlassInput);
+		static Input  ToGlass(xcb_generic_event_t const *InputEvent);
+		static XInput ToX(Input const &GlassInput);
+
+		static void   Refresh(xcb_mapping_notify_event_t *MappingNotify);
 
 	private:
-		static std::map<Input::Value, xcb_button_t>	Buttons_GlassToX;
-		static std::map<xcb_button_t, Input::Value>	Buttons_XToGlass;
+		static thread_local std::map<Input::Value, xcb_button_t> Buttons_GlassToX;
+		static thread_local std::map<xcb_button_t, Input::Value> Buttons_XToGlass;
 
-		static std::map<Input::Value, std::string>	Keys_GlassToX;
-		static std::map<std::string, Input::Value>	Keys_XToGlass;
+		static thread_local std::map<Input::Value, std::string>	 Keys_GlassToX;
+		static thread_local std::map<std::string, Input::Value>	 Keys_XToGlass;
 
-		static xcb_key_symbols_t *KeySymbols;
+		static thread_local xcb_key_symbols_t					*KeySymbols;
+		static thread_local std::map<std::string, xcb_keycode_t> KeyCodeCache;
 	};
 }
 
