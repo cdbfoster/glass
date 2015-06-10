@@ -445,9 +445,13 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			{
 				Vector const Offset = (EventCast->Position - ModalOldPosition) * ModalResizeMask;
 
-				if (!Offset.IsZero())
+				bool const Floating = this->Owner.ClientData[*ModalResize]->Floating;
+
+				if ((Floating && !Offset.IsZero()) ||
+					(!Floating && (std::abs(Offset.x) >= 10 ||
+								   std::abs(Offset.y) >= 10)))
 				{
-					if (!this->Owner.ClientData[*ModalResize]->Floating)
+					if (!Floating)
 						this->Owner.RootTags[*ModalResize->GetRootWindow()]->GetWindowLayout().ResizeClientWindow(*ModalResize, ModalResizeMask, Offset);
 					else
 					{
