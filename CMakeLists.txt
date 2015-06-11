@@ -42,6 +42,7 @@ pkg_check_modules(GLASS_REQUIRED REQUIRED
 	pangocairo
 	x11
 	xcb
+	xcb-cursor
 	xcb-icccm
 	xcb-keysyms
 	xcb-util

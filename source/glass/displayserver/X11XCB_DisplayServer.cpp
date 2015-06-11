@@ -25,6 +25,7 @@
 
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
+#include <xcb/xcb_cursor.h>
 #include <xcb/xcb_event.h>
 #include <xcb/xcb_icccm.h>
 
@@ -129,6 +130,22 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 
 		for (auto &RootWindow : RootWindows)
 			this->OutgoingEventQueue.AddEvent(*(new RootCreate_Event(*RootWindow)));
+	}
+
+
+	// Set the cursor
+	{
+		xcb_cursor_context_t *XCursorContext;
+		if (xcb_cursor_context_new(this->Data->XConnection, this->Data->XScreen, &XCursorContext) < 0)
+		{
+			LOG_ERROR << "Could not set the cursor!" << std::endl;
+		}
+		else
+		{
+			xcb_cursor_t const DefaultCursor = xcb_cursor_load_cursor(XCursorContext, "left_ptr");
+
+			xcb_change_window_attributes(this->Data->XConnection, this->Data->XScreen->root, XCB_CW_CURSOR, &DefaultCursor);
+		}
 	}
 
 
