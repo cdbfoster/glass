@@ -459,9 +459,9 @@ ClientWindow *RootWindow::GetActiveClientWindow() const
 }
 
 
-void RootWindow::SetActiveClientWindow(ClientWindow &ClientWindow)
+void RootWindow::SetActiveClientWindow(ClientWindow *ClientWindow)
 {
-	this->ActiveClientWindow = &ClientWindow;
+	this->ActiveClientWindow = ClientWindow;
 }
 
 

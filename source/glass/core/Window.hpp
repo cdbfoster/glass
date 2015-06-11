@@ -197,7 +197,7 @@ namespace Glass
 		locked_accessor<ClientWindowList const>	GetClientWindows() const;
 
 		ClientWindow   *GetActiveClientWindow() const;
-		void			SetActiveClientWindow(ClientWindow &ClientWindow);
+		void			SetActiveClientWindow(ClientWindow *ClientWindow);
 
 		// These operations are not allowed on root windows
 		void SetPosition(Vector const &Position);

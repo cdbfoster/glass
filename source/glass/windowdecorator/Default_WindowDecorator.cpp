@@ -364,14 +364,10 @@ void Default_WindowDecorator::PaintStatusBar(StatusBar_UtilityWindow &StatusBar)
 									   new Shape::Arc(TitleEndX, ArcRadius, ArcRadius, -M_PI_2, -M_PI_4),
 									   new Shape::Point(TitleEndX + (Dimensions.y - ArcHeight) + ArcWidth, Dimensions.y) }), Config::FrameColorActive);
 
+	if (ClientWindow * const ActiveClient = RootWindow.GetActiveClientWindow())
 	{
-		auto ClientWindowsAccessor = WindowManager.GetClientWindows();
-
-		if (!ClientWindowsAccessor->empty())
-		{
-			this->DrawText(StatusBar, Config::FontFaceSans, (*ClientWindowsAccessor->begin())->GetName(),
-						   Vector(TitleStartX + SansPadding, SansLine), DarkText, Config::FontSize);
-		}
+		this->DrawText(StatusBar, Config::FontFaceSans, ActiveClient->GetName(),
+					   Vector(TitleStartX + SansPadding, SansLine), DarkText, Config::FontSize);
 	}
 
 	if (Dynamic_WindowManager != nullptr)

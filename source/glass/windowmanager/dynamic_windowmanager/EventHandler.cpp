@@ -275,7 +275,7 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 					TagContainer->RemoveClientWindow(EventCast->ClientWindow);
 					if (TagContainer->GetActiveTag()->size() > 0)
-						(*TagContainer->GetActiveTag()->begin())->Focus();
+						this->Owner.ActivateClient(**TagContainer->GetActiveTag()->begin());
 				}
 
 				{
@@ -357,7 +357,13 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 					if (NewActiveClient != nullptr)
 						this->Owner.ActivateClient(*NewActiveClient);
 					else
+					{
 						this->Owner.ActiveClient = nullptr;
+						EventCast->ClientWindow.GetRootWindow()->SetActiveClientWindow(nullptr);
+
+						if (this->Owner.WindowDecorator != nullptr)
+							this->Owner.WindowDecorator->DecorateWindow(*this->Owner.ActiveRoot);
+					}
 				}
 			}
 
@@ -843,7 +849,10 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 				if (NewActiveClient != nullptr)
 					this->Owner.ActivateClient(*NewActiveClient);
 				else
+				{
 					this->Owner.ActiveClient = nullptr;
+					this->Owner.ActiveRoot->SetActiveClientWindow(nullptr);
+				}
 			}
 
 			if (this->Owner.WindowDecorator != nullptr)

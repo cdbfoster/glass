@@ -87,7 +87,7 @@ void Dynamic_WindowManager::Implementation::ActivateClient(ClientWindow &ClientW
 
 	// Is the window already the active client of its root?
 	if (ClientRoot->GetActiveClientWindow() != &ClientWindow)
-		ClientRoot->SetActiveClientWindow(ClientWindow);
+		ClientRoot->SetActiveClientWindow(&ClientWindow);
 
 	if (ClientWindow.GetUrgent() == true)
 		ClientWindow.SetUrgent(false);
