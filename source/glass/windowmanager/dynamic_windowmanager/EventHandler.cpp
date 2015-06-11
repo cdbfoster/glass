@@ -511,6 +511,12 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 
 	case Glass::Event::Type::INPUT:
+		{
+			Input_Event const * const EventCast = static_cast<Input_Event const *>(Event);
+
+			if (AuxiliaryWindow * const WindowCast = dynamic_cast<AuxiliaryWindow *>(&EventCast->Window))
+				WindowCast->HandleEvent(*Event);
+		}
 		break;
 
 
