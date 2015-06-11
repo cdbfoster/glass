@@ -73,6 +73,15 @@ bool ClientShouldFloat(ClientWindow &ClientWindow)
 }
 
 
+short RoundIntToNearest(short Value, short Denominator)
+{
+	short const LowerBound = Value / Denominator * Denominator;
+	short const UpperBound = ((Value / Denominator) + 1) * Denominator;
+
+	return Value - LowerBound < UpperBound - Value ? LowerBound : UpperBound;
+}
+
+
 void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Event)
 {
 	// Just some debug printing
@@ -447,20 +456,23 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 
 				bool const Floating = this->Owner.ClientData[*ModalResize]->Floating;
 
-				if ((Floating && !Offset.IsZero()) ||
-					(!Floating && (std::abs(Offset.x) >= 10 ||
-								   std::abs(Offset.y) >= 10)))
+				if (!Floating && (std::abs(Offset.x) >= 10 ||
+								  std::abs(Offset.y) >= 10))
 				{
-					if (!Floating)
-						this->Owner.RootTags[*ModalResize->GetRootWindow()]->GetWindowLayout().ResizeClientWindow(*ModalResize, ModalResizeMask, Offset);
-					else
-					{
-						Vector const PositionOffset(ModalResizeMask.x < 0 ? -Offset.x : 0,
-													ModalResizeMask.y < 0 ? -Offset.y : 0);
+					Vector const RoundedOffset(RoundIntToNearest(Offset.x, 10),
+											   RoundIntToNearest(Offset.y, 10));
 
-						ModalResize->SetGeometry(ModalResize->GetPosition() + PositionOffset,
-												 ModalResize->GetSize() + Offset);
-					}
+					this->Owner.RootTags[*ModalResize->GetRootWindow()]->GetWindowLayout().ResizeClientWindow(*ModalResize, ModalResizeMask, RoundedOffset);
+
+					ModalOldPosition += RoundedOffset * ModalResizeMask;
+				}
+				else if (Floating && !Offset.IsZero())
+				{
+					Vector const PositionOffset(ModalResizeMask.x < 0 ? -Offset.x : 0,
+												ModalResizeMask.y < 0 ? -Offset.y : 0);
+
+					ModalResize->SetGeometry(ModalResize->GetPosition() + PositionOffset,
+											 ModalResize->GetSize() + Offset);
 
 					ModalOldPosition = EventCast->Position;
 				}
