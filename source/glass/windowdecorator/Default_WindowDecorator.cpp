@@ -27,12 +27,6 @@
 
 using namespace Glass;
 
-WindowDecorator *Default_WindowDecorator::Create(Glass::DisplayServer &DisplayServer, Glass::WindowManager &WindowManager)
-{
-	return new Default_WindowDecorator(DisplayServer, WindowManager);
-}
-
-
 Default_WindowDecorator::Default_WindowDecorator(Glass::DisplayServer &DisplayServer, Glass::WindowManager &WindowManager) :
 	WindowDecorator(DisplayServer, WindowManager)
 {

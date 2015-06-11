@@ -27,8 +27,6 @@ namespace Glass
 	class BSP_WindowLayout : public WindowLayout
 	{
 	public:
-		static WindowLayout *Create(Vector const &Position, Vector const &Size);
-
 		BSP_WindowLayout(Vector const &Position, Vector const &Size);
 		~BSP_WindowLayout();
 

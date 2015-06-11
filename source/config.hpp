@@ -27,6 +27,7 @@
 #include "glass/core/Input.hpp"
 #include "glass/windowdecorator/Default_WindowDecorator.hpp"
 #include "glass/windowlayout/BSP_WindowLayout.hpp"
+#include "util/creator.hpp"
 
 namespace Glass
 {
@@ -114,7 +115,8 @@ namespace Config
 
 
 	// Window decorator - Set to nullptr to disable all decorations
-	Glass::WindowDecorator * (* const WindowDecorator)(DisplayServer &, WindowManager &) = Default_WindowDecorator::Create;
+	creator<Glass::WindowDecorator, DisplayServer &, WindowManager &>::pointer const WindowDecorator =
+		creator<Glass::WindowDecorator>::impl<Default_WindowDecorator>::create;
 
 	unsigned short const FrameThicknessMinimal = 3;
 	unsigned short const FrameThicknessNormal =  5;
@@ -129,8 +131,8 @@ namespace Config
 
 
 	// Window layouts - Leave the list empty to use a dummy layout
-	std::vector<WindowLayout *(*)(Vector const &, Vector const &)> const WindowLayouts = {
-		BSP_WindowLayout::Create
+	std::vector<creator<WindowLayout, Vector const &, Vector const &>::pointer> const WindowLayouts = {
+		creator<WindowLayout>::impl<BSP_WindowLayout>::create,
 	};
 
 	unsigned short const LayoutPaddingInner = 6;

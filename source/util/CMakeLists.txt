@@ -16,6 +16,7 @@
 # Copyright 2014-2015 Chris Foster
 
 set(include ${include}
+	util/creator.hpp
 	util/interruptible.hpp
 	util/locked_accessor.hpp
 	util/scoped_free.hpp

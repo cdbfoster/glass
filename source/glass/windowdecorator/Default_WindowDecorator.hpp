@@ -33,8 +33,6 @@ namespace Glass
 	class Default_WindowDecorator : public WindowDecorator
 	{
 	public:
-		static WindowDecorator *Create(Glass::DisplayServer &DisplayServer, Glass::WindowManager &WindowManager);
-
 		Default_WindowDecorator(Glass::DisplayServer &DisplayServer, Glass::WindowManager &WindowManager);
 		~Default_WindowDecorator();
 

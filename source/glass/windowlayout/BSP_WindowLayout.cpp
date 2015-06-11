@@ -25,11 +25,6 @@
 
 using namespace Glass;
 
-WindowLayout *BSP_WindowLayout::Create(Vector const &Position, Vector const &Size)
-{
-	return new BSP_WindowLayout(Position, Size);
-}
-
 BSP_WindowLayout::BSP_WindowLayout(Vector const &Position, Vector const &Size) :
 	WindowLayout(Position, Size),
 	Data(new Implementation)

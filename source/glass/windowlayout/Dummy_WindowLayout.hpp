@@ -27,8 +27,6 @@ namespace Glass
 	class Dummy_WindowLayout : public WindowLayout
 	{
 	public:
-		static WindowLayout *Create(Vector const &Position, Vector const &Size);
-
 		Dummy_WindowLayout(Vector const &Position, Vector const &Size);
 		~Dummy_WindowLayout();
 
