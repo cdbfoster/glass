@@ -100,6 +100,8 @@ namespace Glass
 
 		static xcb_atom_t _MOTIF_WM_HINTS;
 
+		static xcb_atom_t XFree86_has_VT;
+
 		static void Initialize(xcb_connection_t *XConnection);
 	};
 }

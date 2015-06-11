@@ -251,13 +251,19 @@ void X11XCB_DisplayServer::Implementation::EventHandler::Handle(xcb_generic_even
 				}
 				else if (RootWindowData * const WindowDataCast = dynamic_cast<RootWindowData *>(*WindowData))
 				{
-					// XXX Check for a root property change related to resuming from a suspend
-
 					RootWindow &EventWindow = static_cast<RootWindow &>(WindowDataCast->Window);
 
 					if (PropertyNotify->atom == Atoms::WM_NAME)
 					{
 						this->Owner.DisplayServer.OutgoingEventQueue.AddEvent(*new PrimaryNameChange_Event(EventWindow, GetWindowName(this->Owner.XConnection, WindowID)));
+					}
+					else if (PropertyNotify->atom == Atoms::XFree86_has_VT)
+					{
+						for (auto WindowData : *WindowDataAccessor)
+						{
+							if (AuxiliaryWindowData * const WindowDataCast = dynamic_cast<AuxiliaryWindowData *>(WindowData))
+								WindowDataCast->ReplayDrawOperations();
+						}
 					}
 				}
 			}

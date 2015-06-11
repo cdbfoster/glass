@@ -102,7 +102,8 @@ void Atoms::Initialize(xcb_connection_t *XConnection)
 		{ ATOM,									"ATOM" },
 		{ STRING,								"STRING" },
 		{ UTF8_STRING,							"UTF8_STRING" },
-		{ _MOTIF_WM_HINTS,						"_MOTIF_WM_HINTS" }
+		{ _MOTIF_WM_HINTS,						"_MOTIF_WM_HINTS" },
+		{ XFree86_has_VT,						"XFree86_has_VT" }
 	};
 
 	xcb_intern_atom_cookie_t AtomCookies[Atoms.size()];
@@ -193,3 +194,4 @@ xcb_atom_t Atoms::ATOM;
 xcb_atom_t Atoms::STRING;
 xcb_atom_t Atoms::UTF8_STRING;
 xcb_atom_t Atoms::_MOTIF_WM_HINTS;
+xcb_atom_t Atoms::XFree86_has_VT;
