@@ -93,6 +93,9 @@ namespace Glass
 
 void Default_WindowDecorator::DecorateWindow(ClientWindow &ClientWindow, unsigned char HintMask)
 {
+	if (Config::FrameThicknessMinimal == 0 && Config::FrameThicknessNormal == 0)
+		return;
+
 	FrameWindow *Frame = nullptr;
 	Vector const FrameThickness = (HintMask & Hint::MINIMAL ? Vector(Config::FrameThicknessMinimal,
 																	 Config::FrameThicknessMinimal) :
