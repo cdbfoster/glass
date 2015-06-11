@@ -38,7 +38,7 @@ X11XCB_DisplayServer::Implementation::EventHandler::EventHandler(X11XCB_DisplayS
 	Owner(Owner),
 	Worker(&EventHandler::Listen, this)
 {
-	InputTranslator::Initialize(this->Owner.XConnection);
+
 }
 
 
@@ -100,6 +100,8 @@ std::string GetWindowName(xcb_connection_t *XConnection, xcb_window_t WindowID);
 
 void X11XCB_DisplayServer::Implementation::EventHandler::Listen()
 {
+	InputTranslator::Initialize(this->Owner.XConnection);
+
 	try
 	{
 		while (scoped_free<xcb_generic_event_t *> Event = WaitForEvent(this->Owner.XConnection))
