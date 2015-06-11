@@ -21,6 +21,7 @@
 
 #include "config.hpp"
 #include "glass/core/DisplayServer.hpp"
+#include "glass/core/EventQueue.hpp"
 #include "glass/core/WindowManager.hpp"
 #include "glass/windowdecorator/Default_WindowDecorator.hpp"
 #include "glass/windowmanager/Dynamic_WindowManager.hpp"
@@ -71,9 +72,44 @@ namespace Glass
 								Glass::DisplayServer &DisplayServer, Vector const &LocalPosition, Vector const &Size, bool Visible,
 								Default_WindowDecorator &WindowDecorator) :
 			UtilityWindow(RootWindow, Name, DisplayServer, LocalPosition, Size, Visible),
+			TagsWidth(0.0f),
+			TagsStart(0.0f),
+			TagCount(0),
 			WindowManager(WindowManager),
 			WindowDecorator(WindowDecorator)
 		{ }
+
+		void HandleEvent(Event const &Event)
+		{
+			if (this->TagCount == 0)
+				return;
+
+			if (Event.GetType() != Glass::Event::Type::INPUT)
+				return;
+
+			Input_Event const &EventCast = static_cast<Input_Event const &>(Event);
+			Input const &Input = EventCast.Input;
+			Vector const &Position = EventCast.Position;
+
+			if (Input.GetType() != Glass::Input::Type::MOUSE ||
+				Input.GetValue() != Glass::Input::Value::BUTTON_1 ||
+				Input.GetState() != Glass::Input::State::PRESSED)
+				return;
+
+			if (!this->ContainsPoint(Position))
+				return;
+
+			if (Position.x < this->TagsStart)
+				return;
+
+			float TagWidth = this->TagsWidth / this->TagCount;
+			unsigned short Tag = (Position.x - this->TagsStart) / TagWidth;
+
+			this->WindowDecorator.GetEventQueue().AddEvent(*(new TagDisplay_Event(TagDisplay_Event::Target::ROOT,
+																				  Input.GetModifier() & Glass::Input::Modifier::SHIFT ? TagDisplay_Event::Mode::TOGGLE :
+																																		TagDisplay_Event::Mode::SET,
+																				  0x01 << Tag)));
+		}
 
 		void Update()
 		{
@@ -83,6 +119,10 @@ namespace Glass
 		}
 
 		Glass::WindowManager const &GetWindowManager() const { return this->WindowManager; }
+
+		float TagsWidth;
+		float TagsStart;
+		unsigned short TagCount;
 
 	private:
 		Glass::WindowManager const &WindowManager;
@@ -281,7 +321,6 @@ void Default_WindowDecorator::PaintStatusBar(StatusBar_UtilityWindow &StatusBar)
 	float const ArcWidth = ArcHeight / tan((M_PI - M_PI_4) * 0.5 - M_PI_4); // 22.5 degrees
 	float const ArcRadius = ArcWidth * M_SQRT2;
 
-	float TagsWidth = 0.0f;
 	if (Dynamic_WindowManager != nullptr)
 	{
 		std::vector<std::string> const TagNames = Dynamic_WindowManager->GetTagNames(RootWindow);
@@ -295,13 +334,17 @@ void Default_WindowDecorator::PaintStatusBar(StatusBar_UtilityWindow &StatusBar)
 				WidestName = TagNameWidth;
 		}
 
-		TagsWidth = TagNames.size() * (WidestName + 2 * MonoPadding);
-		if (TagsWidth < 0.2 * Dimensions.x)
-			TagsWidth = 0.2 * Dimensions.x;
+		StatusBar.TagsWidth = TagNames.size() * (WidestName + 2 * MonoPadding);
+		if (StatusBar.TagsWidth < 0.2 * Dimensions.x)
+			StatusBar.TagsWidth = 0.2 * Dimensions.x;
+
+		StatusBar.TagsStart = Dimensions.x - StatusBar.TagsWidth;
+		StatusBar.TagCount = TagNames.size();
 	}
 
+
 	float const TitleStartX = 0.2 * Dimensions.x;
-	float const TitleEndX = Dimensions.x - TagsWidth - ((Dimensions.y - ArcHeight) + ArcWidth);
+	float const TitleEndX = StatusBar.TagsStart - ((Dimensions.y - ArcHeight) + ArcWidth);
 
 
 	// Drawing
@@ -328,11 +371,11 @@ void Default_WindowDecorator::PaintStatusBar(StatusBar_UtilityWindow &StatusBar)
 	{
 		std::vector<std::string> const TagNames = Dynamic_WindowManager->GetTagNames(RootWindow);
 
-		float const TagWidth = TagsWidth / TagNames.size();
+		float const TagWidth = StatusBar.TagsWidth / StatusBar.TagCount;
 		Glass::Dynamic_WindowManager::TagMask const ActiveTagMask = Dynamic_WindowManager->GetActiveTagMask(RootWindow);
 		Glass::Dynamic_WindowManager::TagMask const PopulatedTagMask = Dynamic_WindowManager->GetPopulatedTagMask(RootWindow);
 
-		float Position = Dimensions.x - TagsWidth;
+		float Position = StatusBar.TagsStart;
 		Glass::Dynamic_WindowManager::TagMask PositionMask = 0x01;
 		for (std::string const &TagName : TagNames)
 		{
