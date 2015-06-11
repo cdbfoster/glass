@@ -45,12 +45,39 @@ namespace Config
 	// User input bindings
 	namespace Keys
 	{
-		Input::Value const		CommandKey =		Input::Value::KEY_SUPER;
-		Input::Modifier const	CommandModifier =	Input::Modifier::SUPER;
+		Input::Value const	  CommandKey =		Input::Value::KEY_SUPER;
+		Input::Modifier const CommandModifier = Input::Modifier::SUPER;
 	}
 
 	std::vector<std::pair<Event const *, Input>> const InputBindings = {
 
+		{ new WindowClose_Event,										 Input(Input::Type::KEYBOARD, Input::Value::KEY_Q,		Keys::CommandModifier) },
+
+		{ new FloatingToggle_Event,										 Input(Input::Type::KEYBOARD, Input::Value::KEY_RETURN, Keys::CommandModifier) },
+		{ new FloatingRaise_Event,										 Input(Input::Type::KEYBOARD, Keys::CommandKey,			Input::Modifier::NONE) },
+		{ new SwitchTabbed_Event,										 Input(Input::Type::KEYBOARD, Input::Value::KEY_TAB,	Keys::CommandModifier) },
+
+		{ new FocusCycle_Event(FocusCycle_Event::Direction::LEFT),		 Input(Input::Type::KEYBOARD, Input::Value::KEY_LEFT,	Keys::CommandModifier) },
+		{ new FocusCycle_Event(FocusCycle_Event::Direction::RIGHT),		 Input(Input::Type::KEYBOARD, Input::Value::KEY_RIGHT,	Keys::CommandModifier) },
+
+		{ new LevelToggle_Event(LevelToggle_Event::Mode::RAISE),		 Input(Input::Type::KEYBOARD, Input::Value::KEY_UP,		Keys::CommandModifier) },
+		{ new LevelToggle_Event(LevelToggle_Event::Mode::LOWER),		 Input(Input::Type::KEYBOARD, Input::Value::KEY_DOWN,	Keys::CommandModifier) },
+
+		{ new LayoutCycle_Event(LayoutCycle_Event::Direction::FORWARD),	 Input(Input::Type::KEYBOARD, Input::Value::KEY_RIGHT,	Keys::CommandModifier | Input::Modifier::CONTROL) },
+		{ new LayoutCycle_Event(LayoutCycle_Event::Direction::BACKWARD), Input(Input::Type::KEYBOARD, Input::Value::KEY_LEFT,	Keys::CommandModifier | Input::Modifier::CONTROL) },
+
+		{ new SpawnCommand_Event({ "xterm" }),							 Input(Input::Type::KEYBOARD, Input::Value::KEY_T,		Keys::CommandModifier) },
+		{ new SpawnCommand_Event({ "gedit" }),							 Input(Input::Type::KEYBOARD, Input::Value::KEY_E,		Keys::CommandModifier) },
+		{ new SpawnCommand_Event({ "firefox" }),						 Input(Input::Type::KEYBOARD, Input::Value::KEY_B,		Keys::CommandModifier) },
+		{ new SpawnCommand_Event({ "dbus-launch", "thunar" }),			 Input(Input::Type::KEYBOARD, Input::Value::KEY_F,		Keys::CommandModifier) },
+		{ new SpawnCommand_Event({ "dmenu_run" }),						 Input(Input::Type::KEYBOARD, Input::Value::KEY_SPACE,	Keys::CommandModifier) },
+
+		{ new FullscreenToggle_Event,									 Input(Input::Type::KEYBOARD, Input::Value::KEY_M,		Keys::CommandModifier) },
+
+		{ new ManagerQuit_Event,										 Input(Input::Type::KEYBOARD, Input::Value::KEY_Q,		Keys::CommandModifier | Input::Modifier::SHIFT) },
+
+
+		// Modal move/resize keys
 		#define MODAL_KEY(EventType, InputType, InputValue, InputModifier) \
 		{ new EventType(WindowModal_Event::Mode::BEGIN), Input(InputType, InputValue, InputModifier, Input::State::PRESSED) },\
 		{ new EventType(WindowModal_Event::Mode::END),	 Input(InputType, InputValue, InputModifier, Input::State::RELEASED) }
@@ -61,30 +88,7 @@ namespace Config
 		#undef MODAL_KEY
 
 
-		{ new WindowClose_Event, Input(Input::Type::KEYBOARD, Input::Value::KEY_Q, Keys::CommandModifier) },
-
-		{ new FloatingToggle_Event, Input(Input::Type::KEYBOARD, Input::Value::KEY_RETURN, Keys::CommandModifier) },
-		{ new FloatingRaise_Event,  Input(Input::Type::KEYBOARD, Keys::CommandKey,		   Input::Modifier::NONE) },
-		{ new SwitchTabbed_Event,   Input(Input::Type::KEYBOARD, Input::Value::KEY_TAB,	   Keys::CommandModifier) },
-
-		{ new FocusCycle_Event(FocusCycle_Event::Direction::LEFT),  Input(Input::Type::KEYBOARD, Input::Value::KEY_LEFT,  Keys::CommandModifier) },
-		{ new FocusCycle_Event(FocusCycle_Event::Direction::RIGHT), Input(Input::Type::KEYBOARD, Input::Value::KEY_RIGHT, Keys::CommandModifier) },
-
-		{ new LevelToggle_Event(LevelToggle_Event::Mode::RAISE), Input(Input::Type::KEYBOARD, Input::Value::KEY_UP,	  Keys::CommandModifier) },
-		{ new LevelToggle_Event(LevelToggle_Event::Mode::LOWER), Input(Input::Type::KEYBOARD, Input::Value::KEY_DOWN, Keys::CommandModifier) },
-
-		{ new LayoutCycle_Event(LayoutCycle_Event::Direction::FORWARD),  Input(Input::Type::KEYBOARD, Input::Value::KEY_RIGHT, Keys::CommandModifier | Input::Modifier::CONTROL) },
-		{ new LayoutCycle_Event(LayoutCycle_Event::Direction::BACKWARD), Input(Input::Type::KEYBOARD, Input::Value::KEY_LEFT,  Keys::CommandModifier | Input::Modifier::CONTROL) },
-
-		{ new SpawnCommand_Event({ "xterm" }),				   Input(Input::Type::KEYBOARD, Input::Value::KEY_T,	 Keys::CommandModifier) },
-		{ new SpawnCommand_Event({ "gedit" }),				   Input(Input::Type::KEYBOARD, Input::Value::KEY_E,	 Keys::CommandModifier) },
-		{ new SpawnCommand_Event({ "firefox" }),			   Input(Input::Type::KEYBOARD, Input::Value::KEY_B,	 Keys::CommandModifier) },
-		{ new SpawnCommand_Event({ "dbus-launch", "thunar" }), Input(Input::Type::KEYBOARD, Input::Value::KEY_F,	 Keys::CommandModifier) },
-		{ new SpawnCommand_Event({ "dmenu_run" }),			   Input(Input::Type::KEYBOARD, Input::Value::KEY_SPACE, Keys::CommandModifier) },
-
-		{ new FullscreenToggle_Event, Input(Input::Type::KEYBOARD, Input::Value::KEY_M, Keys::CommandModifier) },
-
-
+		// Tag selection keys
 		#define TAG_MODIFIER		Keys::CommandModifier
 		#define TAG_TOGGLE_MODIFIER Input::Modifier::SHIFT
 		#define TAG_CLIENT_MODIFIER Input::Modifier::CONTROL
@@ -104,15 +108,12 @@ namespace Config
 		TAG_KEY(6, Input::Type::KEYBOARD, Input::Value::KEY_7),
 		TAG_KEY(7, Input::Type::KEYBOARD, Input::Value::KEY_8),
 		TAG_KEY(8, Input::Type::KEYBOARD, Input::Value::KEY_9),
-		TAG_KEY(9, Input::Type::KEYBOARD, Input::Value::KEY_0),
+		TAG_KEY(9, Input::Type::KEYBOARD, Input::Value::KEY_0)
 
 		#undef TAG_KEY
 		#undef TAG_CLIENT_MODIFIER
 		#undef TAG_TOGGLE_MODIFIER
 		#undef TAG_MODIFIER
-
-
-		{ new ManagerQuit_Event, Input(Input::Type::KEYBOARD, Input::Value::KEY_Q, Keys::CommandModifier | Input::Modifier::SHIFT) }
 	};
 
 
