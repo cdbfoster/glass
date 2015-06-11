@@ -53,12 +53,14 @@ namespace Glass
 			WindowDecorator(WindowDecorator)
 		{ }
 
+
 		void Update()
 		{
 			FrameWindow::Update();
 
 			this->WindowDecorator.PaintFrame(*this);
 		}
+
 
 	private:
 		Default_WindowDecorator &WindowDecorator;
@@ -78,6 +80,7 @@ namespace Glass
 			WindowManager(WindowManager),
 			WindowDecorator(WindowDecorator)
 		{ }
+
 
 		void HandleEvent(Event const &Event)
 		{
@@ -111,6 +114,7 @@ namespace Glass
 																				  0x01 << Tag)));
 		}
 
+
 		void Update()
 		{
 			UtilityWindow::Update();
@@ -118,11 +122,14 @@ namespace Glass
 			this->WindowDecorator.PaintStatusBar(*this);
 		}
 
+
 		Glass::WindowManager const &GetWindowManager() const { return this->WindowManager; }
+
 
 		float TagsWidth;
 		float TagsStart;
 		unsigned short TagCount;
+
 
 	private:
 		Glass::WindowManager const &WindowManager;
