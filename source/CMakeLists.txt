@@ -33,7 +33,7 @@ include_directories(${GLASS_REQUIRED_INCLUDE_DIRS}
 add_library(glass-core STATIC ${include} ${source})
 target_link_libraries(glass-core -lpthread ${GLASS_REQUIRED_LDFLAGS})
 
-add_executable(glass ${include} main.cpp)
-target_link_libraries(glass glass-core)
+add_executable(glass-wm ${include} main.cpp)
+target_link_libraries(glass-wm glass-core)
 
 #add_subdirectory(tests)
