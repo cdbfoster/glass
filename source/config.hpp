@@ -76,9 +76,11 @@ namespace Config
 		{ new LayoutCycle_Event(LayoutCycle_Event::Direction::FORWARD),  Input(Input::Type::KEYBOARD, Input::Value::KEY_RIGHT, Keys::CommandModifier | Input::Modifier::CONTROL) },
 		{ new LayoutCycle_Event(LayoutCycle_Event::Direction::BACKWARD), Input(Input::Type::KEYBOARD, Input::Value::KEY_LEFT,  Keys::CommandModifier | Input::Modifier::CONTROL) },
 
-		{ new SpawnCommand_Event({ "xterm" }),	 Input(Input::Type::KEYBOARD, Input::Value::KEY_T, Keys::CommandModifier) },
-		{ new SpawnCommand_Event({ "gedit" }),	 Input(Input::Type::KEYBOARD, Input::Value::KEY_E, Keys::CommandModifier) },
-		{ new SpawnCommand_Event({ "firefox" }), Input(Input::Type::KEYBOARD, Input::Value::KEY_B, Keys::CommandModifier) },
+		{ new SpawnCommand_Event({ "xterm" }),				   Input(Input::Type::KEYBOARD, Input::Value::KEY_T,	 Keys::CommandModifier) },
+		{ new SpawnCommand_Event({ "gedit" }),				   Input(Input::Type::KEYBOARD, Input::Value::KEY_E,	 Keys::CommandModifier) },
+		{ new SpawnCommand_Event({ "firefox" }),			   Input(Input::Type::KEYBOARD, Input::Value::KEY_B,	 Keys::CommandModifier) },
+		{ new SpawnCommand_Event({ "dbus-launch", "thunar" }), Input(Input::Type::KEYBOARD, Input::Value::KEY_F,	 Keys::CommandModifier) },
+		{ new SpawnCommand_Event({ "dmenu_run" }),			   Input(Input::Type::KEYBOARD, Input::Value::KEY_SPACE, Keys::CommandModifier) },
 
 		{ new FullscreenToggle_Event, Input(Input::Type::KEYBOARD, Input::Value::KEY_M, Keys::CommandModifier) },
 
