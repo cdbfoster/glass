@@ -132,7 +132,7 @@ Input InputTranslator::ToGlass(xcb_generic_event_t const *InputEvent)
 
 	Input::Type const	InputType = ((ResponseType == XCB_KEY_PRESS ||
 									  ResponseType == XCB_KEY_RELEASE) ? Input::Type::KEYBOARD : Input::Type::MOUSE);
-	Input::Value		InputValue;
+	Input::Value		InputValue = Input::Value::UNKNOWN;
 	unsigned char		InputModifierMask;
 	Input::State const	InputState = ((ResponseType == XCB_KEY_PRESS ||
 									   ResponseType == XCB_BUTTON_PRESS) ? Input::State::PRESSED : Input::State::RELEASED);
@@ -148,8 +148,6 @@ Input InputTranslator::ToGlass(xcb_generic_event_t const *InputEvent)
 			auto FindValue = InputTranslator::Buttons_XToGlass.find(ButtonPressEvent->detail);
 			if (FindValue != InputTranslator::Buttons_XToGlass.end())
 				InputValue = FindValue->second;
-			else
-				InputValue = Input::Value::UNKNOWN;
 		}
 		break;
 
@@ -166,8 +164,6 @@ Input InputTranslator::ToGlass(xcb_generic_event_t const *InputEvent)
 			auto FindValue = InputTranslator::Keys_XToGlass.find(KeyString);
 			if (FindValue != InputTranslator::Keys_XToGlass.end())
 				InputValue = FindValue->second;
-			else
-				InputValue = Input::Value::UNKNOWN;
 		}
 		break;
 	}
