@@ -1,14 +1,16 @@
 ##Glass Window Manager
 
 ### About
-Glass is a small, extensible, window manager.  Its design is highly object-oriented and its use of interfaces allows for modular components with the option of drop-in replacements.  The major components of a window manager are each represented by a single interface, allowing a user to change behavior by selecting a different implementation, or by writing a new one.
+Glass is a small, extensible, window manager.  Its design is highly object-oriented and its use of interfaces allows for modular components with the option of drop-in replacements.  The major components of the window manager are each represented by a single interface, allowing a user to change behavior by selecting a different implementation, or by writing a new one.
 
-For instance, any window layout can be supported by reimplementing the `WindowLayout` interface, and any display server can be supported by reimplementing the `DisplayServer` interface.  In fact, the majority of the program is completely display-server-agnostic, and wouldn't know or care if it's running on X or Wayland (though implementations for Wayland have not yet been written).
+For instance, any window layout can be supported by reimplementing the `WindowLayout` interface, and any display server can be supported by reimplementing the `DisplayServer` interface.  In fact, the majority of the program is completely display-server-agnostic, and wouldn't know or care if it's running on X or Wayland (though an implementation for Wayland has not yet been written).
 
 ### Source
 Check out the source by cloning the repository:
 
     $ git clone https://github.com/cdbfoster/glass.git
+
+The source was written using a tab width of 4.
 
 ### Configuration
 Glass is configured by editing the source itself.  Many common options including key bindings, window decoration settings, interface fonts, and layout selection are present in `source/config.hpp`.
