@@ -43,6 +43,7 @@ pkg_check_modules(GLASS_REQUIRED REQUIRED
 	x11
 	xcb
 	xcb-cursor
+	xcb-ewmh
 	xcb-icccm
 	xcb-keysyms
 	xcb-util

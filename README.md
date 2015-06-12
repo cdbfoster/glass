@@ -31,7 +31,7 @@ Glass can be built using the [`glass-wm-git`](https://aur.archlinux.org/packages
 ### Ubuntu derivates
 You'll need the `*-dev` packages of each library in order to build Glass.  That should be possible with:
 
-    $ sudo apt-get install libcairo2-dev libpango1.0-dev libx11-dev libxcb1-dev libxcb-cursor-dev libxcb-icccm4-dev libxcb-keysyms1-dev libxcb-util0-dev
+    $ sudo apt-get install libcairo2-dev libpango1.0-dev libx11-dev libxcb1-dev libxcb-cursor-dev libxcb-ewmh-dev libxcb-icccm4-dev libxcb-keysyms1-dev libxcb-util0-dev
 
 ## Use
 The easiest way to use Glass is to add `exec glass-wm` to `~/.xinitrc`.  This assumes that `glass-wm` can be found through your `$PATH`.
