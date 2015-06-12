@@ -1,6 +1,4 @@
 #Glass Window Manager
-
-## About
 Glass is a small, extensible, window manager.  Its design is highly object-oriented and its use of interfaces allows for modular components with the option of drop-in replacements.  The major components of the window manager are each represented by a single interface, allowing a user to change behavior by selecting a different implementation, or by writing a new one.
 
 For instance, any window layout can be supported by reimplementing the `WindowLayout` interface, and any display server can be supported by reimplementing the `DisplayServer` interface.  In fact, the majority of the program is completely display-server-agnostic, and wouldn't know or care if it's running on X or Wayland (though an implementation for Wayland has not yet been written).
