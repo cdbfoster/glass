@@ -16,7 +16,7 @@ The source was written using a tab width of 4.
 Glass is configured by editing the source itself.  Many common options including key bindings, window decoration settings, interface fonts, and layout selection are present in `source/config.hpp`.
 
 ### Building
-Glass uses CMake as its build system.  It uses C++11, and its library dependencies are listed in the root `CMakeLists.txt`.
+Glass uses CMake as its build system.  It uses C++11, and its library dependencies are listed in the root `CMakeLists.txt`.  Instructions for individual distributions are below.
 
 In-source builds are not allowed, so make a `build` directory outside of the repository:
 
@@ -27,7 +27,13 @@ In-source builds are not allowed, so make a `build` directory outside of the rep
 
 This will produce the `glass-wm` executable.
 
-There is also a [PKGBUILD available](https://aur.archlinux.org/packages/glass-wm-git/) in the AUR for Arch Linux users.
+#### Arch Linux
+Glass can be built using the [`glass-wm-git`](https://aur.archlinux.org/packages/glass-wm-git/) package from the AUR.
+
+#### Ubuntu derivates
+You'll need the `*-dev` packages of each library in order to build Glass.  That should be possible with:
+
+    $ sudo apt-get install libcairo2-dev libpango1.0-dev libx11-dev libxcb1-dev libxcb-cursor-dev libxcb-icccm4-dev libxcb-keysyms1-dev libxcb-util0-dev
 
 ### Use
 The easiest way to use Glass is to add `exec glass-wm` to `~/.xinitrc`.  This assumes that `glass-wm` can be found through your `$PATH`.
