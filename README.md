@@ -38,6 +38,48 @@ The easiest way to use Glass is to add `exec glass-wm` to `~/.xinitrc`.  This as
 
 If using the `Default_WindowDecorator` implementation, the text in the bottom left-hand corner of the screen (defaults to "Glass") is read from the root window's name, which can be set using `xsetroot -name "<name here>"`.
 
+### Key Bindings
+Key bindings are configured in `source/config.hpp`.  The defaults are listed below:
+
+#### Window Actions
+Action | Key
+---|---
+Modal move | Super + Left Mouse Button
+Modal resize | Super + Right Mouse Button
+Close | Super + Q
+Toggle Raised | Super + Up Arrow
+Toggle Lowered | Super + Down Arrow
+Toggle Fullscreen | Super + M
+
+#### Focus Actions
+Action | Key
+---|---
+Cycle Left | Super + Left Arrow
+Cycle Right | Super + Right Arrow
+Switch Tabbed | Super + Tab
+
+#### Layout Actions
+Action | Key
+---|---
+Toggle Floating | Super + Enter
+Raise Floating | Super
+Next Layout | Super + Control + Right Arrow
+Previous Layout | Super + Control + Left Arrow
+
+#### Spawn Commands
+Command | Key
+---|---
+xterm | Super + T
+gedit | Super + E
+firefox | Super + B
+dbus-launch thunar | Super + F
+dmenu_run | Super + Spacebar
+
+#### Miscellaneous Actions
+Action | Key
+---|---
+Quit Glass | Super + Shift + Q
+
 ## Contact
 Questions and comments can be sent to my email, cdbfoster@gmail.com.
 
