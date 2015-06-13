@@ -68,9 +68,6 @@ void Dynamic_WindowManager::Implementation::ActivateClient(ClientWindow &ClientW
 		{
 			if (this->WindowDecorator != nullptr)
 				this->WindowDecorator->DecorateWindow(*OldActiveClient, this->GetDecorationHint(*OldActiveClient));
-
-			if (OldActiveClient->GetFullscreen() == true && !this->IsClientLowered(*OldActiveClient))
-				this->SetClientLowered(*OldActiveClient, true);
 		}
 	}
 
