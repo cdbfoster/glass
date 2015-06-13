@@ -91,4 +91,4 @@ Quit Glass | Super + Shift + Q
 ## Contact
 Questions and comments can be sent to my email, cdbfoster@gmail.com.
 
-© 2014 - 2015 Christopher Foster
+© 2014 - 2015 Chris Foster
