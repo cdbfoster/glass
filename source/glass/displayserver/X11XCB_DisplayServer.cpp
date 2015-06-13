@@ -145,6 +145,8 @@ X11XCB_DisplayServer::X11XCB_DisplayServer(EventQueue &OutgoingEventQueue) :
 			xcb_cursor_t const DefaultCursor = xcb_cursor_load_cursor(XCursorContext, "left_ptr");
 
 			xcb_change_window_attributes(this->Data->XConnection, this->Data->XScreen->root, XCB_CW_CURSOR, &DefaultCursor);
+
+			xcb_cursor_context_free(XCursorContext);
 		}
 	}
 
