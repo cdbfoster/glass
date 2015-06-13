@@ -66,6 +66,14 @@ Raise Floating | Super
 Next Layout | Super + Control + Right Arrow
 Previous Layout | Super + Control + Left Arrow
 
+#### Tag Actions
+Action | Key
+---|---
+Set Tag | Super + [0 - 9]
+Toggle Tag | Super + Shift + [0 - 9]
+Send Client to Tag | Super + Control + [0 - 9]
+Toggle Client on Tag | Super + Control + Shift + [0 - 9]
+
 #### Spawn Commands
 Command | Key
 ---|---
