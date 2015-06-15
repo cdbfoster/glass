@@ -27,10 +27,14 @@
 namespace Glass
 {
 	// Conditions
+	struct Class_Condition;
 	struct Name_Condition;
 
 	// Effects
+	struct FindEmptyTag_Effect;
 	struct Floating_Effect;
+	struct Fullscreen_Effect;
+	struct Lowered_Effect;
 
 
 	struct Dynamic_WindowManager::Rule
@@ -76,6 +80,21 @@ namespace Glass
 
 	// Condition types ========================================================
 
+	struct Class_Condition : public Dynamic_WindowManager::Rule::Condition
+	{
+		Class_Condition(std::string const &Class) :
+			Class(Class)
+		{ }
+
+		bool Test(ClientWindow &ClientWindow) const { return ClientWindow.GetClass() == this->Class; }
+
+		Condition *Copy() const { return new Class_Condition(this->Class); }
+
+	private:
+		std::string const Class;
+	};
+
+
 	struct Name_Condition : public Dynamic_WindowManager::Rule::Condition
 	{
 		Name_Condition(std::string const &Name) :
@@ -93,7 +112,31 @@ namespace Glass
 
 	// Effect types ===========================================================
 
+	struct FindEmptyTag_Effect : public Dynamic_WindowManager::Rule::Effect
+	{
+		void Execute(ClientWindow &ClientWindow) const;
+
+		Effect *Copy() const;
+	};
+
+
 	struct Floating_Effect : public Dynamic_WindowManager::Rule::Effect
+	{
+		void Execute(ClientWindow &ClientWindow) const;
+
+		Effect *Copy() const;
+	};
+
+
+	struct Fullscreen_Effect : public Dynamic_WindowManager::Rule::Effect
+	{
+		void Execute(ClientWindow &ClientWindow) const;
+
+		Effect *Copy() const;
+	};
+
+
+	struct Lowered_Effect : public Dynamic_WindowManager::Rule::Effect
 	{
 		void Execute(ClientWindow &ClientWindow) const;
 

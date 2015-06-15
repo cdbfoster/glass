@@ -72,6 +72,65 @@ void Dynamic_WindowManager::Rule::SetData(Dynamic_WindowManager::Implementation 
 }
 
 
+void FindEmptyTag_Effect::Execute(ClientWindow &ClientWindow) const
+{
+	auto TagContainer = this->Data->RootTags[*ClientWindow.GetRootWindow()];
+
+	auto ClientTagMask = TagContainer->GetClientWindowTagMask(ClientWindow);
+
+	// Of the tags the client already belongs to, exclude any in which the client has company
+	{
+		unsigned int Bit = 0;
+		for (auto Tag : *TagContainer)
+		{
+			if (ClientTagMask & (0x01 << Bit) &&
+				Tag->size() > 1)
+			{
+				ClientTagMask &= ~(0x01 << Bit);
+			}
+
+			if (ClientTagMask == 0x00)
+				break;
+
+			Bit++;
+		}
+	}
+
+	// If the client is not alone in any of its tags, find an empty tag
+	if (ClientTagMask == 0x00)
+	{
+		unsigned int Bit = 0;
+		for (auto Tag : *TagContainer)
+		{
+			if (Tag->size() == 0)
+			{
+				ClientTagMask |= 0x01 << Bit;
+				break;
+			}
+
+			Bit++;
+		}
+	}
+
+	// If we've found an empty place for the client, set the client's new tag mask and switch to it
+	if (ClientTagMask != 0x00)
+	{
+		TagContainer->SetClientWindowTagMask(ClientWindow, ClientTagMask);
+		TagContainer->SetActiveTagMask(ClientTagMask);
+	}
+}
+
+
+Dynamic_WindowManager::Rule::Effect *FindEmptyTag_Effect::Copy() const
+{
+	auto * const NewEffect = new FindEmptyTag_Effect;
+
+	NewEffect->Data = this->Data;
+
+	return NewEffect;
+}
+
+
 void Floating_Effect::Execute(ClientWindow &ClientWindow) const
 {
 	this->Data->SetClientFloating(ClientWindow, true);
@@ -80,7 +139,39 @@ void Floating_Effect::Execute(ClientWindow &ClientWindow) const
 
 Dynamic_WindowManager::Rule::Effect *Floating_Effect::Copy() const
 {
-	Floating_Effect * const NewEffect = new Floating_Effect;
+	auto * const NewEffect = new Floating_Effect;
+
+	NewEffect->Data = this->Data;
+
+	return NewEffect;
+}
+
+
+void Fullscreen_Effect::Execute(ClientWindow &ClientWindow) const
+{
+	this->Data->SetClientFullscreen(ClientWindow, true);
+}
+
+
+Dynamic_WindowManager::Rule::Effect *Fullscreen_Effect::Copy() const
+{
+	auto * const NewEffect = new Fullscreen_Effect;
+
+	NewEffect->Data = this->Data;
+
+	return NewEffect;
+}
+
+
+void Lowered_Effect::Execute(ClientWindow &ClientWindow) const
+{
+	this->Data->SetClientLowered(ClientWindow, true);
+}
+
+
+Dynamic_WindowManager::Rule::Effect *Lowered_Effect::Copy() const
+{
+	auto * const NewEffect = new Lowered_Effect;
 
 	NewEffect->Data = this->Data;
 

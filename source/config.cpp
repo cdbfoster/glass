@@ -167,7 +167,14 @@ namespace Config
 
 		// Per-client rules
 		std::vector<Dynamic_WindowManager::Rule> const ClientRules = {
+			{ { new Class_Condition("Steam") }, { new Floating_Effect } },
 
+			// Chain effects (or conditions) to deal with troublesome clients.  For instance, Awesomenauts is a
+			// wonderful game, but has a terrible Linux client that creates a giant override-redirect window
+			// instead of requesting fullscreen like a sane Linux citizen.
+			{ { new Name_Condition("Awesomenauts") }, { new FindEmptyTag_Effect, new Fullscreen_Effect, new Lowered_Effect } },
+
+			{ { new Class_Condition("Blender") }, { new Fullscreen_Effect } }
 		};
 	#endif
 }
