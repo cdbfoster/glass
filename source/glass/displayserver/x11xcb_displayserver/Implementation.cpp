@@ -68,7 +68,7 @@ std::string GetWindowName(xcb_connection_t *XConnection, xcb_window_t WindowID)
 	std::string Name;
 
 	// First check _NET_WM_NAME
-	if (xcb_get_property_reply_t *NameReply = xcb_get_property_reply(XConnection, EWMHNameCookie, NULL))
+	if (xcb_get_property_reply_t *NameReply = xcb_get_property_reply(XConnection, EWMHNameCookie, nullptr))
 	{
 		size_t Length = xcb_get_property_value_length(NameReply);
 		char *Value = (char *)xcb_get_property_value(NameReply);
@@ -82,13 +82,31 @@ std::string GetWindowName(xcb_connection_t *XConnection, xcb_window_t WindowID)
 	{
 		xcb_icccm_get_text_property_reply_t NameReply;
 
-		if (xcb_icccm_get_wm_name_reply(XConnection, ICCCMNameCookie, &NameReply, NULL))
+		if (xcb_icccm_get_wm_name_reply(XConnection, ICCCMNameCookie, &NameReply, nullptr))
 		{
 			Name = std::string(NameReply.name, NameReply.name + NameReply.name_len);
 		}
 	}
 
 	return Name;
+}
+
+
+std::string GetWindowClass(xcb_connection_t *XConnection, xcb_window_t WindowID)
+{
+	xcb_get_property_cookie_t const ClassCookie = xcb_icccm_get_wm_class_unchecked(XConnection, WindowID);
+
+	std::string Class;
+
+	xcb_icccm_get_wm_class_reply_t ClassReply;
+
+	if (xcb_icccm_get_wm_class_reply(XConnection, ClassCookie, &ClassReply, nullptr))
+	{
+		Class = std::string(ClassReply.class_name);
+		xcb_icccm_get_wm_class_reply_wipe(&ClassReply);
+	}
+
+	return Class;
 }
 
 
@@ -332,11 +350,15 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 
 	for (auto &Index : OrderedIndices)
 	{
-		// Get the client name
+		// Get the client's name
 		std::string Name = GetWindowName(this->XConnection, ManageableWindowIDs[Index]);
 
 		if (Name == "")
 			Name = "Unnamed Window";
+
+
+		// Get the client's class
+		std::string const Class = GetWindowClass(this->XConnection, ManageableWindowIDs[Index]);
 
 
 		// Get data from the geometry reply
@@ -448,7 +470,7 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 
 
 		// Create the client structure)
-		ClientWindow *NewClientWindow = new ClientWindow(Name, ClientType, Size, false, Fullscreen, Urgent, TransientForClient,
+		ClientWindow *NewClientWindow = new ClientWindow(Name, Class, ClientType, Size, false, Fullscreen, Urgent, TransientForClient,
 														 this->DisplayServer, Position, Size, Visible);
 
 

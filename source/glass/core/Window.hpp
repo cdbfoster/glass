@@ -135,22 +135,23 @@ namespace Glass
 						  UTILITY,
 						  SPLASH };
 
-		ClientWindow(std::string const &Name, Type TypeValue, Vector const &BaseSize,
+		ClientWindow(std::string const &Name, std::string const &Class, Type TypeValue, Vector const &BaseSize,
 					 bool Iconified, bool Fullscreen, bool Urgent, ClientWindow *TransientFor,
 					 Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible);
 		ClientWindow(ClientWindow const &Other) = delete;
 
 		~ClientWindow();
 
-		Type				GetType() const;
+		std::string		   GetClass() const;
+		Type			   GetType() const;
 
-		bool				GetIconified() const;
-		bool				GetFullscreen() const;
-		bool				GetUrgent() const;
+		bool			   GetIconified() const;
+		bool			   GetFullscreen() const;
+		bool			   GetUrgent() const;
 
-		Vector				GetBaseSize() const;
-		ClientWindow	   *GetTransientFor() const;
-		Glass::RootWindow  *GetRootWindow() const;
+		Vector			   GetBaseSize() const;
+		ClientWindow	  *GetTransientFor() const;
+		Glass::RootWindow *GetRootWindow() const;
 
 		void SetVisibility(bool Visible);
 
@@ -167,14 +168,16 @@ namespace Glass
 		void SetRootWindow(Glass::RootWindow *RootWindow);
 
 	private:
-		Type		TypeValue;
+		std::string const Class;
 
-		bool		Iconified;
-		bool		Fullscreen;
-		bool		Urgent;
+		Type TypeValue;
 
-		Vector const			BaseSize;
-		ClientWindow * const	TransientFor;
+		bool Iconified;
+		bool Fullscreen;
+		bool Urgent;
+
+		Vector const		 BaseSize;
+		ClientWindow * const TransientFor;
 
 		Glass::RootWindow  *RootWindow;
 	};
@@ -194,10 +197,10 @@ namespace Glass
 		~RootWindow();
 
 		locked_accessor<ClientWindowList>		GetClientWindows();
-		locked_accessor<ClientWindowList const>	GetClientWindows() const;
+		locked_accessor<ClientWindowList const> GetClientWindows() const;
 
-		ClientWindow   *GetActiveClientWindow() const;
-		void			SetActiveClientWindow(ClientWindow *ClientWindow);
+		ClientWindow *GetActiveClientWindow() const;
+		void		  SetActiveClientWindow(ClientWindow *ClientWindow);
 
 		// These operations are not allowed on root windows
 		void SetPosition(Vector const &Position);

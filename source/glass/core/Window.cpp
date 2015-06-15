@@ -299,10 +299,11 @@ void PrimaryWindow::DeleteAuxiliaryWindows()
 }
 
 
-ClientWindow::ClientWindow(std::string const &Name, Type TypeValue, Vector const &BaseSize,
+ClientWindow::ClientWindow(std::string const &Name, std::string const &Class, Type TypeValue, Vector const &BaseSize,
 						   bool Iconified, bool Fullscreen, bool Urgent, ClientWindow *TransientFor,
 						   Glass::DisplayServer &DisplayServer, Vector const &Position, Vector const &Size, bool Visible) :
 	PrimaryWindow(Name, DisplayServer, Position, Size, Visible),
+	Class(Class),
 	TypeValue(TypeValue),
 	Iconified(Iconified),
 	Fullscreen(Fullscreen),
@@ -323,7 +324,8 @@ ClientWindow::~ClientWindow()
 }
 
 
-ClientWindow::Type	ClientWindow::GetType() const	{ return this->TypeValue; }
+std::string		   ClientWindow::GetClass() const { return this->Class; }
+ClientWindow::Type ClientWindow::GetType() const  { return this->TypeValue; }
 
 
 bool ClientWindow::GetIconified() const
