@@ -63,14 +63,12 @@ std::string GetWindowName(xcb_connection_t *XConnection, xcb_window_t WindowID)
 	xcb_get_property_cookie_t const EWMHNameCookie = xcb_get_property_unchecked(XConnection, false, WindowID,
 																				Atoms::_NET_WM_NAME, Atoms::UTF8_STRING, 0, -1);
 
-	xcb_get_property_cookie_t const ICCCMNameCookie = xcb_get_property_unchecked(XConnection, false, WindowID,
-																				 Atoms::WM_NAME, Atoms::STRING, 0, -1);
+	xcb_get_property_cookie_t const ICCCMNameCookie = xcb_icccm_get_wm_name_unchecked(XConnection, WindowID);
 
 	std::string Name;
-	xcb_get_property_reply_t *NameReply;
 
 	// First check _NET_WM_NAME
-	if ((NameReply = xcb_get_property_reply(XConnection, EWMHNameCookie, NULL)))
+	if (xcb_get_property_reply_t *NameReply = xcb_get_property_reply(XConnection, EWMHNameCookie, NULL))
 	{
 		size_t Length = xcb_get_property_value_length(NameReply);
 		char *Value = (char *)xcb_get_property_value(NameReply);
@@ -80,13 +78,14 @@ std::string GetWindowName(xcb_connection_t *XConnection, xcb_window_t WindowID)
 	}
 
 	// If nothing, check WM_NAME
-	if (Name == "" && (NameReply = xcb_get_property_reply(XConnection, ICCCMNameCookie, NULL)))
+	if (Name == "")
 	{
-		size_t Length = xcb_get_property_value_length(NameReply);
-		char *Value = (char *)xcb_get_property_value(NameReply);
+		xcb_icccm_get_text_property_reply_t NameReply;
 
-		Name = std::string(Value, Value + Length);
-		free(NameReply);
+		if (xcb_icccm_get_wm_name_reply(XConnection, ICCCMNameCookie, &NameReply, NULL))
+		{
+			Name = std::string(NameReply.name, NameReply.name + NameReply.name_len);
+		}
 	}
 
 	return Name;
