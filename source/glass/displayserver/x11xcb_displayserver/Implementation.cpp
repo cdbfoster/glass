@@ -437,6 +437,12 @@ ClientWindowList X11XCB_DisplayServer::Implementation::CreateClientWindows(Windo
 		xcb_configure_window(this->XConnection, ClientWindowID, ConfigureMask, ConfigureValues);
 
 
+		// Initialize WM_STATE.  xprop doesn't work without it, for some weird reason...
+		uint32_t StateValues[] = { XCB_ICCCM_WM_STATE_NORMAL, XCB_NONE };
+		xcb_change_property(this->XConnection, XCB_PROP_MODE_REPLACE, ClientWindowID,
+							Atoms::WM_STATE, Atoms::WM_STATE, 32, 2, StateValues);
+
+
 		// XXX Add to EWMH client list
 
 		xcb_change_save_set(this->XConnection, XCB_SET_MODE_INSERT, ClientWindowID);
