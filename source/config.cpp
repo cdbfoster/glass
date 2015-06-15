@@ -137,7 +137,7 @@ namespace Config
 
 		// Window layouts - Leave the list empty to use a dummy layout
 		std::vector<creator<WindowLayout, Vector const &, Vector const &>::pointer> const WindowLayouts = {
-			creator<WindowLayout>::impl<BSP_WindowLayout>::create,
+			creator<WindowLayout>::impl<BSP_WindowLayout>::create
 		};
 
 		#ifdef GLASS_WINDOWLAYOUT_BSP_WINDOWLAYOUT
@@ -162,6 +162,12 @@ namespace Config
 			"7",
 			"8",
 			"9"
+		};
+
+
+		// Per-client rules
+		std::vector<Dynamic_WindowManager::Rule> const ClientRules = {
+
 		};
 	#endif
 }

@@ -256,6 +256,9 @@ void Dynamic_WindowManager::Implementation::EventHandler::Handle(Event const *Ev
 			if (EventCast->ClientWindow.GetFullscreen())
 				this->Owner.SetClientFullscreen(EventCast->ClientWindow, true);
 
+			for (auto &Rule : Config::ClientRules)
+				Rule.Apply(EventCast->ClientWindow);
+
 			this->Owner.RefreshStackingOrder();
 		}
 		break;

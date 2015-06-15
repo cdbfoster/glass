@@ -46,7 +46,12 @@ namespace Glass
 	private:
 		struct Implementation;
 		Implementation *Data;
+
+	public:
+		struct Rule;
 	};
 }
+
+#include "glass/windowmanager/dynamic_windowmanager/Rule.hpp"
 
 #endif

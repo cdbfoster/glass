@@ -28,6 +28,10 @@ Dynamic_WindowManager::Dynamic_WindowManager(Glass::DisplayServer &DisplayServer
 	WindowManager(DisplayServer, IncomingEventQueue),
 	Data(new Implementation(*this))
 {
+	// Initialize per-client rules
+	for (auto &Rule : Config::ClientRules)
+		Rule.SetData(this->Data);
+
 	// Create event handler
 	this->Data->Handler = new Implementation::EventHandler(*this->Data);
 

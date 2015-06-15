@@ -19,6 +19,7 @@ set(dynamic_windowmanager_include
 	dynamic_windowmanager/ClientData.hpp
 	dynamic_windowmanager/EventHandler.hpp
 	dynamic_windowmanager/Implementation.hpp
+	dynamic_windowmanager/Rule.hpp
 	dynamic_windowmanager/TagManager.hpp
 )
 
@@ -26,6 +27,7 @@ set(dynamic_windowmanager_source
 	dynamic_windowmanager/ClientData.cpp
 	dynamic_windowmanager/EventHandler.cpp
 	dynamic_windowmanager/Implementation.cpp
+	dynamic_windowmanager/Rule.cpp
 	dynamic_windowmanager/TagManager.cpp
 )
 

@@ -88,6 +88,8 @@ namespace Config
 		#endif
 
 		extern std::vector<std::string> const TagNames;
+
+		extern std::vector<Dynamic_WindowManager::Rule> const ClientRules;
 	#endif
 }
 
