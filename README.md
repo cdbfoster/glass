@@ -38,7 +38,7 @@ The easiest way to use Glass is to add `exec glass-wm` to `~/.xinitrc`.  This as
 
 If using the `Default_WindowDecorator` implementation, the text in the bottom left-hand corner of the screen (defaults to "Glass") is read from the root window's name, which can be set using `xsetroot -name "<name here>"`.
 
-By default, the `Default_WindowDecorator` implementation provides transparent decorations.  Use a compositor like `xcompmgr` to render them properly.
+By default, the `Default_WindowDecorator` implementation provides semi-transparent decorations.  Use a compositor like `xcompmgr` to render them properly.
 
 ### Key Bindings
 Key bindings are configured in `source/config.hpp`.  The defaults are listed below:
