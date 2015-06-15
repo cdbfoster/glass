@@ -20,6 +20,7 @@ set(include
 )
 
 set(source
+	config.cpp
 )
 
 add_subdirectory(glass)
