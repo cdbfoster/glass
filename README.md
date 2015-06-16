@@ -11,7 +11,7 @@ Check out the source by cloning the repository:
 The source was written using a tab width of 4.
 
 ## Configuration
-Glass is configured by editing the source itself.  Many common options including key bindings, window decoration settings, interface fonts, and layout selection are present in `source/config.hpp`.
+Glass is configured by editing the source itself.  Many common options including key bindings, window decoration settings, interface fonts, and layout selection are present in `source/config.cpp`.
 
 ## Building
 Glass uses CMake as its build system.  It uses C++11, and its library dependencies are listed in the root `CMakeLists.txt`.  Instructions for individual distributions are below.
@@ -41,7 +41,7 @@ If using the `Default_WindowDecorator` implementation, the text in the bottom le
 By default, the `Default_WindowDecorator` implementation provides semi-transparent decorations.  Use a compositor like `xcompmgr` to render them properly.
 
 ### Key Bindings
-Key bindings are configured in `source/config.hpp`.  The defaults are listed below:
+Key bindings are configured in `source/config.cpp`.  The defaults are listed below:
 
 #### Window Actions
 Action | Key
