@@ -165,18 +165,10 @@ namespace Config
 		};
 
 
-		// Per-client rules - Chain effects (or conditions) to deal with certain (troublesome) clients.  For instance,
-		// Awesomenauts is a wonderful game, but has a terrible Linux client that creates a giant override-redirect
-		// window instead of requesting fullscreen like a sane Linux citizen.
+		// Per-client rules - Chain effects (or conditions) to deal with certain (troublesome) clients.
 		// Available conditions and effects can be found in glass/windowmanager/dynamic_windowmanager/Rule.hpp.
 		std::vector<Dynamic_WindowManager::Rule> const ClientRules = {
-			{ { new Class_Condition("Steam") },		  { new Floating_Effect(true) } },
-
-			{ { new Name_Condition("Awesomenauts") }, { new FindEmptyTag_Effect,
-														new Fullscreen_Effect(true),
-														new Lowered_Effect(true) } },
-
-			{ { new Class_Condition("Blender") },	  { new Fullscreen_Effect(true) } }
+			{ { new Class_Condition("Steam") }, { new Floating_Effect(true) } }
 		};
 	#endif
 }
