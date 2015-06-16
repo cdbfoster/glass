@@ -133,13 +133,13 @@ Dynamic_WindowManager::Rule::Effect *FindEmptyTag_Effect::Copy() const
 
 void Floating_Effect::Execute(ClientWindow &ClientWindow) const
 {
-	this->Data->SetClientFloating(ClientWindow, true);
+	this->Data->SetClientFloating(ClientWindow, this->Value);
 }
 
 
 Dynamic_WindowManager::Rule::Effect *Floating_Effect::Copy() const
 {
-	auto * const NewEffect = new Floating_Effect;
+	auto * const NewEffect = new Floating_Effect(this->Value);
 
 	NewEffect->Data = this->Data;
 
@@ -149,13 +149,13 @@ Dynamic_WindowManager::Rule::Effect *Floating_Effect::Copy() const
 
 void Fullscreen_Effect::Execute(ClientWindow &ClientWindow) const
 {
-	this->Data->SetClientFullscreen(ClientWindow, true);
+	this->Data->SetClientFullscreen(ClientWindow, this->Value);
 }
 
 
 Dynamic_WindowManager::Rule::Effect *Fullscreen_Effect::Copy() const
 {
-	auto * const NewEffect = new Fullscreen_Effect;
+	auto * const NewEffect = new Fullscreen_Effect(this->Value);
 
 	NewEffect->Data = this->Data;
 
@@ -165,13 +165,65 @@ Dynamic_WindowManager::Rule::Effect *Fullscreen_Effect::Copy() const
 
 void Lowered_Effect::Execute(ClientWindow &ClientWindow) const
 {
-	this->Data->SetClientLowered(ClientWindow, true);
+	this->Data->SetClientLowered(ClientWindow, this->Value);
 }
 
 
 Dynamic_WindowManager::Rule::Effect *Lowered_Effect::Copy() const
 {
-	auto * const NewEffect = new Lowered_Effect;
+	auto * const NewEffect = new Lowered_Effect(this->Value);
+
+	NewEffect->Data = this->Data;
+
+	return NewEffect;
+}
+
+
+void Raised_Effect::Execute(ClientWindow &ClientWindow) const
+{
+	this->Data->SetClientRaised(ClientWindow, this->Value);
+}
+
+
+Dynamic_WindowManager::Rule::Effect *Raised_Effect::Copy() const
+{
+	auto * const NewEffect = new Raised_Effect(this->Value);
+
+	NewEffect->Data = this->Data;
+
+	return NewEffect;
+}
+
+
+void TagMask_Effect::Execute(ClientWindow &ClientWindow) const
+{
+	auto TagContainer = this->Data->RootTags[*ClientWindow.GetRootWindow()];
+
+	auto ClientTagMask = TagContainer->GetClientWindowTagMask(ClientWindow);
+
+	if (ClientTagMask == this->Value)
+		return;
+
+	TagContainer->SetClientWindowTagMask(ClientWindow, this->Value);
+
+	if (!(this->Value & TagContainer->GetActiveTagMask()))
+	{
+		Glass::ClientWindow * const NewActiveClient = TagContainer->GetActiveTag()->GetActiveClient();
+
+		if (NewActiveClient != nullptr)
+			this->Data->ActivateClient(*NewActiveClient);
+		else
+		{
+			this->Data->ActiveClient = nullptr;
+			this->Data->ActiveRoot->SetActiveClientWindow(nullptr);
+		}
+	}
+}
+
+
+Dynamic_WindowManager::Rule::Effect *TagMask_Effect::Copy() const
+{
+	auto * const NewEffect = new TagMask_Effect(this->Value);
 
 	NewEffect->Data = this->Data;
 

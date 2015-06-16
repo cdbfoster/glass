@@ -35,6 +35,8 @@ namespace Glass
 	struct Floating_Effect;
 	struct Fullscreen_Effect;
 	struct Lowered_Effect;
+	struct Raised_Effect;
+	struct TagMask_Effect;
 
 
 	struct Dynamic_WindowManager::Rule
@@ -122,25 +124,71 @@ namespace Glass
 
 	struct Floating_Effect : public Dynamic_WindowManager::Rule::Effect
 	{
+		Floating_Effect(bool Value) : Value(Value)
+		{ }
+
 		void Execute(ClientWindow &ClientWindow) const;
 
 		Effect *Copy() const;
+
+	private:
+		bool Value;
 	};
 
 
 	struct Fullscreen_Effect : public Dynamic_WindowManager::Rule::Effect
-	{
+	{	
+		Fullscreen_Effect(bool Value) : Value(Value)
+		{ }
+
 		void Execute(ClientWindow &ClientWindow) const;
 
 		Effect *Copy() const;
+
+	private:
+		bool Value;
 	};
 
 
 	struct Lowered_Effect : public Dynamic_WindowManager::Rule::Effect
 	{
+		Lowered_Effect(bool Value) : Value(Value)
+		{ }
+
 		void Execute(ClientWindow &ClientWindow) const;
 
 		Effect *Copy() const;
+
+	private:
+		bool Value;
+	};
+
+
+	struct Raised_Effect : public Dynamic_WindowManager::Rule::Effect
+	{
+		Raised_Effect(bool Value) : Value(Value)
+		{ }
+
+		void Execute(ClientWindow &ClientWindow) const;
+
+		Effect *Copy() const;
+
+	private:
+		bool Value;
+	};
+
+
+	struct TagMask_Effect : public Dynamic_WindowManager::Rule::Effect
+	{
+		TagMask_Effect(unsigned int Value) : Value(Value)
+		{ }
+
+		void Execute(ClientWindow &ClientWindow) const;
+
+		Effect *Copy() const;
+
+	private:
+		unsigned int Value;
 	};
 }
 
